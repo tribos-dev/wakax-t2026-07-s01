@@ -1,0 +1,65 @@
+# Web Server
+server:
+  servlet:
+    context-path: /wakax-ecommerce/api
+
+# Logging
+logging:
+  level:
+    academy.wakanda: ${LOG_LEVEL:DEBUG}
+
+# Spring
+spring:
+  application:
+    name: wakax-ecommerce
+  profiles:
+    active: ${APP_PROFILE:local}
+  # Configuração do Parameter Store (Spring Cloud AWS 3.x)
+  # Para habilitar, defina a variável de ambiente: AWS_PARAMETER_STORE_IMPORT=aws-parameterstore:/wakax/
+  # Exemplo: aws-parameterstore:/wakax/
+  # Para múltiplos paths: aws-parameterstore:/config/application/;/config/wakax-ecommerce/
+  config:
+    import: ${AWS_PARAMETER_STORE_IMPORT:}
+  cloud:
+    aws:
+      parameterstore:
+        region: ${AWS_REGION:us-east-1}
+
+  # Database
+  # Valores são carregados do Parameter Store ou variáveis de ambiente
+  # Ordem de precedência: System Property (Parameter Store) > Environment Variable > Default
+  datasource:
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/wakaxdb?currentSchema=wakax}
+    username: ${DATASOURCE_USER:postgres}
+    password: ${DATASOURCE_PASS:postgres}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+# Authentication
+wakax:
+  jwt:
+    expiracao: ${JWT_TEMPO_EXPIRACAO:1440}
+    chave: ${JWT_CHAVE:123456}
+
+# Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+
+# Swagger / OpenAPI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

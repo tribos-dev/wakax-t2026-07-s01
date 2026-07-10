@@ -1,0 +1,49 @@
+package br.com.wakax.wakax_ecommerce.fornecedor.infra;
+
+import java.util.UUID;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Repository;
+
+import br.com.wakax.wakax_ecommerce.fornecedor.application.repository.FornecedorRepository;
+import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
+
+@Repository
+@RequiredArgsConstructor
+@Log4j2
+public class FornecedorInfraRepository implements FornecedorRepository {
+
+  private final FornecedorJPARepository fornecedorJPARepository;
+
+  @Override
+  public Fornecedor salva(Fornecedor fornecedor) {
+    log.debug("[start] FornecedorInfraRepository - salva");
+    boolean jaExiste = fornecedorJPARepository.existsByDocumento(fornecedor.getDocumento());
+    if (jaExiste) {
+      log.error("Fornecedor duplicado: {}", fornecedor.getDocumento());
+      throw new APIException(
+          HttpStatus.CONFLICT, ErrorCode.FORNECEDOR_DUPLICADO, fornecedor.getDocumento());
+    }
+    fornecedorJPARepository.save(fornecedor);
+    log.debug("[finish] FornecedorInfraRepository - salva");
+    return fornecedor;
+  }
+
+  @Override
+  public Fornecedor buscaFornecedorPorId(UUID id) {
+    log.debug("[start] FornecedorInfraRepository - buscaPorId");
+    Fornecedor fornecedor =
+        fornecedorJPARepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new APIException(
+                        HttpStatus.NOT_FOUND, ErrorCode.FORNECEDOR_NAO_ENCONTRADO, id));
+    log.debug("[finish] FornecedorInfraRepository - buscaPorId");
+    return fornecedor;
+  }
+}

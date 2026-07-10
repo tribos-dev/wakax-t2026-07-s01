@@ -1,0 +1,193 @@
+package br.com.wakax.wakax_ecommerce.produto.application.service;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.stubbing.Answer;
+
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
+import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
+
+@ExtendWith(MockitoExtension.class)
+class ProdutoApplicationServiceTest {
+
+  @Mock private ProdutoRepository produtoRepository;
+
+  @InjectMocks private ProdutoApplicationService produtoApplicationService;
+
+  private ProdutoRequest produtoRequest;
+  private Produto produto;
+  private UUID produtoId;
+
+  @BeforeEach
+  void setUp() {
+    produtoId = UUID.randomUUID();
+
+    produtoRequest =
+        ProdutoRequest.builder()
+            .descricao("Produto Teste")
+            .pesoLiquido(new BigDecimal("1.5"))
+            .pesoBruto(new BigDecimal("2.0"))
+            .descricaoComplementar("Descrição complementar do produto")
+            .preco(new BigDecimal("29.99"))
+            .grupo("Eletrônicos")
+            .unidade("UN")
+            .estoqueMinimo(10)
+            .estoqueMaximo(100)
+            .precos(Collections.emptyList())
+            .build();
+  }
+
+  private void mockProdutoRepositorySalvaComId() {
+    when(produtoRepository.salva(any(Produto.class)))
+        .thenAnswer(
+            (Answer<Produto>)
+                invocation -> {
+                  Produto p = invocation.getArgument(0);
+                  p.setId(produtoId);
+                  return p;
+                });
+  }
+
+  @Test
+  void deveCadastrarProdutoComSucesso() {
+    mockProdutoRepositorySalvaComId();
+    ProdutoResponse response = produtoApplicationService.cadastraProduto(produtoRequest);
+    assertNotNull(response);
+    assertEquals(produtoId, response.getIdProduto());
+    assertEquals(produtoRequest.getDescricao(), response.getDescricao());
+    verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoProdutoDuplicado() {
+    when(produtoRepository.salva(any(Produto.class)))
+        .thenThrow(
+            new APIException(
+                org.springframework.http.HttpStatus.CONFLICT,
+                ErrorCode.PRODUTO_DUPLICADO,
+                produtoRequest.getDescricao()));
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> {
+              produtoApplicationService.cadastraProduto(produtoRequest);
+            });
+
+    assertEquals(ErrorCode.PRODUTO_DUPLICADO, exception.getErrorCode());
+    assertEquals(produtoRequest.getDescricao(), exception.getArgs()[0]);
+    verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveBuscarProdutoPorIdComSucesso() {
+    Produto produto = new Produto(produtoRequest);
+    produto.setId(produtoId);
+    when(produtoRepository.buscaProdutoPorId(produtoId)).thenReturn(produto);
+
+    ProdutoListResponse response = produtoApplicationService.buscaProdutoPorId(produtoId);
+
+    assertNotNull(response);
+    assertEquals(produtoId, response.getIdProduto());
+    assertEquals(produtoRequest.getDescricao(), response.getDescricao());
+    assertEquals(StatusProduto.ATIVO, response.getStatus());
+    assertEquals(produtoRequest.getPesoLiquido(), response.getPesoLiquido());
+    assertEquals(produtoRequest.getPesoBruto(), response.getPesoBruto());
+    assertEquals(produtoRequest.getDescricaoComplementar(), response.getDescricaoComplementar());
+    assertEquals(produtoRequest.getGrupo(), response.getGrupo());
+    assertEquals(produtoRequest.getUnidade(), response.getUnidade());
+    assertEquals(produtoRequest.getEstoqueMinimo(), response.getEstoqueMinimo());
+    assertEquals(produtoRequest.getEstoqueMaximo(), response.getEstoqueMaximo());
+    verify(produtoRepository, times(1)).buscaProdutoPorId(produtoId);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoProdutoNaoEncontrado() {
+    when(produtoRepository.buscaProdutoPorId(produtoId))
+        .thenThrow(
+            new APIException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                ErrorCode.PRODUTO_NAO_ENCONTRADO,
+                produtoId));
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> {
+              produtoApplicationService.buscaProdutoPorId(produtoId);
+            });
+
+    assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(produtoId, exception.getArgs()[0]);
+    verify(produtoRepository, times(1)).buscaProdutoPorId(produtoId);
+  }
+
+  @Test
+  void deveCriarProdutoComPrecoCorreto() {
+    mockProdutoRepositorySalvaComId();
+    ProdutoResponse response = produtoApplicationService.cadastraProduto(produtoRequest);
+    assertNotNull(response);
+    assertEquals(produtoId, response.getIdProduto());
+    assertEquals(produtoRequest.getDescricao(), response.getDescricao());
+    verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveCadastrarProdutoComCamposOpcionaisNulos() {
+    ProdutoRequest requestComCamposNulos =
+        ProdutoRequest.builder()
+            .descricao("Produto Mínimo")
+            .pesoLiquido(new BigDecimal("1.0"))
+            .pesoBruto(new BigDecimal("1.5"))
+            .preco(new BigDecimal("19.99"))
+            .precos(Collections.emptyList())
+            .build();
+
+    mockProdutoRepositorySalvaComId();
+    ProdutoResponse response = produtoApplicationService.cadastraProduto(requestComCamposNulos);
+
+    assertNotNull(response);
+    assertEquals(produtoId, response.getIdProduto());
+    assertEquals(requestComCamposNulos.getDescricao(), response.getDescricao());
+    verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveCadastrarProdutoComListaDePrecosNula() {
+    ProdutoRequest requestComPrecosNulos =
+        ProdutoRequest.builder()
+            .descricao("Produto sem Preços")
+            .pesoLiquido(new BigDecimal("1.0"))
+            .pesoBruto(new BigDecimal("1.5"))
+            .preco(new BigDecimal("19.99"))
+            .precos(null)
+            .build();
+
+    mockProdutoRepositorySalvaComId();
+
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          produtoApplicationService.cadastraProduto(requestComPrecosNulos);
+        });
+
+    verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+}

@@ -1,0 +1,7 @@
+spring:
+  config:
+    import: ""
+  cloud:
+    aws:
+      parameterstore:
+        enabled: false

@@ -1,0 +1,22 @@
+package br.com.wakax.wakax_ecommerce.pagamento.application.api;
+
+import java.util.UUID;
+
+import javax.validation.Valid;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+
+@RestController
+@RequestMapping("/pagamento")
+public interface PagamentoAPI {
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  PagamentoResponse processaPagamento(@Valid @RequestBody PagamentoRequest novoPagamento);
+
+  @GetMapping("/{idPagamento}")
+  PagamentoResponse buscaPagamentoPorId(@PathVariable UUID idPagamento);
+}

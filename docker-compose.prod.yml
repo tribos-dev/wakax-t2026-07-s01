@@ -1,0 +1,22 @@
+# ATENÇÃO!
+# Este arquivo é essencial para o deploy da aplicação,
+# qualquer alteração feita aqui irá impactar diretamente no funcionamento do CI/CD e da aplicação em produção.
+services:
+  wakax:
+    container_name: wakax
+    image: ghcr.io/${IMAGE_NAME}:latest
+    ports:
+      - "${WAKAX_PORT}:8080"
+    environment:
+      - AWS_REGION=${AWS_REGION}
+      - ENVIRONMENT=${ENVIRONMENT:-prod}
+      - AWS_PARAMETER_STORE_IMPORT=aws-parameterstore:/${ENVIRONMENT:-prod}/wakax/
+      - APP_PROFILE=${APP_PROFILE:-${ENVIRONMENT:-prod}}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "${HEALTH_URL}"]
+      start_period: 60s
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      disable: false
+    restart: unless-stopped

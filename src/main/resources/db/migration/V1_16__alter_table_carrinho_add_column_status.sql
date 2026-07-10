@@ -1,0 +1,1 @@
+ALTER TABLE carrinho ADD COLUMN status_carrinho VARCHAR(20) NOT NULL;

@@ -1,0 +1,362 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Docker
+
+on:
+  push:
+    branches: [ "develop" ]
+    # Publish semver tags as releases.
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "develop" ]
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+    env:
+      # Healthcheck URL for the application
+      HEALTH_URL_LOCAL: ${{ vars.HEALTH_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          push: false
+          tags: latest
+          cache-from: type=gha
+          load: true
+
+      - name: Run dev compose and application image
+        run: |
+          docker compose -f docker-compose.dev.yml up -d --wait --wait-timeout 240
+          IMAGE=latest
+          echo "Using image: $IMAGE"
+          docker run -d \
+          --name tmp-check \
+          --network wakax_default \
+          -e HEALTH_URL=${{ env.HEALTH_URL_LOCAL }} \
+          -e APP_PROFILE=local \
+          -e DATASOURCE_URL="jdbc:postgresql://postgres_container:5432/wakaxdb?currentSchema=wakax" \
+          -p 8080:8080 \
+          "$IMAGE"
+
+      - name: Local Healthcheck
+        run: |
+          for i in {1..48}; do # 48*5 s = 240 s
+            status=$(docker inspect -f '{{.State.Health.Status}}' tmp-check 2>/dev/null || echo "unknown")
+            echo "Health status: $status"
+            if [ "$status" = "healthy" ]; then
+              echo "Container healthy in $((i*5)) s"
+              break
+            elif [ "$status" = "unhealthy" ]; then
+              echo "Healthcheck marked as unhealthy"
+              docker logs tmp-check; exit 1
+            fi
+            sleep 5
+          done
+          curl --fail ${{ env.HEALTH_URL_LOCAL }}
+          docker logs tmp-check
+
+      - name: Remove containers
+        run: |
+          docker stop tmp-check && docker rm tmp-check
+          docker compose -f docker-compose.dev.yml down
+
+
+  push:
+    runs-on: ubuntu-latest
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute version
+        id: ver
+        run: echo "VERSION=$(date +'%Y.%m.%d.%H%M')" >> $GITHUB_ENV
+
+      # Extract metadata (tags, labels) for Docker - same as in build job
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # 1) latest
+            type=raw,value=latest               # latest
+            # 2) CalVer release vYYYY.mm.dd.HHMM
+            type=raw,value=${{ env.VERSION }}   # 2025.06.12.1543
+            # 3) Branch
+            type=ref,event=branch               # dev, feature-foo
+            # 4) Pull-request
+            type=ref,event=pr                   # pr-123
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Push Docker image
+        id: push
+        if: success()
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ push ]
+    environment: prod
+    if: github.event_name != 'pull_request' && success()
+    env:
+      # Port for Wakanda AI application
+      WAKAX_PORT: ${{ vars.WAKAX_PORT }}
+      # AWS Configuration
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      # Environment prefix for Parameter Store (dev, staging, prod)
+      ENVIRONMENT: ${{ vars.ENVIRONMENT }}
+      # Parameter Store path - será construído dinamicamente com o prefixo do ambiente
+      AWS_PARAMETER_STORE_IMPORT: aws-parameterstore:/${{ vars.ENVIRONMENT }}/wakax/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "./docker-compose.prod.yml"
+          target: "~/actions-runner"
+
+      - name: Deploy to production EC2
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            
+            cd ~/actions-runner
+            
+            # Criar arquivo .env com as variáveis necessárias
+            # O docker compose lê automaticamente variáveis de um arquivo .env
+            cat > .env << EOF
+            IMAGE_NAME=${{ env.IMAGE_NAME }}
+            WAKAX_PORT=${{ env.WAKAX_PORT }}
+            HEALTH_URL=${{ vars.HEALTH_URL }}
+            AWS_REGION=${{ env.AWS_REGION }}
+            ENVIRONMENT=${{ env.ENVIRONMENT }}
+            AWS_PARAMETER_STORE_IMPORT=${{ env.AWS_PARAMETER_STORE_IMPORT }}
+            APP_PROFILE=${{ env.ENVIRONMENT }}
+            EOF
+            
+            echo "Environment variables from .env:"
+            cat .env
+            
+            echo "Logging into GHCR"
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+            # Salvar a imagem atual antes do deploy (backup para rollback)
+            echo "Saving current image for potential rollback"
+            CURRENT_IMAGE=$(docker inspect wakax --format='{{.Config.Image}}' 2>/dev/null || echo "")
+            BACKUP_IMAGE_ID=""
+            BACKUP_TAG=""
+            
+            if [ -n "$CURRENT_IMAGE" ]; then
+              echo "Current image: $CURRENT_IMAGE"
+              BACKUP_IMAGE_ID=$(docker inspect "$CURRENT_IMAGE" --format='{{.Id}}' 2>/dev/null || echo "")
+              if [ -n "$BACKUP_IMAGE_ID" ]; then
+                BACKUP_TAG="backup-$(date +%Y%m%d-%H%M%S)"
+                docker tag "$BACKUP_IMAGE_ID" "ghcr.io/${{ env.IMAGE_NAME }}:$BACKUP_TAG" 2>/dev/null || echo "Could not tag current image"
+                echo "Backup image saved with tag: $BACKUP_TAG (ID: ${BACKUP_IMAGE_ID:0:12})"
+              else
+                echo "Could not get image ID, rollback may not be possible"
+              fi
+            else
+              echo "No existing container found, this appears to be a fresh deployment"
+            fi
+
+            # Salvar informações de backup em arquivo para uso no step de healthcheck
+            cat > /tmp/deploy_backup_info << EOF
+            CURRENT_IMAGE=$CURRENT_IMAGE
+            BACKUP_IMAGE_ID=$BACKUP_IMAGE_ID
+            BACKUP_TAG=$BACKUP_TAG
+            EOF
+
+            echo "Downloading the new image"
+            docker compose -f docker-compose.prod.yml pull
+            
+            echo "Bringing up the stack"
+            docker compose -f docker-compose.prod.yml up -d --remove-orphans 
+            docker logs wakax
+
+
+      - name: Deploy Healthcheck
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            
+            cd ~/actions-runner
+            
+            # Carregar informações de backup do step anterior
+            if [ -f /tmp/deploy_backup_info ]; then
+              source /tmp/deploy_backup_info
+              echo "Loaded backup info:"
+              echo "  CURRENT_IMAGE: $CURRENT_IMAGE"
+              echo "  BACKUP_TAG: $BACKUP_TAG"
+              echo "  BACKUP_IMAGE_ID: ${BACKUP_IMAGE_ID:0:12}..."
+            else
+              echo "WARNING: Backup info file not found"
+              CURRENT_IMAGE=""
+              BACKUP_TAG=""
+              BACKUP_IMAGE_ID=""
+            fi
+            
+            # Verificar healthcheck do container
+            echo "Waiting for container healthcheck to pass..."
+            MAX_WAIT=300  # 5 minutos máximo
+            WAIT_INTERVAL=10  # Verificar a cada 10 segundos
+            ELAPSED=0
+            HEALTHY=false
+            
+            while [ $ELAPSED -lt $MAX_WAIT ]; do
+              # Verificar se o container existe
+              if ! docker ps -a --format '{{.Names}}' | grep -q "^wakax$"; then
+                echo "ERROR: Container wakax not found!"
+                HEALTHY=false
+                break
+              fi
+              
+              # Verificar status do healthcheck
+              HEALTH_STATUS=$(docker inspect wakax --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+              echo "Health status: $HEALTH_STATUS (elapsed: ${ELAPSED}s)"
+              
+              if [ "$HEALTH_STATUS" = "healthy" ]; then
+                echo "Container is healthy!"
+                HEALTHY=true
+                break
+              elif [ "$HEALTH_STATUS" = "unhealthy" ]; then
+                echo "Container is unhealthy!"
+                docker logs wakax
+                HEALTHY=false
+                break
+              fi
+              
+              sleep $WAIT_INTERVAL
+              ELAPSED=$((ELAPSED + WAIT_INTERVAL))
+            done
+            
+            # Se o healthcheck falhou, fazer rollback
+            if [ "$HEALTHY" != "true" ]; then
+              echo "=========================================="
+              echo "HEALTHCHECK FAILED"
+              echo "=========================================="
+              
+              ROLLBACK_ATTEMPTED=false
+              
+              if [ -n "$BACKUP_TAG" ] && [ -n "$CURRENT_IMAGE" ]; then
+                echo "Initiating rollback to previous image..."
+                echo "Rolling back to: $CURRENT_IMAGE"
+                echo "Using backup tag: $BACKUP_TAG"
+                ROLLBACK_ATTEMPTED=true
+
+                docker tag "ghcr.io/${{ env.IMAGE_NAME }}:$BACKUP_TAG" "$CURRENT_IMAGE" 2>/dev/null || {
+                  echo "ERROR: Could not restore backup tag, trying with image ID"
+                  if [ -n "$BACKUP_IMAGE_ID" ]; then
+                    docker tag "$BACKUP_IMAGE_ID" "$CURRENT_IMAGE" 2>/dev/null || echo "ERROR: Could not restore using image ID either"
+                  fi
+                }
+                
+                # Fazer rollback do container
+                echo "Restarting container with previous image..."
+                docker compose -f docker-compose.prod.yml up -d --remove-orphans --wait --wait-timeout 240
+                
+                echo "Waiting for rollback container to stabilize..."
+                sleep 60
+
+                echo "Container logs after rollback:"
+                docker logs wakax --tail 50
+                
+                # Verificar se o rollback foi bem-sucedido
+                ROLLBACK_HEALTH=$(docker inspect wakax --format='{{.State.Health.Status}}' 2>/dev/null || echo "unknown")
+                echo "Rollback container health status: $ROLLBACK_HEALTH"
+                
+                echo "=========================================="
+                echo "ROLLBACK COMPLETED - PIPELINE FAILING"
+                echo "=========================================="
+              else
+                echo "WARNING: No backup image available for rollback"
+                echo "Container may be in an inconsistent state"
+                echo "Unable to perform rollback - this appears to be a fresh deployment"
+                
+                echo "=========================================="
+                echo "DEPLOYMENT FAILED - NO ROLLBACK POSSIBLE"
+                echo "=========================================="
+              fi
+              
+              exit 1
+            fi
+            
+            echo "Cleaning up old images"
+            docker image prune -f
+            
+            # Remover tag de backup se tudo estiver ok
+            if [ -n "$BACKUP_TAG" ]; then
+              docker rmi "ghcr.io/${{ env.IMAGE_NAME }}:$BACKUP_TAG" 2>/dev/null || echo "Could not remove backup tag"
+            fi
+            
+            # Limpar arquivo temporário
+            rm -f /tmp/deploy_backup_info
+            
+            echo "Healthcheck passed successfully."

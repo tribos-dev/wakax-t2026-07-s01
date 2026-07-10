@@ -1,0 +1,8 @@
+# Configuração para testes - desabilita Parameter Store
+spring:
+  config:
+    import: ""
+  cloud:
+    aws:
+      parameterstore:
+        enabled: false
