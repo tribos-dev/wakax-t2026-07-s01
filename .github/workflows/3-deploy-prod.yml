@@ -1,0 +1,157 @@
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: 3 - Deploy to Production
+
+
+on:
+  workflow_dispatch:
+
+
+env:
+  # Use docker.io for Docker Hub if empty
+  REGISTRY: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  # Environment prefix for Parameter Store (dev, qa, prod)
+  ENVIRONMENT: prod
+
+
+jobs:
+  validate-branch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate manual trigger branch
+        run: |
+          if [ "${GITHUB_REF}" != "refs/heads/main" ]; then
+            echo "::error::Production deploy is only allowed from main. Current ref: ${GITHUB_REF}"
+            exit 1
+          fi
+          echo "Branch validation passed: ${GITHUB_REF}"
+
+  push:
+    needs: [ validate-branch ]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Login against a Docker registry except on PR
+      # https://github.com/docker/login-action
+      - name: Log into registry ${{ env.REGISTRY }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute version
+        id: ver
+        run: echo "VERSION=$(date +'%Y.%m.%d.%H%M')" >> $GITHUB_ENV
+
+      # Extract metadata (tags, labels) for Docker - same as in build job
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@96383f45573cb7f253c731d3b3ab81c87ef81934 # v5.0.0
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # 1) latest
+            type=raw,value=latest               # latest
+            # 2) Environment-specific latest
+            type=raw,value=prod-latest
+            # 3) CalVer release vYYYY.mm.dd.HHMM
+            type=raw,value=${{ env.VERSION }}   # 2025.06.12.1543
+            # 4) Environment-specific CalVer
+            type=raw,value=prod-${{ env.VERSION }}
+            # 5) Branch
+            type=ref,event=branch               # dev, feature-foo
+            # 6) Pull-request
+            type=ref,event=pr                   # pr-123
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Push Docker image
+        id: push
+        if: success()
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [ validate-branch, push ]
+    environment: prod
+    if: success()
+    concurrency:
+      group: deploy-prod
+      cancel-in-progress: true
+    env:
+      # Port for Wakanda AI application
+      WAKAX_PORT: ${{ vars.WAKAX_PORT }}
+      # Environment prefix for Parameter Store (dev, staging, prod)
+      ENVIRONMENT: prod
+      # Parameter Store path - será construído dinamicamente com o prefixo do ambiente
+      AWS_PARAMETER_STORE_IMPORT: aws-parameterstore:/config/wakax/prod/
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          source: "./docker-compose.prod.yml"
+          target: "~/actions-runner-prod"
+
+      - name: Deploy to production EC2
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          ENVIRONMENT: prod
+          WAKAX_PORT: ${{ env.WAKAX_PORT }}
+          HEALTH_URL: ${{ vars.HEALTH_URL }}
+          AWS_PARAMETER_STORE_IMPORT: ${{ env.AWS_PARAMETER_STORE_IMPORT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          envs: IMAGE_NAME,ENVIRONMENT,WAKAX_PORT,HEALTH_URL,AWS_PARAMETER_STORE_IMPORT,GITHUB_TOKEN,GITHUB_ACTOR
+          script_path: .github/scripts/deploy-prod.sh
+
+      - name: Healthcheck
+        uses: appleboy/ssh-action@v1
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+          ENVIRONMENT: prod
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          envs: IMAGE_NAME,ENVIRONMENT
+          script_path: .github/scripts/deploy-healthcheck.sh

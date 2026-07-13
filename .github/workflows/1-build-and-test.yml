@@ -1,0 +1,70 @@
+name: 1 - Build, Test and Local Health Check
+
+
+on:
+  pull_request:
+    branches: [ "develop", "main" ]
+
+
+jobs:
+  healthcheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+    env:
+      # Healthcheck URL for the application
+      HEALTH_URL_LOCAL: ${{ vars.HEALTH_URL }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          push: false
+          tags: latest
+          cache-from: type=gha
+          load: true
+
+      - name: Run dev compose and application image
+        run: |
+          docker compose -f docker-compose.dev.yml up -d --wait --wait-timeout 240
+          IMAGE=latest
+          echo "Using image: $IMAGE"
+          docker run -d \
+          --name tmp-check \
+          --network wakax_default \
+          -e HEALTH_URL=${{ env.HEALTH_URL_LOCAL }} \
+          -e APP_PROFILE=local \
+          -e DATASOURCE_URL="jdbc:postgresql://postgres_container:5432/wakaxdb?currentSchema=wakax" \
+          -p 8080:8080 \
+          "$IMAGE"
+
+      - name: Local Healthcheck
+        run: |
+          for i in {1..48}; do # 48*5 s = 240 s
+            status=$(docker inspect -f '{{.State.Health.Status}}' tmp-check 2>/dev/null || echo "unknown")
+            echo "Health status: $status"
+            if [ "$status" = "healthy" ]; then
+              echo "Container healthy in $((i*5)) s"
+              break
+            elif [ "$status" = "unhealthy" ]; then
+              echo "Healthcheck marked as unhealthy"
+              docker logs tmp-check; exit 1
+            fi
+            sleep 5
+          done
+          curl --fail ${{ env.HEALTH_URL_LOCAL }}
+          docker logs tmp-check
+
+      - name: Remove containers
+        run: |
+          docker stop tmp-check && docker rm tmp-check
+          docker compose -f docker-compose.dev.yml down
+
