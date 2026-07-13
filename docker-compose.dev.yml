@@ -1,6 +1,5 @@
 services:
   postgres_container:
-    # Banco de dados para desenvolvimento local do WakaX (ERP)
     image: postgres:17
     ports:
       - "5432:5432"
