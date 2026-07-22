@@ -1,8 +1,11 @@
 package br.com.wakax.wakax_ecommerce.carrinho.infra;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -50,4 +53,13 @@ public class CarrinhoInfraRepository implements CarrinhoRepository {
     log.debug("[finish] CarrinhoInfraRepository - buscaCarrinhoPorId");
     return carrinho;
   }
+
+    @Override
+    public Page<Carrinho> buscaTodosCarrinhosDoCliente(UUID idCliente, Pageable pageable) {
+        log.debug("[start] CarrinhoInfraRepository - buscaTodosCarrinhosDoCliente");
+        Page<Carrinho> carrinhos =
+                carrinhoSpringDataJPARepository.findByClienteIdOrderByDataCriacaoDesc(idCliente, pageable);
+        log.debug("[finish] CarrinhoInfraRepository - buscaTodosCarrinhosDoCliente");
+        return carrinhos;
+    }
 }
