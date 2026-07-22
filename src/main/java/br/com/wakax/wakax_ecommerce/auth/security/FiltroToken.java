@@ -89,6 +89,11 @@ public class FiltroToken extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
     String path = request.getRequestURI();
-    return path.contains("/public/") || path.contains("/swagger-ui/") || path.contains("/webhook");
+    boolean isGetProdutoAtivos =
+        "GET".equalsIgnoreCase(request.getMethod()) && path.endsWith("/produto/ativos");
+    return path.contains("/public/")
+        || path.contains("/swagger-ui/")
+        || path.contains("/webhook")
+        || isGetProdutoAtivos;
   }
 }

@@ -5,6 +5,7 @@ import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -18,11 +19,15 @@ import org.mockito.stubbing.Answer;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
+import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoApplicationServiceTest {
@@ -32,7 +37,6 @@ class ProdutoApplicationServiceTest {
   @InjectMocks private ProdutoApplicationService produtoApplicationService;
 
   private ProdutoRequest produtoRequest;
-  private Produto produto;
   private UUID produtoId;
 
   @BeforeEach
@@ -59,19 +63,22 @@ class ProdutoApplicationServiceTest {
         .thenAnswer(
             (Answer<Produto>)
                 invocation -> {
-                  Produto p = invocation.getArgument(0);
-                  p.setId(produtoId);
-                  return p;
+                  Produto produto = invocation.getArgument(0);
+                  produto.setId(produtoId);
+                  return produto;
                 });
   }
 
   @Test
   void deveCadastrarProdutoComSucesso() {
     mockProdutoRepositorySalvaComId();
+
     ProdutoResponse response = produtoApplicationService.cadastraProduto(produtoRequest);
+
     assertNotNull(response);
     assertEquals(produtoId, response.getIdProduto());
     assertEquals(produtoRequest.getDescricao(), response.getDescricao());
+
     verify(produtoRepository, times(1)).salva(any(Produto.class));
   }
 
@@ -86,13 +93,11 @@ class ProdutoApplicationServiceTest {
 
     APIException exception =
         assertThrows(
-            APIException.class,
-            () -> {
-              produtoApplicationService.cadastraProduto(produtoRequest);
-            });
+            APIException.class, () -> produtoApplicationService.cadastraProduto(produtoRequest));
 
     assertEquals(ErrorCode.PRODUTO_DUPLICADO, exception.getErrorCode());
     assertEquals(produtoRequest.getDescricao(), exception.getArgs()[0]);
+
     verify(produtoRepository, times(1)).salva(any(Produto.class));
   }
 
@@ -100,6 +105,7 @@ class ProdutoApplicationServiceTest {
   void deveBuscarProdutoPorIdComSucesso() {
     Produto produto = new Produto(produtoRequest);
     produto.setId(produtoId);
+
     when(produtoRepository.buscaProdutoPorId(produtoId)).thenReturn(produto);
 
     ProdutoListResponse response = produtoApplicationService.buscaProdutoPorId(produtoId);
@@ -115,6 +121,7 @@ class ProdutoApplicationServiceTest {
     assertEquals(produtoRequest.getUnidade(), response.getUnidade());
     assertEquals(produtoRequest.getEstoqueMinimo(), response.getEstoqueMinimo());
     assertEquals(produtoRequest.getEstoqueMaximo(), response.getEstoqueMaximo());
+
     verify(produtoRepository, times(1)).buscaProdutoPorId(produtoId);
   }
 
@@ -129,23 +136,24 @@ class ProdutoApplicationServiceTest {
 
     APIException exception =
         assertThrows(
-            APIException.class,
-            () -> {
-              produtoApplicationService.buscaProdutoPorId(produtoId);
-            });
+            APIException.class, () -> produtoApplicationService.buscaProdutoPorId(produtoId));
 
     assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErrorCode());
     assertEquals(produtoId, exception.getArgs()[0]);
+
     verify(produtoRepository, times(1)).buscaProdutoPorId(produtoId);
   }
 
   @Test
   void deveCriarProdutoComPrecoCorreto() {
     mockProdutoRepositorySalvaComId();
+
     ProdutoResponse response = produtoApplicationService.cadastraProduto(produtoRequest);
+
     assertNotNull(response);
     assertEquals(produtoId, response.getIdProduto());
     assertEquals(produtoRequest.getDescricao(), response.getDescricao());
+
     verify(produtoRepository, times(1)).salva(any(Produto.class));
   }
 
@@ -161,11 +169,13 @@ class ProdutoApplicationServiceTest {
             .build();
 
     mockProdutoRepositorySalvaComId();
+
     ProdutoResponse response = produtoApplicationService.cadastraProduto(requestComCamposNulos);
 
     assertNotNull(response);
     assertEquals(produtoId, response.getIdProduto());
     assertEquals(requestComCamposNulos.getDescricao(), response.getDescricao());
+
     verify(produtoRepository, times(1)).salva(any(Produto.class));
   }
 
@@ -184,10 +194,73 @@ class ProdutoApplicationServiceTest {
 
     assertThrows(
         NullPointerException.class,
-        () -> {
-          produtoApplicationService.cadastraProduto(requestComPrecosNulos);
-        });
+        () -> produtoApplicationService.cadastraProduto(requestComPrecosNulos));
 
     verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveListarProdutosAtivosComEstoqueDisponivel() {
+    Produto produtoAtivo = criaProdutoAtivoComPreco();
+    ProdutoDisponivel produtoDisponivel = new ProdutoDisponivel(produtoAtivo, 10);
+
+    when(produtoRepository.listaProdutosAtivosComEstoque()).thenReturn(List.of(produtoDisponivel));
+
+    List<ProdutoAtivoResponse> response = produtoApplicationService.listaProdutosAtivos();
+
+    assertNotNull(response);
+    assertEquals(1, response.size());
+
+    ProdutoAtivoResponse produtoResponse = response.get(0);
+
+    assertEquals(produtoAtivo.getId(), produtoResponse.getIdProduto());
+    assertEquals("Arroz Branco", produtoResponse.getDescricao());
+    assertEquals("Arroz branco tipo 1", produtoResponse.getDescricaoResumida());
+    assertEquals(StatusProduto.ATIVO, produtoResponse.getStatus());
+    assertEquals("Alimentos", produtoResponse.getGrupo());
+    assertEquals(0, new BigDecimal("29.90").compareTo(produtoResponse.getPreco()));
+    assertEquals(10, produtoResponse.getQuantidadeDisponivel());
+
+    verify(produtoRepository, times(1)).listaProdutosAtivosComEstoque();
+  }
+
+  @Test
+  void deveRetornarListaVaziaQuandoNaoExistiremProdutosAtivosComEstoque() {
+    when(produtoRepository.listaProdutosAtivosComEstoque()).thenReturn(Collections.emptyList());
+
+    List<ProdutoAtivoResponse> response = produtoApplicationService.listaProdutosAtivos();
+
+    assertNotNull(response);
+    assertTrue(response.isEmpty());
+
+    verify(produtoRepository, times(1)).listaProdutosAtivosComEstoque();
+  }
+
+  private Produto criaProdutoAtivoComPreco() {
+    Produto produto =
+        Produto.builder()
+            .id(UUID.randomUUID())
+            .descricao("Arroz Branco")
+            .status(StatusProduto.ATIVO)
+            .pesoLiquido(new BigDecimal("5.00"))
+            .pesoBruto(new BigDecimal("5.10"))
+            .descricaoComplementar("Arroz branco tipo 1")
+            .grupo("Alimentos")
+            .unidade("UN")
+            .estoqueMinimo(5)
+            .estoqueMaximo(100)
+            .build();
+
+    Preco preco =
+        Preco.builder()
+            .id(UUID.randomUUID())
+            .tipo(TipoPreco.PADRAO)
+            .valor(new BigDecimal("29.90"))
+            .produto(produto)
+            .build();
+
+    produto.setPrecos(List.of(preco));
+
+    return produto;
   }
 }
