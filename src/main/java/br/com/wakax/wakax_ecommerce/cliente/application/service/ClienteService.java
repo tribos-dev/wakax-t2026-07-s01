@@ -9,4 +9,6 @@ public interface ClienteService {
   ClienteResponse criaCliente(ClienteRequest clienteRequest);
 
   ClienteResponse buscaClienteEspecifico(UUID idCliente);
+
+
 }
