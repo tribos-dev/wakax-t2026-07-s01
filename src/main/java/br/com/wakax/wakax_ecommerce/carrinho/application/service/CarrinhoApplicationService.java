@@ -2,6 +2,8 @@ package br.com.wakax.wakax_ecommerce.carrinho.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,5 +62,10 @@ public class CarrinhoApplicationService implements CarrinhoService {
     Carrinho carrinho = carrinhoRepository.buscaCarrinhoPorId(idCarrinho);
     log.debug("[finish] CarrinhoApplicationService - buscaCarrinhoPorId");
     return new CarrinhoResponse(carrinho);
+  }
+
+  @Override
+  public CarrinhoListPageResponse listaCarrinhosDoCliente(UUID idCliente, Pageable pageable) {
+      return null;
   }
 }
