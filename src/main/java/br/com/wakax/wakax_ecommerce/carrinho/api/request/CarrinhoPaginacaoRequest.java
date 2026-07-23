@@ -5,7 +5,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 
 @Data
-public class PaginacaoRequest {
+public class CarrinhoPaginacaoRequest {
 
     private int page = 0;
     private int size = 20;
