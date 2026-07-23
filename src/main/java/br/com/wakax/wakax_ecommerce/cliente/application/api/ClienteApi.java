@@ -9,6 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
+import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResumoResponse;
+import br.com.wakax.wakax_ecommerce.cliente.application.api.response.PageResponse;
 
 @RestController
 @RequestMapping("/cliente")
@@ -20,4 +22,8 @@ public interface ClienteApi {
 
   @GetMapping("/{idCliente}")
   ClienteResponse buscaClienteEspecifico(@PathVariable UUID idCliente);
+
+  @GetMapping("/clientes")
+  PageResponse<ClienteResumoResponse> buscarTodosClientes(
+      @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
 }
