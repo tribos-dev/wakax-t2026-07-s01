@@ -2,6 +2,8 @@ package br.com.wakax.wakax_ecommerce.cliente.infra;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -35,5 +37,13 @@ public class ClienteInfraRepository implements ClienteRepository {
                 () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
     log.debug("[finish] ClienteInfraRepository - buscaClientePorId");
     return cliente;
+  }
+
+  @Override
+  public Page<Cliente> buscarTodos(Pageable pageable) {
+    log.debug("[start] ClienteInfraRepository - buscarTodos");
+    Page<Cliente> clientes = clienteSpringDataJpaRepository.buscarTodosClientes(pageable);
+    log.debug("[finish] ClienteInfraRepository - buscarTodos");
+    return clientes;
   }
 }
