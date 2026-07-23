@@ -14,5 +14,6 @@ public interface CarrinhoRepository {
   Carrinho salva(Carrinho carrinho);
 
   Carrinho buscaCarrinhoPorId(UUID idCarrinho);
+
   Page<Carrinho> buscaTodosCarrinhosDoCliente(UUID idCliente, Pageable pageable);
 }
