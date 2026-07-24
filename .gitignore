@@ -33,3 +33,5 @@ build/
 .vscode/
 .amazonq/
 checklist.txt
+
+docs/
