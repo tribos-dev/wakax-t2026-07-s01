@@ -8,8 +8,14 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 
+import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
+import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
+import br.com.wakax.wakax_ecommerce.carrinho.domain.StatusCarrinho;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,6 +32,10 @@ import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteReposi
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class CarrinhoApplicationServiceTest {
@@ -108,4 +118,103 @@ class CarrinhoApplicationServiceTest {
     verify(clienteRepository, times(1)).buscaClientePorId(cliente.getId());
     verify(carrinhoRepository, times(1)).buscaCarrinhoPorId(carrinho.getId());
   }
+
+    @Test
+    void deveListarCarrinhosDoClientePaginados() {
+        Cliente cliente = CarrinhoDataHelper.criaCliente();
+        Carrinho recente = CarrinhoDataHelper.criaCarrinhoModular(cliente, LocalDateTime.now(), StatusCarrinho.ATIVO);
+        Carrinho antigo = CarrinhoDataHelper.criaCarrinhoModular(
+                cliente, LocalDateTime.now().minusDays(1), StatusCarrinho.FINALIZADO);
+        CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
+        paginacaoRequest.setPage(0);
+        paginacaoRequest.setSize(20);
+        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Page<Carrinho> pagina = new PageImpl<>(List.of(recente, antigo), pageableEsperado, 2);
+
+        when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
+        when(carrinhoRepository.buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado)).thenReturn(pagina);
+
+        CarrinhoListPageResponse resposta =
+                applicationService.listaCarrinhosDoCliente(cliente.getId(), paginacaoRequest);
+
+        assertEquals(2, resposta.getCarrinhos().size());
+        assertEquals(recente.getId(), resposta.getCarrinhos().get(0).getId());
+        assertEquals(2, resposta.getTotalElementos());
+        assertEquals(0, resposta.getPaginaAtual());
+        assertEquals(true, resposta.isUltimaPagina());
+
+        verify(clienteRepository, times(1)).buscaClientePorId(cliente.getId());
+        verify(carrinhoRepository, times(1))
+                .buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado);
+    }
+
+    @Test
+    void deveRetornarPaginaVaziaQuandoClienteNaoTemCarrinhos() {
+        Cliente cliente = CarrinhoDataHelper.criaCliente();
+        CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
+        paginacaoRequest.setPage(0);
+        paginacaoRequest.setSize(20);
+        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Page<Carrinho> paginaVazia = new PageImpl<>(Collections.emptyList(), pageableEsperado, 0);
+
+        when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
+        when(carrinhoRepository.buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado))
+                .thenReturn(paginaVazia);
+
+        CarrinhoListPageResponse resposta =
+                applicationService.listaCarrinhosDoCliente(cliente.getId(), paginacaoRequest);
+
+        assertEquals(0, resposta.getCarrinhos().size());
+        assertEquals(0, resposta.getTotalElementos());
+    }
+
+    @Test
+    void deveRetornarCarrinhosComDiferentesStatus() {
+        Cliente cliente = CarrinhoDataHelper.criaCliente();
+        Carrinho ativo =
+                CarrinhoDataHelper.criaCarrinhoModular(cliente, LocalDateTime.now(), StatusCarrinho.ATIVO);
+        Carrinho finalizado =
+                CarrinhoDataHelper.criaCarrinhoModular(
+                        cliente, LocalDateTime.now().minusHours(3), StatusCarrinho.FINALIZADO);
+        CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
+        paginacaoRequest.setPage(0);
+        paginacaoRequest.setSize(20);
+        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Page<Carrinho> pagina = new PageImpl<>(List.of(ativo, finalizado), pageableEsperado, 2);
+
+        when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
+        when(carrinhoRepository.buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado))
+                .thenReturn(pagina);
+
+        CarrinhoListPageResponse resposta =
+                applicationService.listaCarrinhosDoCliente(cliente.getId(), paginacaoRequest);
+
+        assertEquals(StatusCarrinho.ATIVO, resposta.getCarrinhos().get(0).getStatusCarrinho());
+        assertEquals(StatusCarrinho.FINALIZADO, resposta.getCarrinhos().get(1).getStatusCarrinho());
+    }
+
+    @Test
+    void deveManterOrdemDeChegadaDoRepositorio() {
+        Cliente cliente = CarrinhoDataHelper.criaCliente();
+        Carrinho maisRecente =
+                CarrinhoDataHelper.criaCarrinhoModular(cliente, LocalDateTime.now(), StatusCarrinho.ATIVO);
+        Carrinho maisAntigo =
+                CarrinhoDataHelper.criaCarrinhoModular(
+                        cliente, LocalDateTime.now().minusDays(5), StatusCarrinho.FINALIZADO);
+        CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
+        paginacaoRequest.setPage(0);
+        paginacaoRequest.setSize(20);
+        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Page<Carrinho> pagina = new PageImpl<>(List.of(maisRecente, maisAntigo), pageableEsperado, 2);
+
+        when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
+        when(carrinhoRepository.buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado))
+                .thenReturn(pagina);
+
+        CarrinhoListPageResponse resposta =
+                applicationService.listaCarrinhosDoCliente(cliente.getId(), paginacaoRequest);
+
+        assertEquals(maisRecente.getId(), resposta.getCarrinhos().get(0).getId());
+        assertEquals(maisAntigo.getId(), resposta.getCarrinhos().get(1).getId());
+    }
 }

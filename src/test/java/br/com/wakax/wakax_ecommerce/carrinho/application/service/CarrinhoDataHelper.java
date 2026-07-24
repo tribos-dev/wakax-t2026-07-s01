@@ -130,4 +130,14 @@ public final class CarrinhoDataHelper {
     carrinho.getItensCarrinho().add(item);
     return carrinho;
   }
+
+    public static Carrinho criaCarrinhoModular(Cliente cliente, LocalDateTime dataCriacao, StatusCarrinho status) {
+        return Carrinho.builder()
+                .id(UUID.randomUUID())
+                .cliente(cliente)
+                .dataCriacao(dataCriacao)
+                .statusCarrinho(status)
+                .itensCarrinho(new ArrayList<>())
+                .build();
+    }
 }
