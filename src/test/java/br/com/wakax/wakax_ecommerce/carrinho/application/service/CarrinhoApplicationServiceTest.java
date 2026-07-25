@@ -32,10 +32,7 @@ import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteReposi
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class CarrinhoApplicationServiceTest {
@@ -120,41 +117,11 @@ class CarrinhoApplicationServiceTest {
   }
 
     @Test
-    void deveListarCarrinhosDoClientePaginados() {
-        Cliente cliente = CarrinhoDataHelper.criaCliente();
-        Carrinho recente = CarrinhoDataHelper.criaCarrinhoModular(cliente, LocalDateTime.now(), StatusCarrinho.ATIVO);
-        Carrinho antigo = CarrinhoDataHelper.criaCarrinhoModular(
-                cliente, LocalDateTime.now().minusDays(1), StatusCarrinho.FINALIZADO);
-        CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
-        paginacaoRequest.setPage(0);
-        paginacaoRequest.setSize(20);
-        Pageable pageableEsperado = PageRequest.of(0, 20);
-        Page<Carrinho> pagina = new PageImpl<>(List.of(recente, antigo), pageableEsperado, 2);
-
-        when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
-        when(carrinhoRepository.buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado)).thenReturn(pagina);
-
-        CarrinhoListPageResponse resposta =
-                applicationService.listaCarrinhosDoCliente(cliente.getId(), paginacaoRequest);
-
-        assertEquals(2, resposta.getCarrinhos().size());
-        assertEquals(recente.getId(), resposta.getCarrinhos().get(0).getId());
-        assertEquals(2, resposta.getTotalElementos());
-        assertEquals(0, resposta.getPaginaAtual());
-        assertEquals(true, resposta.isUltimaPagina());
-
-        verify(clienteRepository, times(1)).buscaClientePorId(cliente.getId());
-        verify(carrinhoRepository, times(1))
-                .buscaTodosCarrinhosDoCliente(cliente.getId(), pageableEsperado);
-    }
-
-    @Test
     void deveRetornarPaginaVaziaQuandoClienteNaoTemCarrinhos() {
         Cliente cliente = CarrinhoDataHelper.criaCliente();
         CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
-        paginacaoRequest.setPage(0);
-        paginacaoRequest.setSize(20);
-        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Pageable pageableEsperado =
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "dataCriacao"));
         Page<Carrinho> paginaVazia = new PageImpl<>(Collections.emptyList(), pageableEsperado, 0);
 
         when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
@@ -177,9 +144,8 @@ class CarrinhoApplicationServiceTest {
                 CarrinhoDataHelper.criaCarrinhoModular(
                         cliente, LocalDateTime.now().minusHours(3), StatusCarrinho.FINALIZADO);
         CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
-        paginacaoRequest.setPage(0);
-        paginacaoRequest.setSize(20);
-        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Pageable pageableEsperado =
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "dataCriacao"));
         Page<Carrinho> pagina = new PageImpl<>(List.of(ativo, finalizado), pageableEsperado, 2);
 
         when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);
@@ -202,9 +168,8 @@ class CarrinhoApplicationServiceTest {
                 CarrinhoDataHelper.criaCarrinhoModular(
                         cliente, LocalDateTime.now().minusDays(5), StatusCarrinho.FINALIZADO);
         CarrinhoPaginacaoRequest paginacaoRequest = new CarrinhoPaginacaoRequest();
-        paginacaoRequest.setPage(0);
-        paginacaoRequest.setSize(20);
-        Pageable pageableEsperado = PageRequest.of(0, 20);
+        Pageable pageableEsperado =
+                PageRequest.of(0, 20, Sort.by(Sort.Direction.DESC, "dataCriacao"));
         Page<Carrinho> pagina = new PageImpl<>(List.of(maisRecente, maisAntigo), pageableEsperado, 2);
 
         when(clienteRepository.buscaClientePorId(cliente.getId())).thenReturn(cliente);

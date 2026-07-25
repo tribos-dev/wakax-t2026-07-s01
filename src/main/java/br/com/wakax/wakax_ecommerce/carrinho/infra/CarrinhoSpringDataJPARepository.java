@@ -14,5 +14,5 @@ public interface CarrinhoSpringDataJPARepository extends JpaRepository<Carrinho,
 
   Carrinho findByClienteIdAndStatusCarrinho(UUID idCliente, StatusCarrinho status);
 
-  Page<Carrinho> findByClienteIdOrderByDataCriacaoDesc(UUID idCliente, Pageable pageable);
+    Page<Carrinho> findByClienteId(UUID idCliente, Pageable pageable);
 }

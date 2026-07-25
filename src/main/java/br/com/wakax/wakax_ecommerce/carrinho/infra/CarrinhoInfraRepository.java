@@ -57,8 +57,7 @@ public class CarrinhoInfraRepository implements CarrinhoRepository {
     @Override
     public Page<Carrinho> buscaTodosCarrinhosDoCliente(UUID idCliente, Pageable pageable) {
         log.debug("[start] CarrinhoInfraRepository - buscaTodosCarrinhosDoCliente");
-        Page<Carrinho> carrinhos =
-                carrinhoSpringDataJPARepository.findByClienteIdOrderByDataCriacaoDesc(idCliente, pageable);
+        Page<Carrinho> carrinhos = carrinhoSpringDataJPARepository.findByClienteId(idCliente, pageable);
         log.debug("[finish] CarrinhoInfraRepository - buscaTodosCarrinhosDoCliente");
         return carrinhos;
     }
