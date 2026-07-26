@@ -1,8 +1,16 @@
 package br.com.wakax.wakax_ecommerce.estoque.infra;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -46,5 +54,52 @@ public class EstoqueInfraRepository implements EstoqueRepository {
                 () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.ESTOQUE_NAO_ENCONTRADO));
     log.debug("[finish] EstoqueInfraRepository - buscaEstoquePorId");
     return estoque;
+  }
+
+  @Override
+  public Page<Estoque> buscaTodosEstoques(
+      Boolean quantidadeMinima, Boolean emFalta, Pageable pageable) {
+    Page<UUID> paginaIds;
+
+    if (Boolean.TRUE.equals(quantidadeMinima)) {
+      paginaIds = estoqueJPARepository.buscaIdsEstoquesComQuantidadeMinima(pageable);
+    } else if (Boolean.TRUE.equals(emFalta)) {
+      paginaIds = estoqueJPARepository.buscaIdsEstoquesEmFalta(pageable);
+    } else {
+      paginaIds = estoqueJPARepository.buscaIdsTodosEstoques(pageable);
+    }
+
+    if (paginaIds.isEmpty()) {
+      return new PageImpl<Estoque>(List.of(), pageable, paginaIds.getTotalElements());
+    }
+
+    List<UUID> ids = paginaIds.getContent();
+    Map<UUID, Integer> ordemPorId = new HashMap<>();
+    for (int i = 0; i < ids.size(); i++) {
+      ordemPorId.put(ids.get(i), i);
+    }
+
+    List<Estoque> estoques = estoqueJPARepository.buscaEstoquesComProdutoEPrecos(ids);
+    estoques.sort(Comparator.comparing(estoque -> ordemPorId.get(estoque.getId())));
+
+    return new PageImpl<>(estoques, pageable, paginaIds.getTotalElements());
+  }
+
+  @Override
+  public BigDecimal calculaValorTotalInventario(Boolean quantidadeMinima, Boolean emFalta) {
+    BigDecimal valorTotal;
+
+    if (Boolean.TRUE.equals(quantidadeMinima)) {
+      valorTotal = estoqueJPARepository.calculaValorTotalInventarioQuantidadeMinima();
+    } else if (Boolean.TRUE.equals(emFalta)) {
+      valorTotal = estoqueJPARepository.calculaValorTotalInventarioEmFalta();
+    } else {
+      valorTotal = estoqueJPARepository.calculaValorTotalInventario();
+    }
+
+    if (valorTotal == null) {
+      return BigDecimal.ZERO;
+    }
+    return valorTotal;
   }
 }
