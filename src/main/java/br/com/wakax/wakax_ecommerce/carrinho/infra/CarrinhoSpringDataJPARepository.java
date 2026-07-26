@@ -1,6 +1,5 @@
 package br.com.wakax.wakax_ecommerce.carrinho.infra;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,5 +13,5 @@ public interface CarrinhoSpringDataJPARepository extends JpaRepository<Carrinho,
 
   Carrinho findByClienteIdAndStatusCarrinho(UUID idCliente, StatusCarrinho status);
 
-    Page<Carrinho> findByClienteId(UUID idCliente, Pageable pageable);
+  Page<Carrinho> findByClienteId(UUID idCliente, Pageable pageable);
 }

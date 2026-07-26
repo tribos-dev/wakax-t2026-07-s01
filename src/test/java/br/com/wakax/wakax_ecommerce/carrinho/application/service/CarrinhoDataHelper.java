@@ -131,13 +131,14 @@ public final class CarrinhoDataHelper {
     return carrinho;
   }
 
-    public static Carrinho criaCarrinhoModular(Cliente cliente, LocalDateTime dataCriacao, StatusCarrinho status) {
-        return Carrinho.builder()
-                .id(UUID.randomUUID())
-                .cliente(cliente)
-                .dataCriacao(dataCriacao)
-                .statusCarrinho(status)
-                .itensCarrinho(new ArrayList<>())
-                .build();
-    }
+  public static Carrinho criaCarrinhoModular(
+      Cliente cliente, LocalDateTime dataCriacao, StatusCarrinho status) {
+    return Carrinho.builder()
+        .id(UUID.randomUUID())
+        .cliente(cliente)
+        .dataCriacao(dataCriacao)
+        .statusCarrinho(status)
+        .itensCarrinho(new ArrayList<>())
+        .build();
+  }
 }

@@ -9,13 +9,13 @@ import lombok.Data;
 @Data
 public class CarrinhoPaginacaoRequest {
 
-    private int page = 0;
-    private int size = 20;
-    private String sortBy = "dataCriacao";
-    private String sortDirection = "DESC";
+  private int page = 0;
+  private int size = 20;
+  private String sortBy = "dataCriacao";
+  private String sortDirection = "DESC";
 
-    public Pageable paraPageable() {
-        Sort.Direction direction = Sort.Direction.fromString(sortDirection);
-        return PageRequest.of(page, size, Sort.by(direction, sortBy));
-    }
+  public Pageable paraPageable() {
+    Sort.Direction direction = Sort.Direction.fromString(sortDirection);
+    return PageRequest.of(page, size, Sort.by(direction, sortBy));
+  }
 }

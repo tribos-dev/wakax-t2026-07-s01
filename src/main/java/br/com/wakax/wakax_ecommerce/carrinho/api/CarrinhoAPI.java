@@ -4,12 +4,12 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
-import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
-import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
 import br.com.wakax.wakax_ecommerce.carrinho.api.request.ItemCarrinhoRequest;
+import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
 import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoResponse;
 
 @RestController
@@ -26,7 +26,8 @@ public interface CarrinhoAPI {
   CarrinhoResponse buscaCarrinhoPorId(
       @PathVariable("idCliente") UUID idCliente, @PathVariable("idCarrinho") UUID idCarrinho);
 
-    @GetMapping("/{idCliente}/busca-todos")
-    CarrinhoListPageResponse listaCarrinhosDoCliente(
-            @PathVariable("idCliente") UUID idCliente, @ModelAttribute CarrinhoPaginacaoRequest carrinhoPaginacaoRequest);
+  @GetMapping("/{idCliente}/busca-todos")
+  CarrinhoListPageResponse listaCarrinhosDoCliente(
+      @PathVariable("idCliente") UUID idCliente,
+      @ModelAttribute CarrinhoPaginacaoRequest carrinhoPaginacaoRequest);
 }
