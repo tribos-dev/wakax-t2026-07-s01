@@ -18,4 +18,7 @@ public interface ProdutoAPI {
 
   @GetMapping("/{idProduto}")
   ProdutoListResponse buscaProdutoPorId(@PathVariable UUID idProduto);
+
+  @GetMapping
+  ProdutoListResponse listaProduto();
 }

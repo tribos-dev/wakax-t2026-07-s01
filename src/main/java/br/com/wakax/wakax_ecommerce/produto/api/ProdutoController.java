@@ -32,4 +32,11 @@ public class ProdutoController implements ProdutoAPI {
     log.debug("[finish] ProdutoController - buscaProdutoPorId");
     return response;
   }
+
+  @Override
+  public ProdutoListResponse listaProduto() {
+    log.debug("[start] " + getClass().getSimpleName() + " - listaProduto");
+    log.debug("[finish] " + getClass().getSimpleName() + " - listaProduto");
+    return null;
+  }
 }
