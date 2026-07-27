@@ -20,6 +20,7 @@ public enum ErrorCode {
   FORMA_PAGAMENTO_NAO_SUPORTADA("forma.pagamento.nao.suportada"),
   ESTOQUE_NAO_ENCONTRADO("estoque.nao.encontrado"),
   ESTOQUE_JA_EXISTE("estoque.ja.existe"),
+  ESTOQUE_FILTROS_MUTUAMENTE_EXCLUSIVOS("estoque.filtros.mutuamente.exclusivos"),
   QUANTIDADE_INSUFICIENTE_ESTOQUE("quantidade.insuficiente.estoque"),
   QUANTIDADE_INVALIDA("quantidade.invalida"),
   CUSTO_INVALIDO("custo.invalido"),
