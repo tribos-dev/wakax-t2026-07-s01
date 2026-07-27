@@ -45,4 +45,19 @@ public class RastreamentoApplicationService implements RastreamentoService {
                   HttpStatus.CONFLICT, ErrorCode.RASTREAMENTO_JA_EXISTE, idPedido);
             });
   }
+
+    @Override
+    @Transactional(readOnly = true)
+    public RastreamentoResponse consultaRastreamento(UUID idCliente, UUID idPedido) {
+        log.debug("[start] RastreamentoApplicationService - consultaRastreamento");
+        Rastreamento rastreamento = rastreamentoRepository.buscaRastreamentoPorPedidoId(idPedido);
+        validaPropriedadeDoCliente(idCliente, rastreamento);
+        log.debug("[finish] RastreamentoApplicationService - consultaRastreamento");
+        return new RastreamentoResponse(rastreamento);
+    }
+
+    private void validaPropriedadeDoCliente(UUID idCliente, Rastreamento rastreamento) {
+    }
+
+
 }
