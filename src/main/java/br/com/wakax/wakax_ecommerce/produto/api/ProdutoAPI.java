@@ -1,7 +1,9 @@
 package br.com.wakax.wakax_ecommerce.produto.api;
 
+import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,5 +22,5 @@ public interface ProdutoAPI {
   ProdutoListResponse buscaProdutoPorId(@PathVariable UUID idProduto);
 
   @GetMapping
-  ProdutoListResponse listaProduto();
+  List<ProdutoResumoResponse> listaProduto();
 }
