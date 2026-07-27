@@ -70,7 +70,7 @@ public class CarrinhoApplicationService implements CarrinhoService {
   @Transactional(readOnly = true)
   public CarrinhoListPageResponse listaCarrinhosDoCliente(
       UUID idCliente, CarrinhoPaginacaoRequest carrinhoPaginacaoRequest) {
-    log.info("[start] CarrinhoApplicationService - listaCarrinhosDoCliente");
+    log.debug("[start] CarrinhoApplicationService - listaCarrinhosDoCliente");
     clienteRepository.buscaClientePorId(idCliente);
     Pageable pageable = carrinhoPaginacaoRequest.paraPageable();
     Page<Carrinho> carrinhos = carrinhoRepository.buscaTodosCarrinhosDoCliente(idCliente, pageable);
