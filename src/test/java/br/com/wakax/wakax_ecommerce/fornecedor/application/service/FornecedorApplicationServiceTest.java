@@ -1,4 +1,4 @@
-package br.com.wakax.wakax_ecommerce.pessoa.application.service;
+package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,11 +20,11 @@ import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.Fornecedo
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.repository.FornecedorRepository;
-import br.com.wakax.wakax_ecommerce.fornecedor.application.service.FornecedorApplicationService;
 import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
+import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class FornecedorApplicationServiceTest {
@@ -149,5 +150,46 @@ class FornecedorApplicationServiceTest {
     assertEquals(ErrorCode.FORNECEDOR_NAO_ENCONTRADO, exception.getErrorCode());
     assertEquals(fornecedorId, exception.getArgs()[0]);
     verify(fornecedorRepository, times(1)).buscaFornecedorPorId(fornecedorId);
+  }
+
+  @Test
+  void deveListarFornecedoresPaginadosComSucesso(){
+
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
+    Fornecedor fornecedorInativo = FornecedorDataHelper.criarFornecedorInativo();
+            Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo, fornecedorInativo));
+    when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
+
+    fornecedorApplicationService.listarFornecedores(null, pageable);
+
+    assertEquals(2, fornecedores.getTotalElements());
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
+  }
+
+@Test
+void deveRetornarListaVaziaDeFornecedoresPaginados(){
+
+  Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+  Page<Fornecedor> fornecedores = new PageImpl<>(List.of());
+  when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
+
+  fornecedorApplicationService.listarFornecedores(null, pageable);
+
+  assertEquals(0, fornecedores.getTotalElements());
+  verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
+}
+  @Test
+  void deverRetornarListaDeFornecedoresAtivos(){
+
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo));
+    when(fornecedorRepository.buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable)).thenReturn(fornecedores);
+
+    fornecedorApplicationService.listarFornecedores(StatusPessoa.ATIVO, pageable);
+
+    assertEquals(1, fornecedores.getTotalElements());
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable);
   }
 }
