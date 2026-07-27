@@ -23,4 +23,9 @@ public class RastreamentoPedidoController implements RastreamentoPedidoAPI {
     log.debug("[finish] RastreamentoPedidoController - cadastraRastreamento");
     return response;
   }
+
+    @Override
+    public RastreamentoResponse consultaRastreamento(UUID idCliente, UUID idPedido) {
+        return null;
+    }
 }
