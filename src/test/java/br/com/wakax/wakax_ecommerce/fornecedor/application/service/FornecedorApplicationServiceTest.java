@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.data.domain.*;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
@@ -24,7 +24,7 @@ import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
-import org.springframework.data.domain.*;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 
 @ExtendWith(MockitoExtension.class)
 class FornecedorApplicationServiceTest {
@@ -153,12 +153,12 @@ class FornecedorApplicationServiceTest {
   }
 
   @Test
-  void deveListarFornecedoresPaginadosComSucesso(){
+  void deveListarFornecedoresPaginadosComSucesso() {
 
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
     Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
     Fornecedor fornecedorInativo = FornecedorDataHelper.criarFornecedorInativo();
-            Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo, fornecedorInativo));
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo, fornecedorInativo));
     when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
 
     fornecedorApplicationService.listarFornecedores(null, pageable);
@@ -167,25 +167,27 @@ class FornecedorApplicationServiceTest {
     verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
   }
 
-@Test
-void deveRetornarListaVaziaDeFornecedoresPaginados(){
-
-  Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
-  Page<Fornecedor> fornecedores = new PageImpl<>(List.of());
-  when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
-
-  fornecedorApplicationService.listarFornecedores(null, pageable);
-
-  assertEquals(0, fornecedores.getTotalElements());
-  verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
-}
   @Test
-  void deverRetornarListaDeFornecedoresAtivos(){
+  void deveRetornarListaVaziaDeFornecedoresPaginados() {
+
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of());
+    when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
+
+    fornecedorApplicationService.listarFornecedores(null, pageable);
+
+    assertEquals(0, fornecedores.getTotalElements());
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
+  }
+
+  @Test
+  void deverRetornarListaDeFornecedoresAtivos() {
 
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
     Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
     Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo));
-    when(fornecedorRepository.buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable)).thenReturn(fornecedores);
+    when(fornecedorRepository.buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable))
+        .thenReturn(fornecedores);
 
     fornecedorApplicationService.listarFornecedores(StatusPessoa.ATIVO, pageable);
 

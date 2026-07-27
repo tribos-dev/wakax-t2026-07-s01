@@ -4,13 +4,13 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
-import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorFiltroRequest;
-import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorFiltroRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 
 @RestController
@@ -26,5 +26,4 @@ public interface FornecedorAPI {
 
   @GetMapping
   FornecedorPageResponse listarFornecedores(@ModelAttribute FornecedorFiltroRequest filtro);
-
 }
