@@ -1,6 +1,7 @@
 package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -58,6 +59,15 @@ public class Produto {
 
   private Integer estoqueMinimo;
   private Integer estoqueMaximo;
+
+  @Column(nullable = false, name = "data_criacao")
+  @NotNull
+  private LocalDateTime dataCriacao;
+
+  @PrePersist
+  protected void onCreate() {
+    dataCriacao = LocalDateTime.now();
+  }
 
   public Produto(ProdutoRequest request) {
     this.descricao = request.getDescricao();
