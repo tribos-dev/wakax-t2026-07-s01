@@ -10,12 +10,15 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.pedido.domain.HistoricoRastreamento;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
@@ -90,4 +93,89 @@ class RastreamentoApplicationServiceTest {
     assertEquals(ErrorCode.RASTREAMENTO_JA_EXISTE, ex.getErrorCode());
     verifyNoInteractions(pedidoRepository);
   }
+
+    @Test
+    void deveConsultarRastreamentoComSucesso() {
+        UUID idCliente = UUID.randomUUID();
+        UUID idPedido = UUID.randomUUID();
+        Cliente cliente = Cliente.builder().id(idCliente).build();
+        Pedido pedido = Pedido.builder().id(idPedido).cliente(cliente).build();
+        Rastreamento rastreamento =
+                Rastreamento.builder()
+                        .id(UUID.randomUUID())
+                        .codigo("BR123")
+                        .transportadora("Correios")
+                        .statusAtual(StatusRastreamento.EM_TRANSITO)
+                        .previsaoEntrega(LocalDate.now().plusDays(3))
+                        .pedido(pedido)
+                        .eventos(
+                                List.of(
+                                        HistoricoRastreamento.builder()
+                                                .id(UUID.randomUUID())
+                                                .dataEvento(LocalDateTime.now())
+                                                .local("SP")
+                                                .descricao("Objeto postado")
+                                                .status(StatusRastreamento.CRIADO)
+                                                .build()))
+                        .build();
+
+        when(rastreamentoRepository.buscaRastreamentoPorPedidoId(idPedido)).thenReturn(rastreamento);
+
+        RastreamentoResponse response =
+                rastreamentoApplicationService.consultaRastreamento(idCliente, idPedido);
+
+        assertNotNull(response);
+        assertEquals("BR123", response.getCodigo());
+        assertEquals("Correios", response.getTransportadora());
+        assertEquals(StatusRastreamento.EM_TRANSITO, response.getStatusAtual());
+        assertEquals(1, response.getHistorico().size());
+
+        verify(rastreamentoRepository, times(1)).buscaRastreamentoPorPedidoId(idPedido);
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoPedidoNaoTemRastreamento() {
+        UUID idCliente = UUID.randomUUID();
+        UUID idPedido = UUID.randomUUID();
+
+        when(rastreamentoRepository.buscaRastreamentoPorPedidoId(idPedido))
+                .thenThrow(
+                        new APIException(HttpStatus.NOT_FOUND, ErrorCode.RASTREAMENTO_NAO_ENCONTRADO, idPedido));
+
+        APIException ex =
+                assertThrows(
+                        APIException.class,
+                        () -> rastreamentoApplicationService.consultaRastreamento(idCliente, idPedido));
+
+        assertEquals(ErrorCode.RASTREAMENTO_NAO_ENCONTRADO, ex.getErrorCode());
+    }
+
+    @Test
+    void deveLancarExcecaoQuandoPedidoNaoPertenceAoCliente() {
+        UUID idClienteDoPedido = UUID.randomUUID();
+        UUID idClienteDaConsulta = UUID.randomUUID();
+        UUID idPedido = UUID.randomUUID();
+        Cliente clienteDono = Cliente.builder().id(idClienteDoPedido).build();
+        Pedido pedido = Pedido.builder().id(idPedido).cliente(clienteDono).build();
+        Rastreamento rastreamento =
+                Rastreamento.builder()
+                        .id(UUID.randomUUID())
+                        .codigo("BR123")
+                        .transportadora("Correios")
+                        .statusAtual(StatusRastreamento.EM_TRANSITO)
+                        .pedido(pedido)
+                        .eventos(List.of())
+                        .build();
+
+        when(rastreamentoRepository.buscaRastreamentoPorPedidoId(idPedido)).thenReturn(rastreamento);
+
+        APIException ex =
+                assertThrows(
+                        APIException.class,
+                        () ->
+                                rastreamentoApplicationService.consultaRastreamento(
+                                        idClienteDaConsulta, idPedido));
+
+        assertEquals(ErrorCode.ACESSO_NEGADO, ex.getErrorCode());
+    }
 }
