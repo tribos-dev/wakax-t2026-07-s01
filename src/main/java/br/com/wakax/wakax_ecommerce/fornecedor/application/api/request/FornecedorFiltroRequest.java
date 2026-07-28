@@ -1,12 +1,12 @@
 package br.com.wakax.wakax_ecommerce.fornecedor.application.api.request;
 
-import lombok.NoArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Getter

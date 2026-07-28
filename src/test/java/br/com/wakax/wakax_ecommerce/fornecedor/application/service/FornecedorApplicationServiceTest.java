@@ -18,6 +18,7 @@ import org.springframework.data.domain.*;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.repository.FornecedorRepository;
 import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
@@ -154,44 +155,59 @@ class FornecedorApplicationServiceTest {
 
   @Test
   void deveListarFornecedoresPaginadosComSucesso() {
-
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
     Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
     Fornecedor fornecedorInativo = FornecedorDataHelper.criarFornecedorInativo();
     Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo, fornecedorInativo));
     when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
 
-    fornecedorApplicationService.listarFornecedores(null, pageable);
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(null, pageable);
 
-    assertEquals(2, fornecedores.getTotalElements());
+    assertNotNull(response);
+    assertEquals(2, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(2, response.getFornecedoresResumidos().size());
+
     verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
   }
 
   @Test
   void deveRetornarListaVaziaDeFornecedoresPaginados() {
-
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
-    Page<Fornecedor> fornecedores = new PageImpl<>(List.of());
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(), pageable, 0);
     when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
 
-    fornecedorApplicationService.listarFornecedores(null, pageable);
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(null, pageable);
 
-    assertEquals(0, fornecedores.getTotalElements());
+    assertNotNull(response);
+    assertEquals(0, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(0, response.getTotalPaginas());
+    assertTrue(response.getFornecedoresResumidos().isEmpty());
+
     verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
   }
 
   @Test
   void deverRetornarListaDeFornecedoresAtivos() {
-
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
     Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
     Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo));
     when(fornecedorRepository.buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable))
         .thenReturn(fornecedores);
 
-    fornecedorApplicationService.listarFornecedores(StatusPessoa.ATIVO, pageable);
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(StatusPessoa.ATIVO, pageable);
 
-    assertEquals(1, fornecedores.getTotalElements());
+    assertNotNull(response);
+    assertEquals(1, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(1, response.getFornecedoresResumidos().size());
+
     verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable);
   }
 }
