@@ -23,6 +23,6 @@ public class PageResponse<T> {
         page.getTotalElements(),
         page.getNumber(),
         page.getTotalPages(),
-        page.getNumberOfElements());
+        page.getTotalElements());
   }
 }
