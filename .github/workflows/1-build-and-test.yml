@@ -32,19 +32,30 @@ jobs:
           cache-from: type=gha
           load: true
 
-      - name: Run dev compose and application image
+      - name: Run dev compose
         run: |
           docker compose -f docker-compose.dev.yml up -d --wait --wait-timeout 240
+
+      - name: Show compose config
+        run: |
+          docker compose -f docker-compose.dev.yml config
+
+      - name: Show Docker networks
+        run: |
+          docker network ls
+
+      - name: Run application image
+        run: |
           IMAGE=latest
           echo "Using image: $IMAGE"
           docker run -d \
-          --name tmp-check \
-          --network wakax_default \
-          -e HEALTH_URL=${{ env.HEALTH_URL_LOCAL }} \
-          -e APP_PROFILE=local \
-          -e DATASOURCE_URL="jdbc:postgresql://postgres_container:5432/wakaxdb?currentSchema=wakax" \
-          -p 8080:8080 \
-          "$IMAGE"
+            --name tmp-check \
+            --network wakax_default \
+            -e HEALTH_URL=${{ env.HEALTH_URL_LOCAL }} \
+            -e APP_PROFILE=local \
+            -e DATASOURCE_URL="jdbc:postgresql://postgres_container:5432/wakaxdb?currentSchema=wakax" \
+            -p 8080:8080 \
+            "$IMAGE"
 
       - name: Local Healthcheck
         run: |

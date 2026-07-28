@@ -38,7 +38,7 @@ public class CarrinhoController implements CarrinhoAPI {
   @Override
   public CarrinhoListPageResponse listaCarrinhosDoCliente(
       UUID idCliente, CarrinhoPaginacaoRequest carrinhoPaginacaoRequest) {
-    log.info("[start] CarrinhoController - listaCarrinhosDoCliente");
+    log.debug("[start] CarrinhoController - listaCarrinhosDoCliente");
     CarrinhoListPageResponse carrinhos =
         carrinhoService.listaCarrinhosDoCliente(idCliente, carrinhoPaginacaoRequest);
     log.debug("[finish] CarrinhoController - listaCarrinhosDoCliente");
