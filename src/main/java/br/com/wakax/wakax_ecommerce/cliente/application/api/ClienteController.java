@@ -24,7 +24,7 @@ public class ClienteController implements ClienteApi {
 
   @Override
   public ClienteResponse cadastrarCliente(ClienteRequest clienteRequest) {
-    log.info("[start] ClienteController - cadastrarCliente");
+    log.debug("[start] ClienteController - cadastrarCliente");
     ClienteResponse clienteCriado = clienteService.criaCliente(clienteRequest);
     log.debug("[finish] ClienteController - cadastrarCliente");
     return clienteCriado;
@@ -32,7 +32,7 @@ public class ClienteController implements ClienteApi {
 
   @Override
   public ClienteResponse buscaClienteEspecifico(UUID idCliente) {
-    log.info("[start] ClienteController - buscaClienteEspecifico");
+    log.debug("[start] ClienteController - buscaClienteEspecifico");
     ClienteResponse cliente = clienteService.buscaClienteEspecifico(idCliente);
     log.debug("[finish] ClienteController - buscaClienteEspecifico");
     return cliente;

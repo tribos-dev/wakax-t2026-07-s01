@@ -21,7 +21,7 @@ public class ClienteApplicationService implements ClienteService {
 
   @Override
   public ClienteResponse criaCliente(ClienteRequest clienteRequest) {
-    log.info("[start] ClienteApplicationService - criaCliente");
+    log.debug("[start] ClienteApplicationService - criaCliente");
     Cliente clienteCriado = clienteRepository.salva(new Cliente(clienteRequest));
     log.debug("[finish] ClienteApplicationService - criaCliente");
     return new ClienteResponse(clienteCriado);
@@ -29,7 +29,7 @@ public class ClienteApplicationService implements ClienteService {
 
   @Override
   public ClienteResponse buscaClienteEspecifico(UUID idCliente) {
-    log.info("[start] ClienteApplicationService - buscaClienteEspecifico");
+    log.debug("[start] ClienteApplicationService - buscaClienteEspecifico");
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
     log.debug("[finish] ClienteApplicationService - buscaClienteEspecifico");
     return new ClienteResponse(cliente);
