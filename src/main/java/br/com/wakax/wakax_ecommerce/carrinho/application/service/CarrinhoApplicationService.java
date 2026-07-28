@@ -2,10 +2,14 @@ package br.com.wakax.wakax_ecommerce.carrinho.application.service;
 
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
 import br.com.wakax.wakax_ecommerce.carrinho.api.request.ItemCarrinhoRequest;
+import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
 import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoResponse;
 import br.com.wakax.wakax_ecommerce.carrinho.application.factory.ProcessadorEstoqueFactory;
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
@@ -60,5 +64,17 @@ public class CarrinhoApplicationService implements CarrinhoService {
     Carrinho carrinho = carrinhoRepository.buscaCarrinhoPorId(idCarrinho);
     log.debug("[finish] CarrinhoApplicationService - buscaCarrinhoPorId");
     return new CarrinhoResponse(carrinho);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public CarrinhoListPageResponse listaCarrinhosDoCliente(
+      UUID idCliente, CarrinhoPaginacaoRequest carrinhoPaginacaoRequest) {
+    log.debug("[start] CarrinhoApplicationService - listaCarrinhosDoCliente");
+    clienteRepository.buscaClientePorId(idCliente);
+    Pageable pageable = carrinhoPaginacaoRequest.paraPageable();
+    Page<Carrinho> carrinhos = carrinhoRepository.buscaTodosCarrinhosDoCliente(idCliente, pageable);
+    log.debug("[finish] CarrinhoApplicationService - listaCarrinhosDoCliente");
+    return new CarrinhoListPageResponse(carrinhos);
   }
 }

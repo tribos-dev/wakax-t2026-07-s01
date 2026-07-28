@@ -12,3 +12,7 @@ services:
 
 volumes:
   postgres_data:
+
+networks:
+  default:
+    name: wakax_default
