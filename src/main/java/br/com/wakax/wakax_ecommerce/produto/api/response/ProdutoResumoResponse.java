@@ -1,6 +1,7 @@
 package br.com.wakax.wakax_ecommerce.produto.api.response;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
@@ -12,12 +13,12 @@ public class ProdutoResumoResponse {
   private final StatusProduto status;
   private final BigDecimal preco;
 
-  // private final Date dataCadastro;
+  private final LocalDateTime dataCadastro;
 
   public ProdutoResumoResponse(Produto produto) {
     this.descricao = produto.getDescricao();
     this.status = produto.getStatus();
     this.preco = produto.getPrecoAtual();
-    // this.dataCadastro = dataCadastro;
+    this.dataCadastro = produto.getDataCriacao();
   }
 }
