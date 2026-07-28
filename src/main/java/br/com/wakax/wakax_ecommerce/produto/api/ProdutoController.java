@@ -1,14 +1,13 @@
 package br.com.wakax.wakax_ecommerce.produto.api;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,9 +35,9 @@ public class ProdutoController implements ProdutoAPI {
   }
 
   @Override
-  public List<ProdutoResumoResponse> listaProduto() {
+  public ProdutoPaginadoResponse listaProduto(int pagina, int tamanho) {
     log.debug("[start] " + getClass().getSimpleName() + " - listaProduto");
-    List<ProdutoResumoResponse> response = produtoService.listaProduto();
+    ProdutoPaginadoResponse response = produtoService.listaProduto(pagina, tamanho);
     log.debug("[finish] " + getClass().getSimpleName() + " - listaProduto");
     return response;
   }

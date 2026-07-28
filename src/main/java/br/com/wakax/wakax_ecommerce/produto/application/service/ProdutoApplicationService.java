@@ -1,14 +1,18 @@
 package br.com.wakax.wakax_ecommerce.produto.application.service;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 import lombok.RequiredArgsConstructor;
@@ -37,11 +41,13 @@ public class ProdutoApplicationService implements ProdutoService {
     return new ProdutoListResponse(produto);
   }
 
+  @Transactional(readOnly = true)
   @Override
-  public List<ProdutoResumoResponse> listaProduto() {
+  public ProdutoPaginadoResponse listaProduto(int pagina, int tamanho) {
     log.debug("[start] " + getClass().getSimpleName() + " - listaProduto");
-
+    Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by("descricao"));
+    Page<Produto> produtos = produtoRepository.listaTodos(pageable);
     log.debug("[finish] " + getClass().getSimpleName() + " - listaProduto");
-    return List.of();
+    return new ProdutoPaginadoResponse(produtos);
   }
 }
