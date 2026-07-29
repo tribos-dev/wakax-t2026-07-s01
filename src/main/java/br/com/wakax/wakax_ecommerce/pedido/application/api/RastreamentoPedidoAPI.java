@@ -19,7 +19,7 @@ public interface RastreamentoPedidoAPI {
   RastreamentoResponse cadastraRastreamento(
       @PathVariable UUID idPedido, @Valid @RequestBody RastreamentoRequest request);
 
-
   @GetMapping("/{idCliente}/rastreamento/{idPedido}")
-  RastreamentoResponse consultaRastreamento(@PathVariable UUID idCliente, @PathVariable UUID idPedido);
+  RastreamentoResponse consultaRastreamento(
+      @PathVariable UUID idCliente, @PathVariable UUID idPedido);
 }
