@@ -10,6 +10,6 @@ import br.com.wakax.wakax_ecommerce.pedido.domain.Rastreamento;
 
 public interface RastreamentoJPARepository extends JpaRepository<Rastreamento, UUID> {
 
-  @EntityGraph(attributePaths = {"eventos"})
+  @EntityGraph(attributePaths = {"eventos", "pedido", "pedido.cliente"})
   Optional<Rastreamento> findByPedidoId(UUID pedidoId);
 }

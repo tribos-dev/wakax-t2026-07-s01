@@ -4,7 +4,9 @@ import java.util.UUID;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
 import br.com.wakax.wakax_ecommerce.carrinho.api.request.ItemCarrinhoRequest;
+import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoListPageResponse;
 import br.com.wakax.wakax_ecommerce.carrinho.api.response.CarrinhoResponse;
 import br.com.wakax.wakax_ecommerce.carrinho.application.service.CarrinhoService;
 import lombok.RequiredArgsConstructor;
@@ -31,5 +33,15 @@ public class CarrinhoController implements CarrinhoAPI {
     CarrinhoResponse carrinho = carrinhoService.buscaCarrinhoPorId(idCliente, idCarrinho);
     log.debug("[finish] CarrinhoController - buscaCarrinhoPorId");
     return carrinho;
+  }
+
+  @Override
+  public CarrinhoListPageResponse listaCarrinhosDoCliente(
+      UUID idCliente, CarrinhoPaginacaoRequest carrinhoPaginacaoRequest) {
+    log.debug("[start] CarrinhoController - listaCarrinhosDoCliente");
+    CarrinhoListPageResponse carrinhos =
+        carrinhoService.listaCarrinhosDoCliente(idCliente, carrinhoPaginacaoRequest);
+    log.debug("[finish] CarrinhoController - listaCarrinhosDoCliente");
+    return carrinhos;
   }
 }
