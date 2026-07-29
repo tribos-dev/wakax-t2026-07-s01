@@ -192,7 +192,7 @@ class FornecedorApplicationServiceTest {
   }
 
   @Test
-  void deverRetornarListaDeFornecedoresAtivos() {
+  void deveRetornarListaDeFornecedoresAtivos() {
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
     Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
     Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo));
