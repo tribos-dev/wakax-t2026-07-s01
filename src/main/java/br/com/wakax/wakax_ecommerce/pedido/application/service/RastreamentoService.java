@@ -7,4 +7,6 @@ import br.com.wakax.wakax_ecommerce.pedido.application.api.response.Rastreamento
 
 public interface RastreamentoService {
   RastreamentoResponse cadastraRastreamento(UUID idPedido, RastreamentoRequest request);
+
+  RastreamentoResponse consultaRastreamento(UUID idCliente, UUID idPedido);
 }

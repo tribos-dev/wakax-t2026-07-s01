@@ -45,4 +45,22 @@ public class RastreamentoApplicationService implements RastreamentoService {
                   HttpStatus.CONFLICT, ErrorCode.RASTREAMENTO_JA_EXISTE, idPedido);
             });
   }
+
+  @Override
+  @Transactional(readOnly = true)
+  public RastreamentoResponse consultaRastreamento(UUID idCliente, UUID idPedido) {
+    log.debug("[start] RastreamentoApplicationService - consultaRastreamento");
+    Rastreamento rastreamento = rastreamentoRepository.buscaRastreamentoPorPedidoId(idPedido);
+    validaClienteDonoDoRastreio(idCliente, rastreamento);
+    log.debug("[finish] RastreamentoApplicationService - consultaRastreamento");
+    return new RastreamentoResponse(rastreamento);
+  }
+
+  private void validaClienteDonoDoRastreio(UUID idCliente, Rastreamento rastreamento) {
+    UUID idClienteDoPedido = rastreamento.getPedido().getCliente().getId();
+    if (!idClienteDoPedido.equals(idCliente)) {
+      throw new APIException(
+          HttpStatus.FORBIDDEN, ErrorCode.ACESSO_NEGADO, rastreamento.getPedido().getId());
+    }
+  }
 }
