@@ -4,25 +4,37 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
+import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoApplicationServiceTest {
@@ -189,5 +201,85 @@ class ProdutoApplicationServiceTest {
         });
 
     verify(produtoRepository, times(1)).salva(any(Produto.class));
+  }
+
+  // Teste BDD task WX-298
+  private Produto criaProduto(String descricao, StatusProduto status, String precoPadrao) {
+    Produto produto =
+        Produto.builder()
+            .id(UUID.randomUUID())
+            .descricao(descricao)
+            .status(status)
+            .pesoLiquido(new BigDecimal("1.0"))
+            .pesoBruto(new BigDecimal("1.5"))
+            .dataCriacao(LocalDateTime.now())
+            .build();
+    produto.setPrecos(List.of(new Preco(TipoPreco.PADRAO, new BigDecimal(precoPadrao), produto)));
+    return produto;
+  }
+
+  // Cenario 1: Listar produtos com sucesso
+  @Test
+  void deveListarTodosOsProdutosComSucesso() {
+    Produto arroz = criaProduto("Arroz", StatusProduto.ATIVO, "10.00");
+    Produto feijao = criaProduto("Feijao", StatusProduto.INATIVO, "20.00");
+    Pageable pageable = PageRequest.of(0, 10, Sort.by("descricao"));
+    Page<Produto> pagina = new PageImpl<>(List.of(arroz, feijao), pageable, 2);
+    when(produtoRepository.listaTodos(any(Pageable.class))).thenReturn(pagina);
+
+    ProdutoPaginadoResponse response = produtoApplicationService.listaProduto(0, 10);
+
+    assertNotNull(response);
+    assertEquals(2, response.getProdutos().size());
+    assertEquals(2L, response.getTotal());
+    assertEquals(0, response.getPagina());
+    assertEquals(1, response.getTotalPaginas());
+
+    // Regra: mostrar descricao, status, preco atual e data de cadastro
+    ProdutoResumoResponse primeiro = response.getProdutos().get(0);
+    assertEquals("Arroz", primeiro.getDescricao());
+    assertEquals(StatusProduto.ATIVO, primeiro.getStatus());
+    assertEquals(new BigDecimal("10.00"), primeiro.getPrecoAtual());
+    assertNotNull(primeiro.getDataCadastro());
+
+    // Regra: retornar produtos independente do status
+    assertEquals(StatusProduto.INATIVO, response.getProdutos().get(1).getStatus());
+
+    verify(produtoRepository, times(1)).listaTodos(any(Pageable.class));
+  }
+
+  // Regra: ordenar por descricao
+  @Test
+  void deveSolicitarOrdenacaoPorDescricaoComPaginacaoCorreta() {
+    when(produtoRepository.listaTodos(any(Pageable.class)))
+        .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+    produtoApplicationService.listaProduto(2, 15);
+
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+    verify(produtoRepository).listaTodos(captor.capture());
+    Pageable pageableUsado = captor.getValue();
+
+    assertEquals(2, pageableUsado.getPageNumber());
+    assertEquals(15, pageableUsado.getPageSize());
+    Sort.Order ordemPorDescricao = pageableUsado.getSort().getOrderFor("descricao");
+    assertNotNull(ordemPorDescricao);
+    assertTrue(ordemPorDescricao.isAscending());
+  }
+
+  // Cenario 2: Sistema sem produtos
+  @Test
+  void deveRetornarListaVaziaQuandoNaoHaProdutos() {
+    Pageable pageable = PageRequest.of(0, 10, Sort.by("descricao"));
+    Page<Produto> paginaVazia = new PageImpl<>(Collections.emptyList(), pageable, 0);
+    when(produtoRepository.listaTodos(any(Pageable.class))).thenReturn(paginaVazia);
+
+    ProdutoPaginadoResponse response = produtoApplicationService.listaProduto(0, 10);
+
+    assertNotNull(response);
+    assertTrue(response.getProdutos().isEmpty());
+    assertEquals(0L, response.getTotal());
+    assertEquals(0, response.getTotalPaginas());
+    verify(produtoRepository, times(1)).listaTodos(any(Pageable.class));
   }
 }
