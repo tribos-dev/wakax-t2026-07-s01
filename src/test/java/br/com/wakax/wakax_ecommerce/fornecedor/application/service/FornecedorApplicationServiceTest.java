@@ -1,4 +1,4 @@
-package br.com.wakax.wakax_ecommerce.pessoa.application.service;
+package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -14,16 +14,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
+import org.springframework.data.domain.*;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.repository.FornecedorRepository;
-import br.com.wakax.wakax_ecommerce.fornecedor.application.service.FornecedorApplicationService;
 import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 
 @ExtendWith(MockitoExtension.class)
 class FornecedorApplicationServiceTest {
@@ -149,5 +151,63 @@ class FornecedorApplicationServiceTest {
     assertEquals(ErrorCode.FORNECEDOR_NAO_ENCONTRADO, exception.getErrorCode());
     assertEquals(fornecedorId, exception.getArgs()[0]);
     verify(fornecedorRepository, times(1)).buscaFornecedorPorId(fornecedorId);
+  }
+
+  @Test
+  void deveListarFornecedoresPaginadosComSucesso() {
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
+    Fornecedor fornecedorInativo = FornecedorDataHelper.criarFornecedorInativo();
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo, fornecedorInativo));
+    when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
+
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(null, pageable);
+
+    assertNotNull(response);
+    assertEquals(2, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(2, response.getFornecedoresResumidos().size());
+
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
+  }
+
+  @Test
+  void deveRetornarListaVaziaDeFornecedoresPaginados() {
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(), pageable, 0);
+    when(fornecedorRepository.buscaFornecedoresPaginados(null, pageable)).thenReturn(fornecedores);
+
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(null, pageable);
+
+    assertNotNull(response);
+    assertEquals(0, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(0, response.getTotalPaginas());
+    assertTrue(response.getFornecedoresResumidos().isEmpty());
+
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(null, pageable);
+  }
+
+  @Test
+  void deveRetornarListaDeFornecedoresAtivos() {
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "razaoSocial"));
+    Fornecedor fornecedorAtivo = FornecedorDataHelper.criarFornecedorAtivo();
+    Page<Fornecedor> fornecedores = new PageImpl<>(List.of(fornecedorAtivo));
+    when(fornecedorRepository.buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable))
+        .thenReturn(fornecedores);
+
+    FornecedorPageResponse response =
+        fornecedorApplicationService.listarFornecedores(StatusPessoa.ATIVO, pageable);
+
+    assertNotNull(response);
+    assertEquals(1, response.getTotalElementos());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(1, response.getFornecedoresResumidos().size());
+
+    verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable);
   }
 }
