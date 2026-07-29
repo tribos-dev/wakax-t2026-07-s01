@@ -10,4 +10,6 @@ public interface PagamentoService {
   PagamentoResponse processaPagamento(PagamentoRequest novoPagamento);
 
   PagamentoResponse buscaPagamentoPorId(UUID idPagamento);
+
+  PagamentoResponse buscaPagamentoPorPedidoId(UUID idPedido);
 }

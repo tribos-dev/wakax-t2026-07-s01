@@ -59,10 +59,29 @@ public class PagamentoApplicationService implements PagamentoService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PagamentoResponse buscaPagamentoPorId(UUID idPagamento) {
     log.debug("[start] PagamentoApplicationService - buscaPagamentoPorId");
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     log.debug("[finish] PagamentoApplicationService - buscaPagamentoPorId");
+    return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PagamentoResponse buscaPagamentoPorPedidoId(UUID idPedido) {
+    log.debug("[start] PagamentoApplicationService - buscaPagamentoPorPedidoId");
+    pedidoRepository.buscaPedidoPorId(idPedido);
+    Pagamento pagamento =
+        pagamentoRepository
+            .buscaPagamentoPorPedidoId(idPedido)
+            .orElseThrow(
+                () ->
+                    new APIException(
+                        HttpStatus.NOT_FOUND,
+                        ErrorCode.PAGAMENTO_DO_PEDIDO_NAO_ENCONTRADO,
+                        idPedido));
+    log.debug("[finish] PagamentoApplicationService - buscaPagamentoPorPedidoId");
     return new PagamentoResponse(pagamento);
   }
 }
