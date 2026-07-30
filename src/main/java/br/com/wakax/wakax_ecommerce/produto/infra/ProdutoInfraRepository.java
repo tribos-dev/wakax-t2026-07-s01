@@ -1,8 +1,10 @@
 package br.com.wakax.wakax_ecommerce.produto.infra;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
@@ -43,6 +45,16 @@ public class ProdutoInfraRepository implements ProdutoRepository {
   @Override
   public Page<Produto> listaTodos(Pageable pageable) {
     log.debug("[start] " + getClass().getSimpleName() + " - listaTodos");
-    return produtoJPARepository.findAll(pageable);
+
+    Page<UUID> paginaDeIds = produtoJPARepository.paginaIds(pageable);
+    if (paginaDeIds.isEmpty()) {
+      log.debug("[finish] " + getClass().getSimpleName() + " - listaTodos (pagina vazia)");
+      return new PageImpl<>(List.of(), pageable, paginaDeIds.getTotalElements());
+    }
+
+    List<Produto> produtos = produtoJPARepository.buscaComPrecosPorIds(paginaDeIds.getContent());
+    log.debug("[finish] " + getClass().getSimpleName() + " - listaTodos");
+
+    return new PageImpl<>(produtos, pageable, paginaDeIds.getTotalElements());
   }
 }
