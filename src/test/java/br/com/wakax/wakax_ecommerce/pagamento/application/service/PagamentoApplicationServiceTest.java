@@ -80,6 +80,7 @@ class PagamentoApplicationServiceTest {
     assertEquals(pagamentoId, response.getIdPagamento());
     assertEquals(pedido.getId(), response.getPedidoId());
     assertEquals(StatusPagamento.AGUARDANDO, response.getStatusPagamento());
+    assertEquals(pedido.getFormaPagamento(), response.getFormaPagamento());
 
     verify(pagamentoRepository).buscaPagamentoPorPedidoId(pedidoId);
     verify(pedidoRepository).buscaPedidoPorId(pedidoId);
@@ -116,8 +117,63 @@ class PagamentoApplicationServiceTest {
     assertNotNull(response);
     assertEquals(pagamentoId, response.getIdPagamento());
     assertEquals(pedido.getId(), response.getPedidoId());
+    assertEquals(pedido.getFormaPagamento(), response.getFormaPagamento());
 
     verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
+  }
+
+  @Test
+  void deveBuscarPagamentoPorPedidoIdComSucesso() {
+    when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
+    when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId))
+        .thenReturn(Optional.of(pagamento));
+
+    PagamentoResponse response = pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId);
+
+    assertNotNull(response);
+    assertEquals(pagamentoId, response.getIdPagamento());
+    assertEquals(pedido.getId(), response.getPedidoId());
+    assertEquals(StatusPagamento.AGUARDANDO, response.getStatusPagamento());
+    assertEquals(pedido.getValorTotal(), response.getValor());
+    assertEquals(pedido.getFormaPagamento(), response.getFormaPagamento());
+
+    verify(pedidoRepository).buscaPedidoPorId(pedidoId);
+    verify(pagamentoRepository).buscaPagamentoPorPedidoId(pedidoId);
+  }
+
+  @Test
+  void devePropagarExcecaoQuandoPedidoNaoExisteAoBuscarPagamentoPorPedidoId() {
+    when(pedidoRepository.buscaPedidoPorId(pedidoId))
+        .thenThrow(
+            new APIException(HttpStatus.NOT_FOUND, ErrorCode.PEDIDO_NAO_ENCONTRADO, pedidoId));
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.PEDIDO_NAO_ENCONTRADO, exception.getErrorCode());
+
+    verify(pedidoRepository).buscaPedidoPorId(pedidoId);
+    verify(pagamentoRepository, never()).buscaPagamentoPorPedidoId(any());
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoPedidoNaoPossuiPagamento() {
+    when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
+    when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_DO_PEDIDO_NAO_ENCONTRADO, exception.getErrorCode());
+
+    verify(pedidoRepository).buscaPedidoPorId(pedidoId);
+    verify(pagamentoRepository).buscaPagamentoPorPedidoId(pedidoId);
   }
 
   @Test
