@@ -1,15 +1,20 @@
 package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -55,6 +60,15 @@ public class Produto {
   private Integer estoqueMinimo;
   private Integer estoqueMaximo;
 
+  @Column(nullable = false, name = "data_criacao")
+  @NotNull
+  private LocalDateTime dataCriacao;
+
+  @PrePersist
+  protected void onCreate() {
+    dataCriacao = LocalDateTime.now();
+  }
+
   public Produto(ProdutoRequest request) {
     this.descricao = request.getDescricao();
     this.status = StatusProduto.ATIVO;
@@ -78,5 +92,14 @@ public class Produto {
       return BigDecimal.ZERO;
     }
     return this.precos.get(0).getValor();
+  }
+
+  public BigDecimal getPrecoAtual() {
+    return precos.stream()
+        .filter(p -> p.getTipo() == TipoPreco.PROMOCIONAL)
+        .findFirst()
+        .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
+        .map(Preco::getValor)
+        .orElse(BigDecimal.ZERO);
   }
 }

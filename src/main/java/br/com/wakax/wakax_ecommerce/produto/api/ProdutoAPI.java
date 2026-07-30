@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 
 @RestController
@@ -18,4 +19,8 @@ public interface ProdutoAPI {
 
   @GetMapping("/{idProduto}")
   ProdutoListResponse buscaProdutoPorId(@PathVariable UUID idProduto);
+
+  @GetMapping
+  ProdutoPaginadoResponse listaProduto(
+      @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
 }

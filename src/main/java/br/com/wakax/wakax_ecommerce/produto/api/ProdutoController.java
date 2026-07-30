@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,14 @@ public class ProdutoController implements ProdutoAPI {
     log.debug("[start] ProdutoController - buscaProdutoPorId");
     ProdutoListResponse response = produtoService.buscaProdutoPorId(idProduto);
     log.debug("[finish] ProdutoController - buscaProdutoPorId");
+    return response;
+  }
+
+  @Override
+  public ProdutoPaginadoResponse listaProduto(int pagina, int tamanho) {
+    log.debug("[start] " + getClass().getSimpleName() + " - listaProduto");
+    ProdutoPaginadoResponse response = produtoService.listaProduto(pagina, tamanho);
+    log.debug("[finish] " + getClass().getSimpleName() + " - listaProduto");
     return response;
   }
 }
