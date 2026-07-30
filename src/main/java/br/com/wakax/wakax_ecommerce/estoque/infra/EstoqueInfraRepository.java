@@ -59,6 +59,7 @@ public class EstoqueInfraRepository implements EstoqueRepository {
   @Override
   public Page<Estoque> buscaTodosEstoques(
       Boolean quantidadeMinima, Boolean emFalta, Pageable pageable) {
+    log.info("[start] EstoqueInfraRepository - buscaTodosEstoques");
     Page<UUID> paginaIds;
 
     if (Boolean.TRUE.equals(quantidadeMinima)) {
@@ -81,12 +82,13 @@ public class EstoqueInfraRepository implements EstoqueRepository {
 
     List<Estoque> estoques = estoqueJPARepository.buscaEstoquesComProdutoEPrecos(ids);
     estoques.sort(Comparator.comparing(estoque -> ordemPorId.get(estoque.getId())));
-
+    log.debug("[finish] EstoqueInfraRepository - buscaTodosEstoques");
     return new PageImpl<>(estoques, pageable, paginaIds.getTotalElements());
   }
 
   @Override
   public BigDecimal calculaValorTotalInventario(Boolean quantidadeMinima, Boolean emFalta) {
+    log.info("[start] EstoqueInfraRepository - calculaValorTotalInventario");
     BigDecimal valorTotal;
 
     if (Boolean.TRUE.equals(quantidadeMinima)) {
@@ -100,6 +102,7 @@ public class EstoqueInfraRepository implements EstoqueRepository {
     if (valorTotal == null) {
       return BigDecimal.ZERO;
     }
+    log.debug("[finish] EstoqueInfraRepository - calculaValorTotalInventario");
     return valorTotal;
   }
 }
