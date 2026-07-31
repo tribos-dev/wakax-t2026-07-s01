@@ -8,7 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 
 @RestController
 @RequestMapping("/pagamento")
@@ -19,4 +21,10 @@ public interface PagamentoAPI {
 
   @GetMapping("/{idPagamento}")
   PagamentoResponse buscaPagamentoPorId(@PathVariable UUID idPagamento);
+
+  @GetMapping
+  PagamentoPaginadoResponse buscaPagamentos(
+      @RequestParam(required = false) StatusPagamento status,
+      @RequestParam(defaultValue = "0") int pagina,
+      @RequestParam(defaultValue = "10") int tamanho);
 }
