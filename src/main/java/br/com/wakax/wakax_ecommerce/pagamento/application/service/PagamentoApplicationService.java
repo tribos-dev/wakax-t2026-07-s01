@@ -1,7 +1,11 @@
 package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,10 +13,13 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.RequiredArgsConstructor;
@@ -83,5 +90,20 @@ public class PagamentoApplicationService implements PagamentoService {
                         idPedido));
     log.debug("[finish] PagamentoApplicationService - buscaPagamentoPorPedidoId");
     return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PagamentoPaginadoResponse buscaPagamentos(
+      StatusPagamento status, int pagina, int tamanho) {
+    log.debug("[start] " + getClass().getSimpleName() + " - buscaPagamentos");
+
+    Pageable pageable = PageRequest.of(pagina, tamanho);
+    Page<PagamentoResumoResponse> pagamentos =
+        pagamentoRepository.buscaPagamentos(status, pageable);
+    BigDecimal valorTotal = pagamentoRepository.somaValores(status);
+
+    log.debug("[finish] " + getClass().getSimpleName() + " - buscaPagamentos");
+    return new PagamentoPaginadoResponse(pagamentos, valorTotal);
   }
 }
