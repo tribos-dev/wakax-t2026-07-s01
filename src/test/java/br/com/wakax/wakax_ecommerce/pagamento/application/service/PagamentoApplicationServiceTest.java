@@ -3,21 +3,31 @@ package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.strategy.PagamentoAguardandoStrategy;
@@ -318,5 +328,65 @@ class PagamentoApplicationServiceTest {
 
     assertEquals(StatusPagamento.AGUARDANDO, pagamentoTeste.getStatusPagamento());
     assertEquals(StatusPedido.AGUARDANDO_PAGAMENTO, pedido.getStatus());
+  }
+
+  @Test
+  void deveListarTodosOsPagamentosSemFiltro() {
+    PagamentoResumoProjection aguardando =
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.AGUARDANDO, LocalDateTime.now(), new BigDecimal("103.60"));
+
+    PagamentoResumoProjection pago =
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.PAGO, LocalDateTime.now().minusMinutes(1), new BigDecimal("51.80"));
+
+    Page<PagamentoResumoProjection> pagina =
+        new PageImpl<>(List.of(aguardando, pago), PageRequest.of(0, 10), 2);
+
+    when(pagamentoRepository.buscaPagamentos(isNull(), any(Pageable.class))).thenReturn(pagina);
+    when(pagamentoRepository.somaValores(isNull())).thenReturn(new BigDecimal("155.40"));
+
+    PagamentoPaginadoResponse response = pagamentoApplicationService.buscaPagamentos(null, 0, 10);
+
+    assertNotNull(response);
+    assertEquals(2, response.getPagamentos().size());
+    assertEquals(2L, response.getTotalPagamentos());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(new BigDecimal("155.40"), response.getValorTotalPagamentos());
+    assertEquals(StatusPagamento.AGUARDANDO, response.getPagamentos().get(0).getStatusPagamento());
+    assertEquals(StatusPagamento.PAGO, response.getPagamentos().get(1).getStatusPagamento());
+
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+    verify(pagamentoRepository).buscaPagamentos(isNull(), captor.capture());
+    assertEquals(0, captor.getValue().getPageNumber());
+    assertEquals(10, captor.getValue().getPageSize());
+    verify(pagamentoRepository).somaValores(isNull());
+  }
+
+  @Test
+  void deveListarApenasPagamentosDoStatusInformado() {
+    PagamentoResumoProjection pago =
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.PAGO, LocalDateTime.now(), new BigDecimal("51.80"));
+
+    Page<PagamentoResumoProjection> pagina =
+        new PageImpl<>(List.of(pago), PageRequest.of(0, 10), 1);
+
+    when(pagamentoRepository.buscaPagamentos(eq(StatusPagamento.PAGO), any(Pageable.class)))
+        .thenReturn(pagina);
+    when(pagamentoRepository.somaValores(StatusPagamento.PAGO)).thenReturn(new BigDecimal("51.80"));
+
+    PagamentoPaginadoResponse response =
+        pagamentoApplicationService.buscaPagamentos(StatusPagamento.PAGO, 0, 10);
+
+    assertNotNull(response);
+    assertEquals(1, response.getPagamentos().size());
+    assertEquals(1L, response.getTotalPagamentos());
+    assertEquals(StatusPagamento.PAGO, response.getPagamentos().get(0).getStatusPagamento());
+    assertEquals(new BigDecimal("51.80"), response.getValorTotalPagamentos());
+
+    verify(pagamentoRepository).buscaPagamentos(eq(StatusPagamento.PAGO), any(Pageable.class));
+    verify(pagamentoRepository).somaValores(StatusPagamento.PAGO);
   }
 }

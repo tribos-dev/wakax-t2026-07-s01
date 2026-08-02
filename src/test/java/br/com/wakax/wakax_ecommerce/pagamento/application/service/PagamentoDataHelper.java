@@ -1,5 +1,8 @@
 package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -7,6 +10,8 @@ import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
@@ -78,5 +83,22 @@ public final class PagamentoDataHelper {
 
   public static PagamentoRequest criaPagamentoRequestValido(UUID pedidoId) {
     return PagamentoRequest.builder().pedidoId(pedidoId).build();
+  }
+
+  public static PagamentoResumoResponse criaPagamentoResumoResponse(
+      StatusPagamento status, LocalDateTime dataPagamento, BigDecimal valor) {
+    return new PagamentoResumoResponse(
+        UUID.randomUUID(), UUID.randomUUID(), status, dataPagamento, valor);
+  }
+
+  public static PagamentoResumoProjection criaPagamentoResumoProjection(
+      StatusPagamento statusPagamento, LocalDateTime dataPagamento, BigDecimal valor) {
+    PagamentoResumoProjection projection = mock(PagamentoResumoProjection.class);
+    when(projection.getId()).thenReturn(UUID.randomUUID());
+    when(projection.getPedidoId()).thenReturn(UUID.randomUUID());
+    when(projection.getStatusPagamento()).thenReturn(statusPagamento);
+    when(projection.getDataPagamento()).thenReturn(dataPagamento);
+    when(projection.getValor()).thenReturn(valor);
+    return projection;
   }
 }
