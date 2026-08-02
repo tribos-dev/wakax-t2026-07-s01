@@ -11,7 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
@@ -36,12 +36,17 @@ public class PagamentoInfraRepository implements PagamentoRepository {
   @Override
   public Pagamento buscaPagamentoPorId(UUID idPagamento) {
     log.debug("[start] PagamentoInfraRepository - buscaPagamentoPorId");
-    return pagamentoJPARepository
-        .findByIdComPedido(idPagamento)
-        .orElseThrow(
-            () ->
-                new APIException(
-                    HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, idPagamento));
+
+    Pagamento pagamento =
+        pagamentoJPARepository
+            .findByIdComPedido(idPagamento)
+            .orElseThrow(
+                () ->
+                    new APIException(
+                        HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, idPagamento));
+
+    log.debug("[finish] PagamentoInfraRepository - buscaPagamentoPorId");
+    return pagamento;
   }
 
   @Override
@@ -53,13 +58,24 @@ public class PagamentoInfraRepository implements PagamentoRepository {
   }
 
   @Override
-  public Page<PagamentoResumoResponse> buscaPagamentos(StatusPagamento status, Pageable pageable) {
-    log.debug("[start] " + getClass().getSimpleName() + " - buscaPagamentos");
-    return pagamentoJPARepository.buscaPagamentos(status, pageable);
+  public Page<PagamentoResumoProjection> buscaPagamentos(
+      StatusPagamento status, Pageable pageable) {
+    log.debug("[start] PagamentoInfraRepository - buscaPagamentos");
+
+    Page<PagamentoResumoProjection> pagamentoResumoResponses =
+        pagamentoJPARepository.buscaPagamentos(status, pageable);
+
+    log.debug("[finish] PagamentoInfraRepository - buscaPagamentos");
+    return pagamentoResumoResponses;
   }
 
   @Override
   public BigDecimal somaValores(StatusPagamento status) {
-    return pagamentoJPARepository.somaValores(status);
+    log.debug("[start] PagamentoInfraRepository - somaValores");
+
+    BigDecimal somatoria = pagamentoJPARepository.somaValores(status);
+
+    log.debug("[finish] PagamentoInfraRepository - somaValores");
+    return somatoria;
   }
 }

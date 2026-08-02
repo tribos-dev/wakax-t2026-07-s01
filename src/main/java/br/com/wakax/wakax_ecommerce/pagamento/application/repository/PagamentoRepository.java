@@ -7,7 +7,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 
@@ -19,7 +19,7 @@ public interface PagamentoRepository {
 
   Optional<Pagamento> buscaPagamentoPorPedidoId(UUID pedidoId);
 
-  Page<PagamentoResumoResponse> buscaPagamentos(StatusPagamento status, Pageable pageable);
+  Page<PagamentoResumoProjection> buscaPagamentos(StatusPagamento status, Pageable pageable);
 
   BigDecimal somaValores(StatusPagamento status);
 }

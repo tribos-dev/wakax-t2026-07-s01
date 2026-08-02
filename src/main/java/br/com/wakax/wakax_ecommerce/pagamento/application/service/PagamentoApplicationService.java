@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
@@ -96,14 +98,26 @@ public class PagamentoApplicationService implements PagamentoService {
   @Transactional(readOnly = true)
   public PagamentoPaginadoResponse buscaPagamentos(
       StatusPagamento status, int pagina, int tamanho) {
-    log.debug("[start] " + getClass().getSimpleName() + " - buscaPagamentos");
+    log.debug("[start] PagamentoApplicationService - buscaPagamentos");
 
-    Pageable pageable = PageRequest.of(pagina, tamanho);
-    Page<PagamentoResumoResponse> pagamentos =
+    Pageable pageable =
+        PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.DESC, "dataPagamento"));
+    Page<PagamentoResumoProjection> pagamentosProjection =
         pagamentoRepository.buscaPagamentos(status, pageable);
+
+    Page<PagamentoResumoResponse> pagamentos =
+        pagamentosProjection.map(
+            p ->
+                new PagamentoResumoResponse(
+                    p.getId(),
+                    p.getPedidoId(),
+                    p.getStatusPagamento(),
+                    p.getDataPagamento(),
+                    p.getValor()));
+
     BigDecimal valorTotal = pagamentoRepository.somaValores(status);
 
-    log.debug("[finish] " + getClass().getSimpleName() + " - buscaPagamentos");
+    log.debug("[finish] PagamentoApplicationService - buscaPagamentos");
     return new PagamentoPaginadoResponse(pagamentos, valorTotal);
   }
 }
