@@ -38,9 +38,9 @@ public class PagamentoController implements PagamentoAPI {
   @Override
   public PagamentoPaginadoResponse buscaPagamentos(
       StatusPagamento status, int pagina, int tamanho) {
-    log.debug("[start] " + getClass().getSimpleName() + " - buscaPagamentos");
+    log.debug("[start] PagamentoController - buscaPagamentos");
     PagamentoPaginadoResponse response = pagamentoService.buscaPagamentos(status, pagina, tamanho);
-    log.debug("[finish] " + getClass().getSimpleName() + " - buscaPagamentos");
+    log.debug("[finish] PagamentoController - buscaPagamentos");
     return response;
   }
 }
