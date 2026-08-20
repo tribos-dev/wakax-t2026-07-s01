@@ -19,4 +19,7 @@ public interface PagamentoAPI {
 
   @GetMapping("/{idPagamento}")
   PagamentoResponse buscaPagamentoPorId(@PathVariable UUID idPagamento);
+
+  @PostMapping("/{idPagamento}/confirma")
+  PagamentoResponse confirmaPagamento(@PathVariable UUID idPagamento);
 }
