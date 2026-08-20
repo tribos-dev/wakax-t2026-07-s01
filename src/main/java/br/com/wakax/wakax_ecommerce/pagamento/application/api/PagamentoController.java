@@ -32,4 +32,12 @@ public class PagamentoController implements PagamentoAPI {
     log.debug("[finish] PagamentoController - buscaPagamentoPorId");
     return response;
   }
+
+  @Override
+  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
+    log.debug("[start] PagamentoController - confirmaPagamento");
+    PagamentoResponse response = pagamentoService.confirmaPagamento(idPagamento);
+    log.debug("[finish] PagamentoController - confirmaPagamento");
+    return response;
+  }
 }
