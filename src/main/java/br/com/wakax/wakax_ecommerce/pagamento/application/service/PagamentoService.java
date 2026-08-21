@@ -12,4 +12,6 @@ public interface PagamentoService {
   PagamentoResponse buscaPagamentoPorId(UUID idPagamento);
 
   PagamentoResponse buscaPagamentoPorPedidoId(UUID idPedido);
+
+  PagamentoResponse confirmaPagamento(UUID idPagamento);
 }

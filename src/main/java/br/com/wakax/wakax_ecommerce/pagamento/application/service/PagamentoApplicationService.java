@@ -13,6 +13,7 @@ import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.Pagamento
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.RequiredArgsConstructor;
@@ -82,6 +83,25 @@ public class PagamentoApplicationService implements PagamentoService {
                         ErrorCode.PAGAMENTO_DO_PEDIDO_NAO_ENCONTRADO,
                         idPedido));
     log.debug("[finish] PagamentoApplicationService - buscaPagamentoPorPedidoId");
+    return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional
+  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
+    log.debug("[start] PagamentoApplicationService - confirmaPagamento");
+    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
+    if (pagamento.getStatusPagamento() != StatusPagamento.AGUARDANDO) {
+      throw new APIException(
+          HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_JA_CONFIRMADO, pagamento.getStatusPagamento());
+    }
+    pagamento.confirmarPagamento();
+    Pedido pedido = pagamento.getPedido();
+    pedido.marcarComoPago();
+
+    pagamentoRepository.salva(pagamento);
+    pedidoRepository.salva(pedido);
+    log.debug("[finish] PagamentoApplicationService - confirmaPagamento");
     return new PagamentoResponse(pagamento);
   }
 }
