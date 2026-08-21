@@ -32,6 +32,10 @@ public class Cliente {
   @NotNull
   private LocalDateTime dataEdicao;
 
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, name = "status")
+  private StatusCliente status;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -45,5 +49,6 @@ public class Cliente {
 
   public Cliente(ClienteRequest request) {
     this.pessoa = Pessoa.criarDe(request);
+    this.status = StatusCliente.ATIVO;
   }
 }
