@@ -35,3 +35,10 @@ build/
 checklist.txt
 
 docs/
+
+### Local agents and LLM tools ###
+.agents/
+.codex/
+AGENTS.md
+SESSION.md
+opencode.json
