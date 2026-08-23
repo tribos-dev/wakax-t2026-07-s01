@@ -21,5 +21,6 @@ public interface PagamentoAPI {
   PagamentoResponse buscaPagamentoPorId(@PathVariable UUID idPagamento);
 
   @PostMapping("/{idPagamento}/confirma")
+  @ResponseStatus(HttpStatus.CREATED)
   PagamentoResponse confirmaPagamento(@PathVariable UUID idPagamento);
 }
