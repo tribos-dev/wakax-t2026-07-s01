@@ -29,7 +29,6 @@ public enum ErrorCode {
   PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado"),
   PAGAMENTO_NAO_PODE_SER_CANCELADO("pagamento.nao.pode.ser.cancelado");
 
-
   private final String code;
 
   ErrorCode(String code) {

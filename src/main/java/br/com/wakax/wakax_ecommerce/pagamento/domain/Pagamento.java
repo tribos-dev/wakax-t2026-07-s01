@@ -28,8 +28,7 @@ public class Pagamento {
   @NotNull
   private StatusPagamento statusPagamento;
 
-  @Column
-  private String motivoCancelamento;
+  @Column private String motivoCancelamento;
 
   @Column(nullable = false)
   @NotNull
@@ -55,9 +54,8 @@ public class Pagamento {
     this.statusPagamento = StatusPagamento.AGUARDANDO;
   }
 
-  public void cancelarPagamento(String motivo){
+  public void cancelarPagamento(String motivo) {
     this.statusPagamento = StatusPagamento.FALHOU;
     this.motivoCancelamento = motivo;
-
   }
 }

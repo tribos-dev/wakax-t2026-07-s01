@@ -99,7 +99,7 @@ public class Pedido {
     this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
   }
 
-  public void desfazPagamento(){
+  public void desfazPagamento() {
     this.status = StatusPedido.CRIADO;
   }
 }

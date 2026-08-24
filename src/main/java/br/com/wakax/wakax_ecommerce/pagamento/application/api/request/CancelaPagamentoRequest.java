@@ -1,6 +1,5 @@
 package br.com.wakax.wakax_ecommerce.pagamento.application.api.request;
 
-
 import lombok.*;
 
 @Getter
@@ -9,6 +8,5 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CancelaPagamentoRequest {
-    private String motivo;
+  private String motivo;
 }
-
