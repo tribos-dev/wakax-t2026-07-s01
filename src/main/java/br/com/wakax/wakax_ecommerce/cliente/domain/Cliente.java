@@ -62,11 +62,4 @@ public class Cliente {
   public void atualizar(AtualizaClienteRequest clienteRequest) {
     this.pessoa.atualizar(clienteRequest);
   }
-
-  public void desativar() {
-    if (this.status != StatusCliente.ATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está inativo.");
-    }
-    this.status = StatusCliente.INATIVO;
-  }
 }
