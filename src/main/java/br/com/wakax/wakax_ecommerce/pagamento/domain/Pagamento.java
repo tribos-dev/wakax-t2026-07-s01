@@ -28,6 +28,9 @@ public class Pagamento {
   @NotNull
   private StatusPagamento statusPagamento;
 
+  @Column
+  private String motivoCancelamento;
+
   @Column(nullable = false)
   @NotNull
   private LocalDateTime dataPagamento;
