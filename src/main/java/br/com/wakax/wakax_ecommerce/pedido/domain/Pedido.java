@@ -98,4 +98,8 @@ public class Pedido {
   public void aguardarPagamento() {
     this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
   }
+
+  public void desfazPagamento(){
+    this.status = StatusPedido.CRIADO;
+  }
 }
