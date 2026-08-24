@@ -35,5 +35,6 @@ public interface PagamentoAPI {
 
   @PostMapping("/{idPagamento}/cancela")
   PagamentoResponse cancelaPagamento(
-      @PathVariable UUID idPagamento, @RequestBody(required = false) CancelaPagamentoRequest request);
+      @PathVariable UUID idPagamento,
+      @RequestBody(required = false) CancelaPagamentoRequest request);
 }
