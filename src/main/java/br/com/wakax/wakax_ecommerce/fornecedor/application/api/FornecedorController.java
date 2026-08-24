@@ -44,4 +44,11 @@ public class FornecedorController implements FornecedorAPI {
     log.debug("[finish] FornecedorController - listarFornecedores");
     return response;
   }
+
+  @Override
+  public void inativarFornecedor(UUID idFornecedor) {
+    log.debug("[start] FornecedorController - inativarFornecedor");
+    fornecedorService.inativarFornecedor(idFornecedor);
+    log.debug("[finish] FornecedorController - inativarFornecedor");
+  }
 }
