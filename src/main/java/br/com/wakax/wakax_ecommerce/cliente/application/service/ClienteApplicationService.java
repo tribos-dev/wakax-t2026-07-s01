@@ -44,6 +44,11 @@ public class ClienteApplicationService implements ClienteService {
 
   @Override
   public ClienteResponse ativarCliente(UUID idCliente) {
-    return null;
+    log.debug("[start] ClienteApplicationService - ativarCliente");
+    Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
+    cliente.ativar();
+    clienteRepository.salva(cliente);
+    log.debug("[finish] ClienteApplicationService - ativarCliente");
+    return new ClienteResponse(cliente);
   }
 }
