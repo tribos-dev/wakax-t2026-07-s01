@@ -5,8 +5,10 @@ import java.util.UUID;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoService;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -30,6 +32,15 @@ public class PagamentoController implements PagamentoAPI {
     log.debug("[start] PagamentoController - buscaPagamentoPorId");
     PagamentoResponse response = pagamentoService.buscaPagamentoPorId(idPagamento);
     log.debug("[finish] PagamentoController - buscaPagamentoPorId");
+    return response;
+  }
+
+  @Override
+  public PagamentoPaginadoResponse buscaPagamentos(
+      StatusPagamento status, int pagina, int tamanho) {
+    log.debug("[start] PagamentoController - buscaPagamentos");
+    PagamentoPaginadoResponse response = pagamentoService.buscaPagamentos(status, pagina, tamanho);
+    log.debug("[finish] PagamentoController - buscaPagamentos");
     return response;
   }
 
