@@ -10,11 +10,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -49,5 +51,16 @@ public class ProdutoApplicationService implements ProdutoService {
     Page<Produto> produtos = produtoRepository.listaTodos(pageable);
     log.debug("[finish] " + getClass().getSimpleName() + " - listaProduto");
     return new ProdutoPaginadoResponse(produtos);
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public ProdutoAtivoPaginadoResponse listarProdutosAtivos(int pagina, int tamanho) {
+    log.debug("[start] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    Pageable pageable = PageRequest.of(pagina, tamanho);
+    Page<ProdutoDisponivel> produtosDisponiveis =
+        produtoRepository.listaProdutosAtivosComEstoque(pageable);
+    log.debug("[finish] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    return new ProdutoAtivoPaginadoResponse(produtosDisponiveis);
   }
 }
