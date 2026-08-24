@@ -54,4 +54,10 @@ public class Pagamento {
   public void aguardarPagamento() {
     this.statusPagamento = StatusPagamento.AGUARDANDO;
   }
+
+  public void cancelarPagamento(String motivo){
+    this.statusPagamento = StatusPagamento.CANCELADO;
+    this.motivoCancelamento = motivo;
+
+  }
 }
