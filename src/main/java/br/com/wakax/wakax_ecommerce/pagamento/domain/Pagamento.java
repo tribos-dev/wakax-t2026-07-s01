@@ -56,7 +56,7 @@ public class Pagamento {
   }
 
   public void cancelarPagamento(String motivo){
-    this.statusPagamento = StatusPagamento.CANCELADO;
+    this.statusPagamento = StatusPagamento.FALHOU;
     this.motivoCancelamento = motivo;
 
   }
