@@ -1,5 +1,11 @@
 package br.com.wakax.wakax_ecommerce.cliente.application.api;
 
+import java.util.UUID;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.web.bind.annotation.RestController;
+
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResumoResponse;
@@ -9,11 +15,6 @@ import br.com.wakax.wakax_ecommerce.cliente.application.service.ClienteService;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,6 +48,7 @@ public class ClienteController implements ClienteApi {
     log.debug("[finish] ClienteController - buscarTodosClientes");
     return PageResponse.from(response);
   }
+
   @Override
   public ClienteResponse ativarCliente(UUID idCliente) {
     log.debug("[start] ClienteController - ativarCliente");
