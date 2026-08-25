@@ -27,7 +27,7 @@ public enum ErrorCode {
   CUSTO_INVALIDO("custo.invalido"),
   ESTOQUE_INVALIDO("estoque.invalido"),
   PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado"),
-  PAGAMENTO_NAO_PODE_SER_CANCELADO("pagamento.nao.pode.ser.cancelado");
+  PAGAMENTO_JA_PROCESSADO("pagamento.ja.processado");
 
   private final String code;
 
