@@ -149,7 +149,7 @@ public class PagamentoApplicationService implements PagamentoService {
     if (pagamento.getStatusPagamento() != StatusPagamento.AGUARDANDO) {
       throw new APIException(
           HttpStatus.NOT_FOUND,
-          ErrorCode.PAGAMENTO_NAO_PODE_SER_CANCELADO,
+          ErrorCode.PAGAMENTO_JA_PROCESSADO,
           pagamento.getStatusPagamento());
     }
     pagamento.cancelarPagamento(request.getMotivo());
