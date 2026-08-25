@@ -154,7 +154,7 @@ public class PagamentoApplicationService implements PagamentoService {
     }
     pagamento.cancelarPagamento(request.getMotivo());
     Pedido pedido = pagamento.getPedido();
-    pedido.desfazPagamento();
+    pedido.aguardarPagamento();
     pagamentoRepository.salva(pagamento);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - cancelaPagamento");
