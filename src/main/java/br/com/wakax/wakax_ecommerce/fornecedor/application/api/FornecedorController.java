@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.api;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorFiltroRequest;
@@ -39,8 +40,9 @@ public class FornecedorController implements FornecedorAPI {
   @Override
   public FornecedorPageResponse listarFornecedores(FornecedorFiltroRequest filtro) {
     log.debug("[start] FornecedorController - listarFornecedores");
+    StatusPessoa status = filtro.isTodos() ? null : filtro.getStatus();
     FornecedorPageResponse response =
-        fornecedorService.listarFornecedores(filtro.getStatus(), filtro.toPageable());
+        fornecedorService.listarFornecedores(status, filtro.toPageable());
     log.debug("[finish] FornecedorController - listarFornecedores");
     return response;
   }
