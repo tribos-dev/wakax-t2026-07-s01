@@ -26,7 +26,8 @@ public enum ErrorCode {
   QUANTIDADE_INSUFICIENTE_ESTOQUE("quantidade.insuficiente.estoque"),
   QUANTIDADE_INVALIDA("quantidade.invalida"),
   CUSTO_INVALIDO("custo.invalido"),
-  ESTOQUE_INVALIDO("estoque.invalido");
+  ESTOQUE_INVALIDO("estoque.invalido"),
+  PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado");
 
   private final String code;
 

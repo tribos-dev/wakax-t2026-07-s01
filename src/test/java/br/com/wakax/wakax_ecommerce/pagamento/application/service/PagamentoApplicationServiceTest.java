@@ -389,4 +389,33 @@ class PagamentoApplicationServiceTest {
     verify(pagamentoRepository).buscaPagamentos(eq(StatusPagamento.PAGO), any(Pageable.class));
     verify(pagamentoRepository).somaValores(StatusPagamento.PAGO);
   }
+
+  @Test
+  void deveConfirmarPagamentoComSucesso() {
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+
+    PagamentoResponse response = pagamentoApplicationService.confirmaPagamento(pagamentoId);
+
+    assertNotNull(response);
+    assertEquals(StatusPagamento.PAGO, response.getStatusPagamento());
+    assertEquals(StatusPedido.PAGO, pedido.getStatus());
+
+    verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
+    verify(pagamentoRepository).salva(pagamento);
+    verify(pedidoRepository).salva(pedido);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoPagamentoNaoEstaAguardando() {
+    pagamento.confirmarPagamento();
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.confirmaPagamento(pagamentoId));
+
+    assertEquals(ErrorCode.PAGAMENTO_JA_CONFIRMADO, exception.getErrorCode());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
 }
