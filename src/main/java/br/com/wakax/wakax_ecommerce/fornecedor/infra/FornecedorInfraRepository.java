@@ -74,7 +74,6 @@ public class FornecedorInfraRepository implements FornecedorRepository {
   }
 
   private boolean temRestricaoDominio(Fornecedor fornecedor) {
-    // TODO: Implementar regra real quando domínio exigir
     // Placeholder: sempre retorna false (permite inativação), apenas loga warning
     // Atualmente nada restringe a inativação
     return false;
