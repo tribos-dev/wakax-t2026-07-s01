@@ -9,8 +9,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.PagamentoController;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -26,6 +24,7 @@ import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
@@ -77,14 +76,14 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(processadorFactory.obterProcessador(pedido.getFormaPagamento()))
-            .thenReturn(processadorPagamento);
+        .thenReturn(processadorPagamento);
     when(pagamentoRepository.salva(any(Pagamento.class)))
-            .thenAnswer(
-                    invocation -> {
-                      Pagamento p = invocation.getArgument(0);
-                      p.setId(pagamentoId);
-                      return p;
-                    });
+        .thenAnswer(
+            invocation -> {
+              Pagamento p = invocation.getArgument(0);
+              p.setId(pagamentoId);
+              return p;
+            });
 
     PagamentoResponse response = pagamentoApplicationService.processaPagamento(pagamentoRequest);
 
@@ -105,12 +104,12 @@ class PagamentoApplicationServiceTest {
   void deveLancarExcecaoQuandoPedidoJaPossuiPagamento() {
     Pagamento pagamentoExistente = PagamentoDataHelper.criaPagamentoValido(pedido);
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId))
-            .thenReturn(Optional.of(pagamentoExistente));
+        .thenReturn(Optional.of(pagamentoExistente));
 
     APIException exception =
-            assertThrows(
-                    APIException.class,
-                    () -> pagamentoApplicationService.processaPagamento(pagamentoRequest));
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.processaPagamento(pagamentoRequest));
 
     assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
     assertEquals(ErrorCode.PEDIDO_JA_POSSUI_PAGAMENTO, exception.getErrorCode());
@@ -138,7 +137,7 @@ class PagamentoApplicationServiceTest {
   void deveBuscarPagamentoPorPedidoIdComSucesso() {
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId))
-            .thenReturn(Optional.of(pagamento));
+        .thenReturn(Optional.of(pagamento));
 
     PagamentoResponse response = pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId);
 
@@ -156,13 +155,13 @@ class PagamentoApplicationServiceTest {
   @Test
   void devePropagarExcecaoQuandoPedidoNaoExisteAoBuscarPagamentoPorPedidoId() {
     when(pedidoRepository.buscaPedidoPorId(pedidoId))
-            .thenThrow(
-                    new APIException(HttpStatus.NOT_FOUND, ErrorCode.PEDIDO_NAO_ENCONTRADO, pedidoId));
+        .thenThrow(
+            new APIException(HttpStatus.NOT_FOUND, ErrorCode.PEDIDO_NAO_ENCONTRADO, pedidoId));
 
     APIException exception =
-            assertThrows(
-                    APIException.class,
-                    () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
 
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.PEDIDO_NAO_ENCONTRADO, exception.getErrorCode());
@@ -177,9 +176,9 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
 
     APIException exception =
-            assertThrows(
-                    APIException.class,
-                    () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.buscaPagamentoPorPedidoId(pedidoId));
 
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.PAGAMENTO_DO_PEDIDO_NAO_ENCONTRADO, exception.getErrorCode());
@@ -191,13 +190,13 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveLancarExcecaoQuandoPagamentoNaoEncontrado() {
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId))
-            .thenThrow(
-                    new APIException(
-                            HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, pagamentoId));
+        .thenThrow(
+            new APIException(
+                HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, pagamentoId));
 
     APIException exception =
-            assertThrows(
-                    APIException.class, () -> pagamentoApplicationService.buscaPagamentoPorId(pagamentoId));
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.buscaPagamentoPorId(pagamentoId));
 
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.PAGAMENTO_NAO_ENCONTRADO, exception.getErrorCode());
@@ -210,7 +209,7 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(processadorFactory.obterProcessador(pedido.getFormaPagamento()))
-            .thenReturn(processadorPagamento);
+        .thenReturn(processadorPagamento);
     when(pagamentoRepository.salva(any(Pagamento.class))).thenReturn(pagamento);
 
     pagamentoApplicationService.processaPagamento(pagamentoRequest);
@@ -223,7 +222,7 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(processadorFactory.obterProcessador(pedido.getFormaPagamento()))
-            .thenReturn(processadorPagamento);
+        .thenReturn(processadorPagamento);
     when(pagamentoRepository.salva(any(Pagamento.class))).thenReturn(pagamento);
 
     PagamentoResponse response = pagamentoApplicationService.processaPagamento(pagamentoRequest);
@@ -238,7 +237,7 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(processadorFactory.obterProcessador(FormaPagamento.CARTAO_CREDITO))
-            .thenReturn(processadorPagamento);
+        .thenReturn(processadorPagamento);
     when(pagamentoRepository.salva(any(Pagamento.class))).thenReturn(pagamento);
 
     pagamentoApplicationService.processaPagamento(pagamentoRequest);
@@ -267,7 +266,7 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorPedidoId(pedidoId)).thenReturn(Optional.empty());
     when(pedidoRepository.buscaPedidoPorId(pedidoId)).thenReturn(pedido);
     when(processadorFactory.obterProcessador(FormaPagamento.BOLETO))
-            .thenReturn(processadorPagamento);
+        .thenReturn(processadorPagamento);
     when(pagamentoRepository.salva(any(Pagamento.class))).thenReturn(pagamento);
 
     pagamentoApplicationService.processaPagamento(pagamentoRequest);
@@ -279,21 +278,21 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveRetornarPagamentoImediatoParaCartaoCredito() {
     ProcessadorPagamento processador =
-            realProcessadorFactory.obterProcessador(FormaPagamento.CARTAO_CREDITO);
+        realProcessadorFactory.obterProcessador(FormaPagamento.CARTAO_CREDITO);
     assertEquals(pagamentoImediatoStrategy, processador);
   }
 
   @Test
   void deveRetornarPagamentoImediatoParaCartaoDebito() {
     ProcessadorPagamento processador =
-            realProcessadorFactory.obterProcessador(FormaPagamento.CARTAO_DEBITO);
+        realProcessadorFactory.obterProcessador(FormaPagamento.CARTAO_DEBITO);
     assertEquals(pagamentoImediatoStrategy, processador);
   }
 
   @Test
   void deveRetornarPagamentoImediatoParaDinheiro() {
     ProcessadorPagamento processador =
-            realProcessadorFactory.obterProcessador(FormaPagamento.DINHEIRO);
+        realProcessadorFactory.obterProcessador(FormaPagamento.DINHEIRO);
     assertEquals(pagamentoImediatoStrategy, processador);
   }
 
@@ -306,7 +305,7 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveRetornarPagamentoAguardandoParaBoleto() {
     ProcessadorPagamento processador =
-            realProcessadorFactory.obterProcessador(FormaPagamento.BOLETO);
+        realProcessadorFactory.obterProcessador(FormaPagamento.BOLETO);
     assertEquals(pagamentoAguardandoStrategy, processador);
   }
 
@@ -413,8 +412,8 @@ class PagamentoApplicationServiceTest {
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
 
     APIException exception =
-            assertThrows(
-                    APIException.class, () -> pagamentoApplicationService.confirmaPagamento(pagamentoId));
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.confirmaPagamento(pagamentoId));
 
     assertEquals(ErrorCode.PAGAMENTO_JA_CONFIRMADO, exception.getErrorCode());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
@@ -450,7 +449,8 @@ class PagamentoApplicationServiceTest {
     CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
 
     // Act & Assert
-    APIException exception = assertThrows(
+    APIException exception =
+        assertThrows(
             APIException.class,
             () -> pagamentoApplicationService.cancelaPagamento(pagamentoId, request));
 

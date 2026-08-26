@@ -24,63 +24,62 @@ import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 
 public final class PagamentoDataHelper {
 
-  private PagamentoDataHelper() {
-  }
+  private PagamentoDataHelper() {}
 
   public static Pedido criaPedidoValido() {
     return Pedido.builder()
-            .id(UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890"))
-            .cliente(criaClienteValido())
-            .enderecoEntrega(criaEnderecoValido())
-            .formaPagamento(FormaPagamento.PIX)
-            .status(StatusPedido.AGUARDANDO_PAGAMENTO)
-            .valorTotal(new BigDecimal("299.99"))
-            .dataPedido(LocalDateTime.now())
-            .itensPedido(new ArrayList<>())
-            .build();
+        .id(UUID.fromString("a1b2c3d4-e5f6-7890-abcd-ef1234567890"))
+        .cliente(criaClienteValido())
+        .enderecoEntrega(criaEnderecoValido())
+        .formaPagamento(FormaPagamento.PIX)
+        .status(StatusPedido.AGUARDANDO_PAGAMENTO)
+        .valorTotal(new BigDecimal("299.99"))
+        .dataPedido(LocalDateTime.now())
+        .itensPedido(new ArrayList<>())
+        .build();
   }
 
   public static Cliente criaClienteValido() {
     return Cliente.builder()
-            .id(UUID.fromString("b2c3d4e5-1234-5678-9abc-def123456789"))
-            .pessoa(criaPessoaValida())
-            .dataCriacao(LocalDateTime.now())
-            .dataEdicao(LocalDateTime.now())
-            .build();
+        .id(UUID.fromString("b2c3d4e5-1234-5678-9abc-def123456789"))
+        .pessoa(criaPessoaValida())
+        .dataCriacao(LocalDateTime.now())
+        .dataEdicao(LocalDateTime.now())
+        .build();
   }
 
   public static Pessoa criaPessoaValida() {
     return new Pessoa(
-            UUID.fromString("c3d4e5f6-1234-5678-9abc-def123456789"),
-            "João Silva",
-            "123.456.789-00",
-            new ArrayList<>(),
-            new ArrayList<>(),
-            new ArrayList<>(),
-            StatusPessoa.ATIVO);
+        UUID.fromString("c3d4e5f6-1234-5678-9abc-def123456789"),
+        "João Silva",
+        "123.456.789-00",
+        new ArrayList<>(),
+        new ArrayList<>(),
+        new ArrayList<>(),
+        StatusPessoa.ATIVO);
   }
 
   public static Endereco criaEnderecoValido() {
     return Endereco.builder()
-            .id(UUID.fromString("d4e5f6a7-1234-5678-9abc-def123456789"))
-            .cep("01234-567")
-            .logradouro("Rua das Flores")
-            .numero("123")
-            .complemento("Apto 45")
-            .bairro("Centro")
-            .cidade("São Paulo")
-            .estado("SP")
-            .build();
+        .id(UUID.fromString("d4e5f6a7-1234-5678-9abc-def123456789"))
+        .cep("01234-567")
+        .logradouro("Rua das Flores")
+        .numero("123")
+        .complemento("Apto 45")
+        .bairro("Centro")
+        .cidade("São Paulo")
+        .estado("SP")
+        .build();
   }
 
   public static Pagamento criaPagamentoValido(Pedido pedido) {
     return Pagamento.builder()
-            .id(UUID.fromString("e5f6a7b8-1234-5678-9abc-def123456789"))
-            .pedido(pedido)
-            .statusPagamento(StatusPagamento.AGUARDANDO)
-            .dataPagamento(LocalDateTime.now())
-            .valor(pedido.getValorTotal())
-            .build();
+        .id(UUID.fromString("e5f6a7b8-1234-5678-9abc-def123456789"))
+        .pedido(pedido)
+        .statusPagamento(StatusPagamento.AGUARDANDO)
+        .dataPagamento(LocalDateTime.now())
+        .valor(pedido.getValorTotal())
+        .build();
   }
 
   public static PagamentoRequest criaPagamentoRequestValido(UUID pedidoId) {
@@ -88,13 +87,13 @@ public final class PagamentoDataHelper {
   }
 
   public static PagamentoResumoResponse criaPagamentoResumoResponse(
-          StatusPagamento status, LocalDateTime dataPagamento, BigDecimal valor) {
+      StatusPagamento status, LocalDateTime dataPagamento, BigDecimal valor) {
     return new PagamentoResumoResponse(
-            UUID.randomUUID(), UUID.randomUUID(), status, dataPagamento, valor);
+        UUID.randomUUID(), UUID.randomUUID(), status, dataPagamento, valor);
   }
 
   public static PagamentoResumoProjection criaPagamentoResumoProjection(
-          StatusPagamento statusPagamento, LocalDateTime dataPagamento, BigDecimal valor) {
+      StatusPagamento statusPagamento, LocalDateTime dataPagamento, BigDecimal valor) {
     PagamentoResumoProjection projection = mock(PagamentoResumoProjection.class);
     when(projection.getId()).thenReturn(UUID.randomUUID());
     when(projection.getPedidoId()).thenReturn(UUID.randomUUID());
@@ -105,8 +104,6 @@ public final class PagamentoDataHelper {
   }
 
   public static CancelaPagamentoRequest criaCancelaPagamentoRequestValido() {
-    return CancelaPagamentoRequest.builder()
-            .motivo("Cliente desistiu da compra")
-            .build();
+    return CancelaPagamentoRequest.builder().motivo("Cliente desistiu da compra").build();
   }
 }
