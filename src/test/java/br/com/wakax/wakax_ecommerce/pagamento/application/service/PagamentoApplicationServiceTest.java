@@ -45,27 +45,15 @@ import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 @ExtendWith(MockitoExtension.class)
 class PagamentoApplicationServiceTest {
 
-  @Mock
-  private PagamentoService pagamentoService;
-  @Mock
-  private PagamentoController pagamentoController;
-  @Mock
-  private PagamentoRepository pagamentoRepository;
-  @Mock
-  private PedidoRepository pedidoRepository;
-  @Mock
-  private ProcessadorPagamentoFactory processadorFactory;
-  @Mock
-  private ProcessadorPagamento processadorPagamento;
-  @Mock
-  private PagamentoImediatoStrategy pagamentoImediatoStrategy;
-  @Mock
-  private PagamentoAguardandoStrategy pagamentoAguardandoStrategy;
+  @Mock private PagamentoRepository pagamentoRepository;
+  @Mock private PedidoRepository pedidoRepository;
+  @Mock private ProcessadorPagamentoFactory processadorFactory;
+  @Mock private ProcessadorPagamento processadorPagamento;
+  @Mock private PagamentoImediatoStrategy pagamentoImediatoStrategy;
+  @Mock private PagamentoAguardandoStrategy pagamentoAguardandoStrategy;
 
-  @InjectMocks
-  private PagamentoApplicationService pagamentoApplicationService;
-  @InjectMocks
-  private ProcessadorPagamentoFactory realProcessadorFactory;
+  @InjectMocks private PagamentoApplicationService pagamentoApplicationService;
+  @InjectMocks private ProcessadorPagamentoFactory realProcessadorFactory;
 
   private PagamentoRequest pagamentoRequest;
   private Pedido pedido;
@@ -347,15 +335,15 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveListarTodosOsPagamentosSemFiltro() {
     PagamentoResumoProjection aguardando =
-            PagamentoDataHelper.criaPagamentoResumoProjection(
-                    StatusPagamento.AGUARDANDO, LocalDateTime.now(), new BigDecimal("103.60"));
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.AGUARDANDO, LocalDateTime.now(), new BigDecimal("103.60"));
 
     PagamentoResumoProjection pago =
-            PagamentoDataHelper.criaPagamentoResumoProjection(
-                    StatusPagamento.PAGO, LocalDateTime.now().minusMinutes(1), new BigDecimal("51.80"));
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.PAGO, LocalDateTime.now().minusMinutes(1), new BigDecimal("51.80"));
 
     Page<PagamentoResumoProjection> pagina =
-            new PageImpl<>(List.of(aguardando, pago), PageRequest.of(0, 10), 2);
+        new PageImpl<>(List.of(aguardando, pago), PageRequest.of(0, 10), 2);
 
     when(pagamentoRepository.buscaPagamentos(isNull(), any(Pageable.class))).thenReturn(pagina);
     when(pagamentoRepository.somaValores(isNull())).thenReturn(new BigDecimal("155.40"));
@@ -381,18 +369,18 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveListarApenasPagamentosDoStatusInformado() {
     PagamentoResumoProjection pago =
-            PagamentoDataHelper.criaPagamentoResumoProjection(
-                    StatusPagamento.PAGO, LocalDateTime.now(), new BigDecimal("51.80"));
+        PagamentoDataHelper.criaPagamentoResumoProjection(
+            StatusPagamento.PAGO, LocalDateTime.now(), new BigDecimal("51.80"));
 
     Page<PagamentoResumoProjection> pagina =
-            new PageImpl<>(List.of(pago), PageRequest.of(0, 10), 1);
+        new PageImpl<>(List.of(pago), PageRequest.of(0, 10), 1);
 
     when(pagamentoRepository.buscaPagamentos(eq(StatusPagamento.PAGO), any(Pageable.class)))
-            .thenReturn(pagina);
+        .thenReturn(pagina);
     when(pagamentoRepository.somaValores(StatusPagamento.PAGO)).thenReturn(new BigDecimal("51.80"));
 
     PagamentoPaginadoResponse response =
-            pagamentoApplicationService.buscaPagamentos(StatusPagamento.PAGO, 0, 10);
+        pagamentoApplicationService.buscaPagamentos(StatusPagamento.PAGO, 0, 10);
 
     assertNotNull(response);
     assertEquals(1, response.getPagamentos().size());

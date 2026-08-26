@@ -37,19 +37,19 @@ public class PagamentoController implements PagamentoAPI {
   }
 
   @Override
+  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
+    log.debug("[start] PagamentoController - confirmaPagamento");
+    PagamentoResponse response = pagamentoService.confirmaPagamento(idPagamento);
+    log.debug("[finish] PagamentoController - confirmaPagamento");
+    return response;
+  }
+
+  @Override
   public PagamentoPaginadoResponse buscaPagamentos(
       StatusPagamento status, int pagina, int tamanho) {
     log.debug("[start] PagamentoController - buscaPagamentos");
     PagamentoPaginadoResponse response = pagamentoService.buscaPagamentos(status, pagina, tamanho);
     log.debug("[finish] PagamentoController - buscaPagamentos");
-    return response;
-  }
-
-  @Override
-  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
-    log.debug("[start] PagamentoController - confirmaPagamento");
-    PagamentoResponse response = pagamentoService.confirmaPagamento(idPagamento);
-    log.debug("[finish] PagamentoController - confirmaPagamento");
     return response;
   }
 

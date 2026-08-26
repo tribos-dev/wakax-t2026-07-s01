@@ -148,9 +148,7 @@ public class PagamentoApplicationService implements PagamentoService {
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     if (pagamento.getStatusPagamento() != StatusPagamento.AGUARDANDO) {
       throw new APIException(
-          HttpStatus.NOT_FOUND,
-          ErrorCode.PAGAMENTO_JA_PROCESSADO,
-          pagamento.getStatusPagamento());
+          HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_JA_PROCESSADO, pagamento.getStatusPagamento());
     }
     pagamento.cancelarPagamento(request.getMotivo());
     Pedido pedido = pagamento.getPedido();
