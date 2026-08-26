@@ -16,6 +16,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Pagamento {
+  public static final int LIMITE_TENTATIVAS = 3;
+
   @Id @GeneratedValue private UUID id;
 
   @OneToOne(optional = false)
@@ -39,11 +41,18 @@ public class Pagamento {
   @PositiveOrZero
   private BigDecimal valor;
 
+  @Builder.Default
+  @Column(name = "numero_tentativas", nullable = false)
+  @Min(1)
+  @Max(LIMITE_TENTATIVAS)
+  private int numeroTentativas = 1;
+
   public Pagamento(Pedido pedido) {
     this.pedido = pedido;
     this.statusPagamento = StatusPagamento.AGUARDANDO;
     this.dataPagamento = LocalDateTime.now();
     this.valor = pedido.getValorTotal();
+    this.numeroTentativas = 1;
   }
 
   public void confirmarPagamento() {
@@ -57,5 +66,18 @@ public class Pagamento {
   public void cancelarPagamento(String motivo) {
     this.statusPagamento = StatusPagamento.CANCELADO;
     this.motivoCancelamento = motivo;
+  }
+
+  public void iniciarReprocessamento() {
+    this.numeroTentativas++;
+    this.statusPagamento = StatusPagamento.AGUARDANDO;
+  }
+
+  public void registrarFalha() {
+    this.statusPagamento = StatusPagamento.FALHOU;
+  }
+
+  public boolean atingiuLimiteTentativas() {
+    return numeroTentativas >= LIMITE_TENTATIVAS;
   }
 }
