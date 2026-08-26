@@ -28,8 +28,6 @@ public class Pagamento {
   @NotNull
   private StatusPagamento statusPagamento;
 
-  @Column private String motivoCancelamento;
-
   @Column(nullable = false)
   @NotNull
   private LocalDateTime dataPagamento;
@@ -52,10 +50,5 @@ public class Pagamento {
 
   public void aguardarPagamento() {
     this.statusPagamento = StatusPagamento.AGUARDANDO;
-  }
-
-  public void cancelarPagamento(String motivo) {
-    this.statusPagamento = StatusPagamento.CANCELADO;
-    this.motivoCancelamento = motivo;
   }
 }

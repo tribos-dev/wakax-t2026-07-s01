@@ -120,23 +120,4 @@ public class PagamentoApplicationService implements PagamentoService {
     log.debug("[finish] PagamentoApplicationService - buscaPagamentos");
     return new PagamentoPaginadoResponse(pagamentos, valorTotal);
   }
-
-  @Override
-  @Transactional
-  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
-    log.debug("[start] PagamentoApplicationService - confirmaPagamento");
-    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
-    if (pagamento.getStatusPagamento() != StatusPagamento.AGUARDANDO) {
-      throw new APIException(
-          HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_JA_CONFIRMADO, pagamento.getStatusPagamento());
-    }
-    pagamento.confirmarPagamento();
-    Pedido pedido = pagamento.getPedido();
-    pedido.marcarComoPago();
-
-    pagamentoRepository.salva(pagamento);
-    pedidoRepository.salva(pedido);
-    log.debug("[finish] PagamentoApplicationService - confirmaPagamento");
-    return new PagamentoResponse(pagamento);
-  }
 }
