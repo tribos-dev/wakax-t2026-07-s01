@@ -27,4 +27,8 @@ public interface PagamentoAPI {
       @RequestParam(required = false) StatusPagamento status,
       @RequestParam(defaultValue = "0") int pagina,
       @RequestParam(defaultValue = "10") int tamanho);
+
+  @PostMapping("/{idPagamento}/confirma")
+  @ResponseStatus(HttpStatus.CREATED)
+  PagamentoResponse confirmaPagamento(@PathVariable UUID idPagamento);
 }
