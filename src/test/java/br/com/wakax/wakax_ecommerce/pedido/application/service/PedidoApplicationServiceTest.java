@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +20,7 @@ import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepo
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.cliente.domain.StatusCliente;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
@@ -289,5 +291,66 @@ class PedidoApplicationServiceTest {
     verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
     verifyNoMoreInteractions(pedidoRepository);
     verifyNoInteractions(carrinhoRepository);
+  }
+
+  @Test
+  @DisplayName("WX-26 Cenário 2: cliente desativado não pode criar pedido")
+  void cadastraPedido_clienteInativo_lancaConflict() {
+    UUID idCarrinho = UUID.randomUUID();
+    PedidoRequest request = mock(PedidoRequest.class);
+    when(request.getIdCarrinho()).thenReturn(idCarrinho);
+
+    Carrinho carrinho = mock(Carrinho.class);
+    Cliente cliente = mock(Cliente.class);
+
+    when(carrinho.getCliente()).thenReturn(cliente);
+    when(cliente.getStatus()).thenReturn(StatusCliente.INATIVO);
+    when(carrinhoRepository.buscaCarrinhoPorId(idCarrinho)).thenReturn(carrinho);
+
+    APIException ex =
+        assertThrows(APIException.class, () -> applicationService.cadastraPedido(request));
+
+    verify(pedidoRepository, never()).salva(any());
+  }
+
+  @Test
+  @DisplayName("WX-17 Cenário 2 — regressão: cliente reativado pode criar pedido")
+  void cadastraPedido_clienteReativado_processaNormalmente() {
+    UUID idCarrinho = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
+    PedidoRequest request = mock(PedidoRequest.class);
+    when(request.getIdCarrinho()).thenReturn(idCarrinho);
+    when(request.getFormaPagamento()).thenReturn(FormaPagamento.CARTAO_CREDITO);
+
+    Carrinho carrinho = mock(Carrinho.class);
+    Cliente cliente = mock(Cliente.class);
+    Pessoa pessoa = mock(Pessoa.class);
+    Endereco endereco = mock(Endereco.class);
+    Produto produto = mock(Produto.class);
+    Preco preco = mock(Preco.class);
+    ItemCarrinho itemCarrinho = mock(ItemCarrinho.class);
+
+    when(carrinho.getCliente()).thenReturn(cliente);
+
+    when(cliente.getStatus()).thenReturn(StatusCliente.ATIVO);
+
+    when(cliente.getId()).thenReturn(idCliente);
+    when(cliente.getPessoa()).thenReturn(pessoa);
+    when(pessoa.getNome()).thenReturn("Cliente Teste");
+    when(pessoa.getEnderecos()).thenReturn(List.of(endereco));
+    when(carrinho.getItensCarrinho()).thenReturn(List.of(itemCarrinho));
+
+    when(itemCarrinho.getProduto()).thenReturn(produto);
+    when(itemCarrinho.getQuantidade()).thenReturn(2);
+    when(produto.getPrecos()).thenReturn(List.of(preco));
+    when(preco.getValor()).thenReturn(new BigDecimal("50.00"));
+
+    when(carrinhoRepository.buscaCarrinhoPorId(idCarrinho)).thenReturn(carrinho);
+    when(pedidoRepository.salva(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    assertDoesNotThrow(() -> applicationService.cadastraPedido(request));
+
+    verify(pedidoRepository, times(1)).salva(any(Pedido.class));
   }
 }
