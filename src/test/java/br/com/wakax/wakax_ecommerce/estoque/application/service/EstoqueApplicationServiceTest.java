@@ -227,7 +227,13 @@ class EstoqueApplicationServiceTest {
 
     produto
         .getPrecos()
-        .add(new Preco(UUID.randomUUID(), TipoPreco.PADRAO, new BigDecimal(precoVenda), produto));
+        .add(
+            Preco.builder()
+                .id(UUID.randomUUID())
+                .tipo(TipoPreco.PADRAO)
+                .valor(new BigDecimal(precoVenda))
+                .produto(produto)
+                .build());
     return produto;
   }
 }
