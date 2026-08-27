@@ -94,4 +94,14 @@ class PagamentoControllerTest {
 
     verify(pagamentoService).buscaPagamentoPorId(pagamentoId);
   }
+
+  @Test
+  void deveReprocessarPagamentoComSucesso() {
+    when(pagamentoService.reprocessaPagamento(pagamentoId)).thenReturn(pagamentoResponse);
+
+    PagamentoResponse response = pagamentoController.reprocessaPagamento(pagamentoId);
+
+    assertEquals(pagamentoResponse, response);
+    verify(pagamentoService).reprocessaPagamento(pagamentoId);
+  }
 }

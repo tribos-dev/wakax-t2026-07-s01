@@ -51,4 +51,12 @@ public class PagamentoController implements PagamentoAPI {
     log.debug("[finish] PagamentoController - buscaPagamentos");
     return response;
   }
+
+  @Override
+  public PagamentoResponse reprocessaPagamento(UUID idPagamento) {
+    log.debug("[start] PagamentoController - reprocessaPagamento");
+    PagamentoResponse response = pagamentoService.reprocessaPagamento(idPagamento);
+    log.debug("[finish] PagamentoController - reprocessaPagamento");
+    return response;
+  }
 }
