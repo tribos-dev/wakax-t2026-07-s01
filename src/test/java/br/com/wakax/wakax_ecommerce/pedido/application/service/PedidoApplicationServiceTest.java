@@ -9,6 +9,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoProjection;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -32,6 +35,11 @@ import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoApplicationServiceTest {
@@ -39,6 +47,8 @@ class PedidoApplicationServiceTest {
   @Mock private PedidoRepository pedidoRepository;
 
   @Mock private CarrinhoRepository carrinhoRepository;
+
+  @Mock private ClienteRepository clienteRepository;
 
   @InjectMocks private PedidoApplicationService applicationService;
 
@@ -289,5 +299,71 @@ class PedidoApplicationServiceTest {
     verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
     verifyNoMoreInteractions(pedidoRepository);
     verifyNoInteractions(carrinhoRepository);
+  }
+
+
+  @Test
+  void deveListarPedidosDoClienteSemFiltroDeStatus() {
+    UUID idCliente = UUID.randomUUID();
+    PedidoResumoProjection criado = criaPedidoResumoProjection(StatusPedido.CRIADO, LocalDateTime.now(), new BigDecimal("50.00"));
+    PedidoResumoProjection entregue = criaPedidoResumoProjection(StatusPedido.ENTREGUE, LocalDateTime.now().minusDays(1), new BigDecimal("120.00"));
+    Page<PedidoResumoProjection> pagina = new PageImpl<>(List.of(criado, entregue), PageRequest.of(0, 10), 2);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class))).thenReturn(pagina);
+    PedidoPaginadoResponse response = applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10);
+    assertNotNull(response);
+    assertEquals(2, response.getPedidos().size());
+    assertEquals(2L, response.getTotalPedidos());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(StatusPedido.CRIADO, response.getPedidos().get(0).getStatus());
+    assertEquals(StatusPedido.ENTREGUE, response.getPedidos().get(1).getStatus());
+    verify(clienteRepository).buscaClientePorId(idCliente);
+    verify(pedidoRepository).buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class));
+  }
+
+  @Test
+  void deveListarApenasPedidosDoStatusInformado() {
+    UUID idCliente = UUID.randomUUID();
+    PedidoResumoProjection pago = criaPedidoResumoProjection(StatusPedido.PAGO, LocalDateTime.now(), new BigDecimal("80.00"));
+    Page<PedidoResumoProjection> pagina = new PageImpl<>(List.of(pago), PageRequest.of(0, 10), 1);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(eq(idCliente), eq(StatusPedido.PAGO), any(Pageable.class))).thenReturn(pagina);
+    PedidoPaginadoResponse response = applicationService.buscaPedidosDoCliente(idCliente, StatusPedido.PAGO, 0, 10);
+    assertNotNull(response);
+    assertEquals(1, response.getPedidos().size());
+    assertEquals(StatusPedido.PAGO, response.getPedidos().get(0).getStatus());
+    verify(pedidoRepository).buscaPedidosDoCliente(eq(idCliente), eq(StatusPedido.PAGO), any(Pageable.class));
+  }
+
+  @Test
+  void deveRetornarListaVaziaQuandoClienteNaoPossuiPedidos() {
+    UUID idCliente = UUID.randomUUID();
+    Page<PedidoResumoProjection> paginaVazia = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class))).thenReturn(paginaVazia);
+    PedidoPaginadoResponse response = applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10);
+    assertNotNull(response);
+    assertEquals(0, response.getPedidos().size());
+    assertEquals(0L, response.getTotalPedidos());
+  }
+
+  @Test
+  void deveLancarExcecaoAoListarPedidosQuandoClienteNaoExiste() {
+    UUID idCliente = UUID.randomUUID();
+    when(clienteRepository.buscaClientePorId(idCliente)).thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
+    APIException ex = assertThrows(APIException.class, () -> applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10));
+    assertEquals(ErrorCode.CLIENTE_NAO_ENCONTRADO, ex.getErrorCode());
+    verify(clienteRepository).buscaClientePorId(idCliente);
+    verifyNoInteractions(pedidoRepository);
+  }
+
+  private PedidoResumoProjection criaPedidoResumoProjection(StatusPedido status, LocalDateTime dataPedido, BigDecimal valorTotal) {
+    PedidoResumoProjection projection = mock(PedidoResumoProjection.class);
+    when(projection.getId()).thenReturn(UUID.randomUUID());
+    when(projection.getStatus()).thenReturn(status);
+    when(projection.getDataPedido()).thenReturn(dataPedido);
+    when(projection.getValorTotal()).thenReturn(valorTotal);
+    return projection;
   }
 }
