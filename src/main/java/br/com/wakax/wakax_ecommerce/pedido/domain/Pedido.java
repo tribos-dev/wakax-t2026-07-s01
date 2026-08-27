@@ -33,6 +33,10 @@ public class Pedido {
   @NotNull
   private LocalDateTime dataPedido;
 
+  @Column(name = "data_atualizacao", nullable = false)
+  @NotNull
+  private LocalDateTime dataAtualizacao;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   @NotNull
@@ -63,6 +67,7 @@ public class Pedido {
   public Pedido(PedidoRequest request, Carrinho carrinho) {
     this.cliente = carrinho.getCliente();
     this.dataPedido = LocalDateTime.now();
+    this.dataAtualizacao = LocalDateTime.now();
     this.status = StatusPedido.CRIADO;
     this.formaPagamento = request.getFormaPagamento();
     this.enderecoEntrega = carrinho.getCliente().getPessoa().getEnderecos().get(0);
