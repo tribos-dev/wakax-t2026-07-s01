@@ -4,6 +4,15 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoProjection;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
@@ -22,6 +31,7 @@ public class PedidoApplicationService implements PedidoService {
 
   private final PedidoRepository pedidoRepository;
   private final CarrinhoRepository carrinhoRepository;
+  private final ClienteRepository clienteRepository;
 
   @Override
   @Transactional
@@ -40,5 +50,16 @@ public class PedidoApplicationService implements PedidoService {
     var pedido = pedidoRepository.buscaPedidoPorId(idPedido);
     log.debug("[finish] PedidoApplicationService - buscaPedidoPorId");
     return new PedidoResponse(pedido);
+  }
+
+  @Override
+  public PedidoPaginadoResponse buscaPedidosDoCliente(UUID idCliente, StatusPedido status, int pagina, int tamanho) {
+    log.debug("[start] PedidoApplicationService - buscaPedidosDoCliente");
+    clienteRepository.buscaClientePorId(idCliente);
+    Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.DESC, "dataPedido"));
+    Page<PedidoResumoProjection> pedidosProjection = pedidoRepository.buscaPedidosDoCliente(idCliente, status, pageable);
+    Page<PedidoResumoResponse> pedidos = pedidosProjection.map(p -> new PedidoResumoResponse(p.getId(), p.getDataPedido(), p.getStatus(), p.getValorTotal()));
+    log.debug("[finish] PedidoApplicationService - buscaPedidosDoCliente");
+    return new PedidoPaginadoResponse(pedidos);
   }
 }
