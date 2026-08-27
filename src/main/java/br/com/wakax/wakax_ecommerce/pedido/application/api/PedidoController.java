@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
@@ -31,6 +33,14 @@ public class PedidoController implements PedidoAPI {
     log.debug("[start] PedidoController - buscaPedidoPorId");
     PedidoResponse response = pedidoService.buscaPedidoPorId(idPedido);
     log.debug("[finish] PedidoController - buscaPedidoPorId");
+    return response;
+  }
+
+  @Override
+  public PedidoPaginadoResponse buscaPedidosDoCliente(UUID idCliente, StatusPedido status, int pagina, int tamanho) {
+    log.debug("[start] PedidoController - buscaPedidosDoCliente");
+    PedidoPaginadoResponse response = pedidoService.buscaPedidosDoCliente(idCliente, status, pagina, tamanho);
+    log.debug("[finish] PedidoController - buscaPedidosDoCliente");
     return response;
   }
 }
