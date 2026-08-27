@@ -13,5 +13,6 @@ public interface PedidoService {
 
   PedidoResponse buscaPedidoPorId(UUID idPedido);
 
-    PedidoPaginadoResponse buscaPedidosDoCliente(UUID idCliente, StatusPedido status, int pagina, int tamanho);
+  PedidoPaginadoResponse buscaPedidosDoCliente(
+      UUID idCliente, StatusPedido status, int pagina, int tamanho);
 }

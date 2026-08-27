@@ -1,17 +1,17 @@
 package br.com.wakax.wakax_ecommerce.pedido.application.api.response;
 
-import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
-
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
+
 public interface PedidoResumoProjection {
-    UUID getId();
+  UUID getId();
 
-    LocalDateTime getDataPedido();
+  LocalDateTime getDataPedido();
 
-    StatusPedido getStatus();
+  StatusPedido getStatus();
 
-    BigDecimal getValorTotal();
+  BigDecimal getValorTotal();
 }

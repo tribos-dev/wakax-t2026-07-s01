@@ -1,21 +1,22 @@
 package br.com.wakax.wakax_ecommerce.pedido.application.api.response;
 
-import lombok.Getter;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 
-import java.util.List;
+import lombok.Getter;
 
 @Getter
 public class PedidoPaginadoResponse {
-    private final List<PedidoResumoResponse> pedidos;
-    private final long totalPedidos;
-    private final int totalPaginas;
-    private final int paginaAtual;
+  private final List<PedidoResumoResponse> pedidos;
+  private final long totalPedidos;
+  private final int totalPaginas;
+  private final int paginaAtual;
 
-    public PedidoPaginadoResponse(Page<PedidoResumoResponse> pedidos) {
-        this.pedidos = pedidos.getContent();
-        this.totalPedidos = pedidos.getTotalElements();
-        this.totalPaginas = pedidos.getTotalPages();
-        this.paginaAtual = pedidos.getNumber();
-    }
+  public PedidoPaginadoResponse(Page<PedidoResumoResponse> pedidos) {
+    this.pedidos = pedidos.getContent();
+    this.totalPedidos = pedidos.getTotalElements();
+    this.totalPaginas = pedidos.getTotalPages();
+    this.paginaAtual = pedidos.getNumber();
+  }
 }
