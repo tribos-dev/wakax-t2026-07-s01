@@ -4,9 +4,12 @@ import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
 
+import javax.persistence.LockModeType;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,6 +21,10 @@ public interface PagamentoJPARepository extends JpaRepository<Pagamento, UUID> {
 
   @Query("SELECT p FROM Pagamento p JOIN FETCH p.pedido WHERE p.id = :idPagamento")
   java.util.Optional<Pagamento> findByIdComPedido(@Param("idPagamento") UUID idPagamento);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("SELECT p FROM Pagamento p JOIN FETCH p.pedido WHERE p.id = :idPagamento")
+  Optional<Pagamento> findByIdComPedidoParaAtualizacao(@Param("idPagamento") UUID idPagamento);
 
   @Query("SELECT p FROM Pagamento p JOIN FETCH p.pedido WHERE p.pedido.id = :idPedido")
   Optional<Pagamento> findByPedidoId(@Param("idPedido") UUID idPedido);
