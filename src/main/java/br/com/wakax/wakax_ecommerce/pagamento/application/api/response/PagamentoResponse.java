@@ -17,6 +17,7 @@ public class PagamentoResponse {
   private final LocalDateTime dataPagamento;
   private final BigDecimal valor;
   private final FormaPagamento formaPagamento;
+  private final int numeroTentativas;
 
   public PagamentoResponse(Pagamento pagamento) {
     this.idPagamento = pagamento.getId();
@@ -25,5 +26,6 @@ public class PagamentoResponse {
     this.dataPagamento = pagamento.getDataPagamento();
     this.valor = pagamento.getValor();
     this.formaPagamento = pagamento.getPedido().getFormaPagamento();
+    this.numeroTentativas = pagamento.getNumeroTentativas();
   }
 }

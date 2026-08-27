@@ -35,6 +35,7 @@ public class PagamentoApplicationService implements PagamentoService {
   private final PagamentoRepository pagamentoRepository;
   private final PedidoRepository pedidoRepository;
   private final ProcessadorPagamentoFactory processadorFactory;
+  private final ReprocessamentoPagamentoService reprocessamentoPagamentoService;
 
   @Override
   @Transactional
@@ -138,5 +139,10 @@ public class PagamentoApplicationService implements PagamentoService {
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - confirmaPagamento");
     return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  public PagamentoResponse reprocessaPagamento(UUID idPagamento) {
+    return reprocessamentoPagamentoService.reprocessaPagamento(idPagamento);
   }
 }

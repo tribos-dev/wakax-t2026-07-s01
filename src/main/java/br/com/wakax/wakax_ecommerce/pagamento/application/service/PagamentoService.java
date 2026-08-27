@@ -18,4 +18,6 @@ public interface PagamentoService {
   PagamentoPaginadoResponse buscaPagamentos(StatusPagamento status, int pagina, int tamanho);
 
   PagamentoResponse confirmaPagamento(UUID idPagamento);
+
+  PagamentoResponse reprocessaPagamento(UUID idPagamento);
 }

@@ -49,6 +49,7 @@ class PagamentoApplicationServiceTest {
   @Mock private ProcessadorPagamento processadorPagamento;
   @Mock private PagamentoImediatoStrategy pagamentoImediatoStrategy;
   @Mock private PagamentoAguardandoStrategy pagamentoAguardandoStrategy;
+  @Mock private ReprocessamentoPagamentoService reprocessamentoPagamentoService;
 
   @InjectMocks private PagamentoApplicationService pagamentoApplicationService;
   @InjectMocks private ProcessadorPagamentoFactory realProcessadorFactory;
@@ -417,5 +418,17 @@ class PagamentoApplicationServiceTest {
     assertEquals(ErrorCode.PAGAMENTO_JA_CONFIRMADO, exception.getErrorCode());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
     verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
+
+  @Test
+  void deveDelegarReprocessamentoPagamento() {
+    PagamentoResponse pagamentoResponse = new PagamentoResponse(pagamento);
+    when(reprocessamentoPagamentoService.reprocessaPagamento(pagamentoId))
+        .thenReturn(pagamentoResponse);
+
+    PagamentoResponse response = pagamentoApplicationService.reprocessaPagamento(pagamentoId);
+
+    assertEquals(pagamentoResponse, response);
+    verify(reprocessamentoPagamentoService).reprocessaPagamento(pagamentoId);
   }
 }
