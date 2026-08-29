@@ -92,24 +92,6 @@ class FiltroTokenTest {
   }
 
   @Test
-  @DisplayName("Não deve filtrar o GET do catálogo de produtos ativos")
-  void shouldNotFilter_GetProdutosAtivos() throws ServletException {
-    when(request.getMethod()).thenReturn("GET");
-    when(request.getRequestURI()).thenReturn("/produto/ativos");
-
-    assertTrue(filtroToken.shouldNotFilter(request));
-  }
-
-  @Test
-  @DisplayName("Deve filtrar outros métodos na rota de produtos ativos")
-  void shouldNotFilter_PostProdutosAtivos() throws ServletException {
-    when(request.getMethod()).thenReturn("POST");
-    when(request.getRequestURI()).thenReturn("/produto/ativos");
-
-    assertFalse(filtroToken.shouldNotFilter(request));
-  }
-
-  @Test
   @DisplayName("Deve filtrar rotas protegidas")
   void shouldNotFilter_RotaProtegida() throws ServletException {
     when(request.getRequestURI()).thenReturn("/api/protegida");

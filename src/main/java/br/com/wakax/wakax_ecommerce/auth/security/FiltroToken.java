@@ -9,7 +9,6 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -90,11 +89,6 @@ public class FiltroToken extends OncePerRequestFilter {
   @Override
   protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
     String path = request.getRequestURI();
-    boolean catalogoDeProdutosAtivos =
-        HttpMethod.GET.matches(request.getMethod()) && "/produto/ativos".equals(path);
-    return catalogoDeProdutosAtivos
-        || path.contains("/public/")
-        || path.contains("/swagger-ui/")
-        || path.contains("/webhook");
+    return path.contains("/public/") || path.contains("/swagger-ui/") || path.contains("/webhook");
   }
 }
