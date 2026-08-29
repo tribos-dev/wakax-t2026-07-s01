@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 
@@ -20,4 +21,9 @@ public interface PedidoAPI {
 
   @GetMapping("/{idPedido}")
   PedidoResponse buscaPedidoPorId(@PathVariable UUID idPedido);
+
+  @PatchMapping("/{idPedido}/endereco")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void alteraEnderecoPedido(
+      @PathVariable UUID idPedido, @Valid @RequestBody EnderecoUpdateRequest enderecoUpdateRequest);
 }
