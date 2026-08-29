@@ -12,6 +12,7 @@ import javax.validation.constraints.*;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import lombok.*;
@@ -52,13 +53,16 @@ public class Pedido {
   @NotNull
   private FormaPagamento formaPagamento;
 
-  @ManyToOne(optional = false)
+  @ManyToOne(optional = false, cascade = CascadeType.PERSIST)
   @JoinColumn(nullable = false)
   @NotNull
   private Endereco enderecoEntrega;
 
   @OneToOne(mappedBy = "pedido")
   private Rastreamento rastreamento;
+
+  @Column(nullable = true, name = "data_edicao")
+  private LocalDateTime dataEdicao;
 
   public Pedido(PedidoRequest request, Carrinho carrinho) {
     this.cliente = carrinho.getCliente();
@@ -97,5 +101,30 @@ public class Pedido {
 
   public void aguardarPagamento() {
     this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    dataEdicao = LocalDateTime.now();
+  }
+
+  public boolean podeAlterarEndereco() {
+    return status == StatusPedido.CRIADO
+        || status == StatusPedido.PAGO
+        || status == StatusPedido.AGUARDANDO_PAGAMENTO;
+  }
+
+  public void alteraEndereco(EnderecoUpdateRequest enderecoNovo) {
+    this.enderecoEntrega =
+        Endereco.builder()
+            .pessoa(this.cliente.getPessoa())
+            .logradouro(enderecoNovo.getLogradouro())
+            .numero(enderecoNovo.getNumero())
+            .complemento(enderecoNovo.getComplemento())
+            .bairro(enderecoNovo.getBairro())
+            .cidade(enderecoNovo.getCidade())
+            .estado(enderecoNovo.getEstado())
+            .cep(enderecoNovo.getCep())
+            .build();
   }
 }
