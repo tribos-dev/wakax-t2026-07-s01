@@ -7,8 +7,11 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.*;
+import org.springframework.http.HttpStatus;
 
 @Entity
 @Data
@@ -55,6 +58,13 @@ public class Pagamento {
   }
 
   public void cancelarPagamento(String motivo) {
+    if (this.statusPagamento != StatusPagamento.AGUARDANDO){
+      throw new APIException(
+          HttpStatus.CONFLICT,
+          ErrorCode.PAGAMENTO_JA_PROCESSADO,
+          this.statusPagamento);
+    }
+
     this.statusPagamento = StatusPagamento.FALHOU;
     this.motivoCancelamento = motivo;
   }
