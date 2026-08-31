@@ -29,8 +29,7 @@ public enum ErrorCode {
   PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado"),
   PAGAMENTO_JA_PROCESSADO_COM_SUCESSO("pagamento.ja.processado.com.sucesso"),
   PAGAMENTO_NAO_PODE_SER_REPROCESSADO("pagamento.nao.pode.ser.reprocessado"),
-  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido"),
-  GATEWAY_PAGAMENTO_INDISPONIVEL("pagamento.gateway.indisponivel");
+  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido");
 
   private final String code;
 

@@ -15,6 +15,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.PagamentoController;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoDataHelper;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoService;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
@@ -97,11 +98,15 @@ class PagamentoControllerTest {
 
   @Test
   void deveReprocessarPagamentoComSucesso() {
-    when(pagamentoService.reprocessaPagamento(pagamentoId)).thenReturn(pagamentoResponse);
+    Pedido pedido = PagamentoDataHelper.criaPedidoValido();
+    Pagamento pagamento = PagamentoDataHelper.criaPagamentoValido(pedido);
+    ReprocessarPagamentoResponse reprocessarResponse =
+        new ReprocessarPagamentoResponse(pagamento, 2);
+    when(pagamentoService.reprocessaPagamento(pagamentoId)).thenReturn(reprocessarResponse);
 
-    PagamentoResponse response = pagamentoController.reprocessaPagamento(pagamentoId);
+    ReprocessarPagamentoResponse response = pagamentoController.reprocessaPagamento(pagamentoId);
 
-    assertEquals(pagamentoResponse, response);
+    assertEquals(reprocessarResponse, response);
     verify(pagamentoService).reprocessaPagamento(pagamentoId);
   }
 }

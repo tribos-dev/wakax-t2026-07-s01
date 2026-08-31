@@ -33,7 +33,7 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.handler.MessageUtil;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.PagamentoController;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoDataHelper;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoService;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
@@ -54,7 +54,7 @@ class PagamentoControllerWebTest {
   @MockBean private AutenticacaoSecurityService autenticacaoSecurityService;
 
   private UUID idPagamento;
-  private PagamentoResponse pagamentoResponse;
+  private ReprocessarPagamentoResponse reprocessarPagamentoResponse;
 
   @BeforeEach
   void setUp() {
@@ -66,14 +66,14 @@ class PagamentoControllerWebTest {
     Pagamento pagamento =
         PagamentoDataHelper.criaPagamentoValido(PagamentoDataHelper.criaPedidoValido());
     pagamento.setStatusPagamento(StatusPagamento.AGUARDANDO);
-    pagamento.setNumeroTentativas(2);
     idPagamento = pagamento.getId();
-    pagamentoResponse = new PagamentoResponse(pagamento);
+    reprocessarPagamentoResponse = new ReprocessarPagamentoResponse(pagamento, 2);
   }
 
   @Test
   void deveExporReprocessamentoPorPut() throws Exception {
-    when(pagamentoService.reprocessaPagamento(idPagamento)).thenReturn(pagamentoResponse);
+    when(pagamentoService.reprocessaPagamento(idPagamento))
+        .thenReturn(reprocessarPagamentoResponse);
 
     mockMvc
         .perform(

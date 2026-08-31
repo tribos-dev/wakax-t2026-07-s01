@@ -1,11 +1,10 @@
 package br.com.wakax.wakax_ecommerce.pagamento.infra;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,7 +14,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoDataHelper;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
-import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 
 @ExtendWith(MockitoExtension.class)
@@ -27,7 +25,9 @@ class TentativaPagamentoInfraRepositoryTest {
 
   @Test
   void deveSalvarHistoricoDaTentativa() {
-    TentativaPagamento tentativa = criaTentativa();
+    Pagamento pagamento =
+        PagamentoDataHelper.criaPagamentoValido(PagamentoDataHelper.criaPedidoValido());
+    TentativaPagamento tentativa = TentativaPagamento.nova(pagamento, 1);
     when(tentativaPagamentoJPARepository.save(tentativa)).thenReturn(tentativa);
 
     TentativaPagamento resultado = tentativaPagamentoInfraRepository.salva(tentativa);
@@ -37,34 +37,14 @@ class TentativaPagamentoInfraRepositoryTest {
   }
 
   @Test
-  void deveBuscarHistoricoPelaChaveIdempotente() {
-    TentativaPagamento tentativa = criaTentativa();
-    when(tentativaPagamentoJPARepository.findByChaveIdempotencia(tentativa.getChaveIdempotencia()))
-        .thenReturn(Optional.of(tentativa));
+  void deveContarTentativasDoPagamento() {
+    UUID idPagamento = UUID.randomUUID();
+    when(tentativaPagamentoJPARepository.countByPagamentoId(idPagamento)).thenReturn(2L);
 
-    TentativaPagamento resultado =
-        tentativaPagamentoInfraRepository.buscaPorChaveIdempotencia(
-            tentativa.getChaveIdempotencia());
+    long totalTentativas =
+        tentativaPagamentoInfraRepository.contaTentativasDoPagamento(idPagamento);
 
-    assertEquals(tentativa, resultado);
-  }
-
-  @Test
-  void deveFalharQuandoHistoricoNaoForEncontrado() {
-    String chaveIdempotencia = "pagamento:inexistente:tentativa:2";
-    when(tentativaPagamentoJPARepository.findByChaveIdempotencia(chaveIdempotencia))
-        .thenReturn(Optional.empty());
-
-    assertThrows(
-        IllegalStateException.class,
-        () -> tentativaPagamentoInfraRepository.buscaPorChaveIdempotencia(chaveIdempotencia));
-  }
-
-  private TentativaPagamento criaTentativa() {
-    Pagamento pagamento =
-        PagamentoDataHelper.criaPagamentoValido(PagamentoDataHelper.criaPedidoValido());
-    pagamento.setStatusPagamento(StatusPagamento.FALHOU);
-    pagamento.iniciarReprocessamento();
-    return TentativaPagamento.pendente(pagamento);
+    assertEquals(2L, totalTentativas);
+    verify(tentativaPagamentoJPARepository).countByPagamentoId(idPagamento);
   }
 }

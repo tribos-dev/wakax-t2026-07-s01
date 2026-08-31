@@ -58,22 +58,6 @@ public class PagamentoInfraRepository implements PagamentoRepository {
   }
 
   @Override
-  public Pagamento buscaPagamentoPorIdParaAtualizacao(UUID idPagamento) {
-    log.debug("[start] PagamentoInfraRepository - buscaPagamentoPorIdParaAtualizacao");
-
-    Pagamento pagamento =
-        pagamentoJPARepository
-            .findByIdComPedidoParaAtualizacao(idPagamento)
-            .orElseThrow(
-                () ->
-                    new APIException(
-                        HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, idPagamento));
-
-    log.debug("[finish] PagamentoInfraRepository - buscaPagamentoPorIdParaAtualizacao");
-    return pagamento;
-  }
-
-  @Override
   public Page<PagamentoResumoProjection> buscaPagamentos(
       StatusPagamento status, Pageable pageable) {
     log.debug("[start] PagamentoInfraRepository - buscaPagamentos");
