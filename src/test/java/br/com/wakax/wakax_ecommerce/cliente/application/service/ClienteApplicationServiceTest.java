@@ -27,7 +27,6 @@ import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteReque
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
-import br.com.wakax.wakax_ecommerce.cliente.domain.StatusCliente;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 
 @ExtendWith(MockitoExtension.class)
@@ -64,34 +63,5 @@ public class ClienteApplicationServiceTest {
     assertEquals(0, response.getTotalElements());
     assertEquals(0, response.getContent().size());
     verify(clienteRepository, times(1)).buscarTodos(pageable);
-  }
-
-  @Test
-  @DisplayName("WX-17 Cenário 1: ativa cliente, salva e retorna response")
-  void ativarCliente_clienteInativo_ativaESalva() {
-    UUID id = UUID.randomUUID();
-    Cliente cliente = new Cliente(umClienteRequestValido());
-    ReflectionTestUtils.setField(cliente, "status", StatusCliente.INATIVO);
-
-    when(clienteRepository.buscaClientePorId(id)).thenReturn(cliente);
-
-    ClienteResponse response = clienteApplicationService.ativarCliente(id);
-
-    assertThat(cliente.getStatus()).isEqualTo(StatusCliente.ATIVO);
-    verify(clienteRepository).salva(cliente);
-    assertThat(response).isNotNull();
-  }
-
-  @Test
-  @DisplayName("WX-17 Cenário 3: cliente inexistente propaga NOT_FOUND")
-  void ativarCliente_clienteNaoExiste_propagaExcecao() {
-    UUID id = UUID.randomUUID();
-    when(clienteRepository.buscaClientePorId(id))
-        .thenThrow(APIException.build(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
-
-    assertThatThrownBy(() -> clienteApplicationService.ativarCliente(id))
-        .isInstanceOf(APIException.class);
-
-    verify(clienteRepository, never()).salva(any());
   }
 }

@@ -6,10 +6,7 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-import org.springframework.http.HttpStatus;
-
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
-import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -38,9 +35,8 @@ public class Cliente {
   @NotNull
   private LocalDateTime dataEdicao;
 
-  @Enumerated(EnumType.STRING)
-  @Column(nullable = false, name = "status")
-  private StatusCliente status;
+  @Column(name = "data_ativacao")
+  private LocalDateTime dataAtivacao;
 
   @PrePersist
   protected void onCreate() {
@@ -55,13 +51,10 @@ public class Cliente {
 
   public Cliente(ClienteRequest request) {
     this.pessoa = Pessoa.criarDe(request);
-    this.status = StatusCliente.ATIVO;
   }
 
   public void ativar() {
-    if (this.status != StatusCliente.INATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está ativo.");
-    }
-    this.status = StatusCliente.ATIVO;
+    pessoa.ativar();
+    this.dataAtivacao = LocalDateTime.now();
   }
 }
