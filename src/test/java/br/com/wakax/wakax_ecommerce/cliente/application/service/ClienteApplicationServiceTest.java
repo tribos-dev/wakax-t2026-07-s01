@@ -96,15 +96,17 @@ public class ClienteApplicationServiceTest {
   }
 
   @Test
-  @DisplayName("WX-26 Cenário 1: desativa cliente, salva e retorna response")
+  @DisplayName("WX-26 Cenário 1: desativa cliente ATIVO, salva e retorna response")
   void desativarCliente_clienteAtivo_desativaESalva() {
     UUID id = UUID.randomUUID();
     Cliente cliente = new Cliente(umClienteRequestValido());
+
     when(clienteRepository.buscaClientePorId(id)).thenReturn(cliente);
 
     ClienteResponse response = clienteApplicationService.desativarCliente(id);
 
-    assertThat(cliente.getStatus()).isEqualTo(StatusCliente.INATIVO);
+    assertThat(cliente.getPessoa().getStatus()).isEqualTo(StatusPessoa.INATIVO);
+    assertThat(cliente.getDataDesativacao()).isNotNull();
     verify(clienteRepository).salva(cliente);
     assertThat(response).isNotNull();
   }
