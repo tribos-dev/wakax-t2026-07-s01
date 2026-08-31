@@ -60,7 +60,17 @@ class ClienteTest {
 
     cliente.desativar();
 
-    assertThat(cliente.getStatus()).isEqualTo(StatusCliente.INATIVO);
+    assertThat(cliente.getPessoa().getStatus()).isEqualTo(StatusPessoa.INATIVO);
+  }
+
+  @Test
+  @DisplayName("WX-26 Cenário 1 (extra): desativar registra dataDesativacao")
+  void desativar_clienteAtivo_registraDataDesativacao() {
+    Cliente cliente = new Cliente(umClienteRequestValido());
+
+    cliente.desativar();
+
+    assertThat(cliente.getDataDesativacao()).isNotNull();
   }
 
   @Test
