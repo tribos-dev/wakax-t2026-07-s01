@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,4 +27,8 @@ public interface ClienteApi {
   @GetMapping("/clientes")
   PageResponse<ClienteResumoResponse> buscarTodosClientes(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
+
+  @PutMapping("/{idCliente}")
+  ClienteResponse atualizarCliente(
+          @PathVariable UUID idCliente, @RequestBody @Valid AtualizaClienteRequest clienteRequest);
 }
