@@ -1,8 +1,8 @@
 package br.com.wakax.wakax_ecommerce.pagamento.application.api.request;
 
-import lombok.*;
-
 import javax.validation.constraints.NotBlank;
+
+import lombok.*;
 
 @Getter
 @ToString
