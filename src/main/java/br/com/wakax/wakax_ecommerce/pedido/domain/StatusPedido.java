@@ -15,9 +15,7 @@ public enum StatusPedido {
 
     switch (this) {
       case CRIADO:
-        return novoStatus == PAGO
-            || novoStatus == AGUARDANDO_PAGAMENTO
-            || novoStatus == CANCELADO;
+        return novoStatus == PAGO || novoStatus == AGUARDANDO_PAGAMENTO || novoStatus == CANCELADO;
       case AGUARDANDO_PAGAMENTO:
         return novoStatus == PAGO || novoStatus == CANCELADO;
       case PAGO:

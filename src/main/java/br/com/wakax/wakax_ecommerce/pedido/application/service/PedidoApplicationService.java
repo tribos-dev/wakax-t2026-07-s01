@@ -64,8 +64,6 @@ public class PedidoApplicationService implements PedidoService {
     pedido
         .getItensPedido()
         .forEach(
-            item ->
-                estoqueService.liberaReserva(
-                    item.getProduto().getId(), item.getQuantidade()));
+            item -> estoqueService.liberaReserva(item.getProduto().getId(), item.getQuantidade()));
   }
 }
