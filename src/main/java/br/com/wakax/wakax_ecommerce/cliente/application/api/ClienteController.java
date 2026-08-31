@@ -58,7 +58,7 @@ public class ClienteController implements ClienteApi {
   @Override
   public ClienteResponse desativarCliente(UUID idCliente) {
     log.debug("[start] ClienteController - desativarCliente");
-    ClienteResponse response = clienteApplicationService.desativarCliente(idCliente);
+    ClienteResponse response = clienteService.desativarCliente(idCliente);
     log.debug("[finish] ClienteController - desativarCliente");
     return response;
   }
