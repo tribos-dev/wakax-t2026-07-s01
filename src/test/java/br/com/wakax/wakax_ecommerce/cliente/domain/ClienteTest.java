@@ -46,7 +46,7 @@ class ClienteTest {
   @Test
   @DisplayName("WX-17 Cenário 4: ativar cliente já ATIVO lança CONFLICT")
   void ativar_clienteJaAtivo_lancaConflict() {
-    Cliente cliente = new Cliente(umClienteRequestValido()); // nasce ATIVO
+    Cliente cliente = new Cliente(umClienteRequestValido());
 
     assertThatThrownBy(cliente::ativar)
         .isInstanceOf(APIException.class)
