@@ -28,7 +28,7 @@ public class ClienteApplicationServiceTest {
   @InjectMocks private ClienteApplicationService clienteApplicationService;
 
   private ClienteRequest umClienteRequestValido() {
-    return new ClienteRequest(); // Ajuste conforme os campos/construtor do seu ClienteRequest
+    return new ClienteRequest();
   }
 
   @Test
