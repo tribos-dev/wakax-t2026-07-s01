@@ -9,6 +9,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.DadosAtualizacaoPessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.DadosPessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.PessoaRequest;
 import lombok.AllArgsConstructor;
@@ -73,6 +74,15 @@ public class Pessoa {
     Optional.ofNullable(dadosPessoa.getEnderecos()).ifPresent(pessoa.enderecos::addAll);
     pessoa.vincularEnderecos();
     return pessoa;
+  }
+
+  public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
+    this.nome = dadosAtualizacao.getNome();
+    this.emails = dadosAtualizacao.getEmails();
+    this.telefones = dadosAtualizacao.getTelefones();
+    this.enderecos = new ArrayList<>();
+    Optional.ofNullable(dadosAtualizacao.getEnderecos()).ifPresent(this.enderecos::addAll);
+    vincularEnderecos();
   }
 
   private void vincularEnderecos() {

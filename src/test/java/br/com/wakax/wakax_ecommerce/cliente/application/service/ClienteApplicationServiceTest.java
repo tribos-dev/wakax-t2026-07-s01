@@ -6,11 +6,6 @@ import static org.mockito.Mockito.*;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
-import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
-import br.com.wakax.wakax_ecommerce.handler.APIException;
-import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
-import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -21,10 +16,15 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
+import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
-import org.springframework.http.HttpStatus;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 
 @ExtendWith(MockitoExtension.class)
 public class ClienteApplicationServiceTest {
@@ -108,12 +108,12 @@ public class ClienteApplicationServiceTest {
   void deveLancarExcecaoAoAtualizarClienteInexistente() {
     AtualizaClienteRequest request = ClienteDataHelper.criaAtualizaClienteRequestValido();
     when(clienteRepository.buscaClientePorId(idCliente))
-            .thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
+        .thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
 
     APIException exception =
-            assertThrows(
-                    APIException.class,
-                    () -> clienteApplicationService.atualizaCliente(idCliente, request));
+        assertThrows(
+            APIException.class,
+            () -> clienteApplicationService.atualizaCliente(idCliente, request));
 
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.CLIENTE_NAO_ENCONTRADO, exception.getErrorCode());

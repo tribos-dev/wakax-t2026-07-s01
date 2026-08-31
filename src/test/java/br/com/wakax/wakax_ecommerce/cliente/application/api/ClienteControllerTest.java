@@ -44,106 +44,106 @@ import br.com.wakax.wakax_ecommerce.handler.MessageUtil;
 @Import(MessageUtil.class)
 class ClienteControllerTest {
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
+  @Autowired private MockMvc mockMvc;
+  @Autowired private ObjectMapper objectMapper;
 
-    @MockBean private ClienteService clienteService;
-    @MockBean private TokenService tokenService;
-    @MockBean private CredencialService credencialService;
-    @MockBean private AutenticacaoSecurityService autenticacaoSecurityService;
+  @MockBean private ClienteService clienteService;
+  @MockBean private TokenService tokenService;
+  @MockBean private CredencialService credencialService;
+  @MockBean private AutenticacaoSecurityService autenticacaoSecurityService;
 
-    @Test
-    void deveCadastrarClienteComSucesso() throws Exception {
-        ClienteRequest request = ClienteDataHelper.criaClienteRequestValido();
-        Cliente cliente = ClienteDataHelper.criaClienteValido();
-        ClienteResponse response = new ClienteResponse(cliente);
+  @Test
+  void deveCadastrarClienteComSucesso() throws Exception {
+    ClienteRequest request = ClienteDataHelper.criaClienteRequestValido();
+    Cliente cliente = ClienteDataHelper.criaClienteValido();
+    ClienteResponse response = new ClienteResponse(cliente);
 
-        when(clienteService.criaCliente(any())).thenReturn(response);
+    when(clienteService.criaCliente(any())).thenReturn(response);
 
-        mockMvc
-                .perform(
-                        post("/cliente")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.nome").value(response.getNome()));
-    }
+    mockMvc
+        .perform(
+            post("/cliente")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isCreated())
+        .andExpect(jsonPath("$.nome").value(response.getNome()));
+  }
 
-    @Test
-    void deveAtualizarClienteComSucesso() throws Exception {
-        UUID idCliente = UUID.randomUUID();
-        AtualizaClienteRequest request = ClienteDataHelper.criaAtualizaClienteRequestValido();
+  @Test
+  void deveAtualizarClienteComSucesso() throws Exception {
+    UUID idCliente = UUID.randomUUID();
+    AtualizaClienteRequest request = ClienteDataHelper.criaAtualizaClienteRequestValido();
 
-        // instância independente: usada só para montar a resposta simulada, sem mutar o objeto
-        // que será serializado como corpo da requisição (Endereco/Pessoa não são serializáveis
-        // com segurança após vinculados, pois carregam referência circular)
-        Cliente cliente = ClienteDataHelper.criaClienteValido();
-        cliente.atualizar(ClienteDataHelper.criaAtualizaClienteRequestValido());
-        ClienteResponse response = new ClienteResponse(cliente);
+    // instância independente: usada só para montar a resposta simulada, sem mutar o objeto
+    // que será serializado como corpo da requisição (Endereco/Pessoa não são serializáveis
+    // com segurança após vinculados, pois carregam referência circular)
+    Cliente cliente = ClienteDataHelper.criaClienteValido();
+    cliente.atualizar(ClienteDataHelper.criaAtualizaClienteRequestValido());
+    ClienteResponse response = new ClienteResponse(cliente);
 
-        when(clienteService.atualizaCliente(eq(idCliente), any())).thenReturn(response);
+    when(clienteService.atualizaCliente(eq(idCliente), any())).thenReturn(response);
 
-        mockMvc
-                .perform(
-                        put("/cliente/{idCliente}", idCliente)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value(response.getNome()))
-                .andExpect(jsonPath("$.telefones[0]").value(response.getTelefones().get(0)))
-                .andExpect(jsonPath("$.enderecos[0].cep").value(response.getEnderecos().get(0).getCep()));
+    mockMvc
+        .perform(
+            put("/cliente/{idCliente}", idCliente)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.nome").value(response.getNome()))
+        .andExpect(jsonPath("$.telefones[0]").value(response.getTelefones().get(0)))
+        .andExpect(jsonPath("$.enderecos[0].cep").value(response.getEnderecos().get(0).getCep()));
 
-        verify(clienteService).atualizaCliente(eq(idCliente), any(AtualizaClienteRequest.class));
-    }
+    verify(clienteService).atualizaCliente(eq(idCliente), any(AtualizaClienteRequest.class));
+  }
 
-    @Test
-    void deveRetornarBadRequestQuandoEmailInvalidoNaAtualizacao() throws Exception {
-        UUID idCliente = UUID.randomUUID();
-        AtualizaClienteRequest request =
-                new AtualizaClienteRequest(
-                        "Cliente Teste", List.of("email-invalido"), List.of("11999999999"), List.of());
+  @Test
+  void deveRetornarBadRequestQuandoEmailInvalidoNaAtualizacao() throws Exception {
+    UUID idCliente = UUID.randomUUID();
+    AtualizaClienteRequest request =
+        new AtualizaClienteRequest(
+            "Cliente Teste", List.of("email-invalido"), List.of("11999999999"), List.of());
 
-        mockMvc
-                .perform(
-                        put("/cliente/{idCliente}", idCliente)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(
+            put("/cliente/{idCliente}", idCliente)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isBadRequest());
 
-        verify(clienteService, never()).atualizaCliente(any(), any());
-    }
+    verify(clienteService, never()).atualizaCliente(any(), any());
+  }
 
-    @Test
-    void deveRetornarNotFoundQuandoClienteNaoExisteNaAtualizacao() throws Exception {
-        UUID idCliente = UUID.randomUUID();
-        AtualizaClienteRequest request = ClienteDataHelper.criaAtualizaClienteRequestValido();
+  @Test
+  void deveRetornarNotFoundQuandoClienteNaoExisteNaAtualizacao() throws Exception {
+    UUID idCliente = UUID.randomUUID();
+    AtualizaClienteRequest request = ClienteDataHelper.criaAtualizaClienteRequestValido();
 
-        when(clienteService.atualizaCliente(eq(idCliente), any()))
-                .thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
+    when(clienteService.atualizaCliente(eq(idCliente), any()))
+        .thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
 
-        mockMvc
-                .perform(
-                        put("/cliente/{idCliente}", idCliente)
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isNotFound());
+    mockMvc
+        .perform(
+            put("/cliente/{idCliente}", idCliente)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(request)))
+        .andExpect(status().isNotFound());
 
-        verify(clienteService).atualizaCliente(eq(idCliente), any(AtualizaClienteRequest.class));
-    }
+    verify(clienteService).atualizaCliente(eq(idCliente), any(AtualizaClienteRequest.class));
+  }
 
-    @Test
-    void deveBuscarClienteEspecificoComSucesso() throws Exception {
-        UUID idCliente = UUID.randomUUID();
-        Cliente cliente = ClienteDataHelper.criaClienteValido();
-        ClienteResponse response = new ClienteResponse(cliente);
+  @Test
+  void deveBuscarClienteEspecificoComSucesso() throws Exception {
+    UUID idCliente = UUID.randomUUID();
+    Cliente cliente = ClienteDataHelper.criaClienteValido();
+    ClienteResponse response = new ClienteResponse(cliente);
 
-        when(clienteService.buscaClienteEspecifico(idCliente)).thenReturn(response);
+    when(clienteService.buscaClienteEspecifico(idCliente)).thenReturn(response);
 
-        mockMvc
-                .perform(get("/cliente/{idCliente}", idCliente))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.nome").value(response.getNome()));
+    mockMvc
+        .perform(get("/cliente/{idCliente}", idCliente))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.nome").value(response.getNome()));
 
-        verify(clienteService).buscaClienteEspecifico(idCliente);
-    }
+    verify(clienteService).buscaClienteEspecifico(idCliente);
+  }
 }

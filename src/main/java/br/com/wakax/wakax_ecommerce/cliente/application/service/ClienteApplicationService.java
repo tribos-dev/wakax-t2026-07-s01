@@ -2,11 +2,11 @@ package br.com.wakax.wakax_ecommerce.cliente.application.service;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;

@@ -48,6 +48,7 @@ public class Cliente {
     this.pessoa = Pessoa.criarDe(request);
   }
 
-    public void atualizar(AtualizaClienteRequest clienteRequest) {
-    }
+  public void atualizar(AtualizaClienteRequest clienteRequest) {
+    this.pessoa.atualizar(clienteRequest);
+  }
 }
