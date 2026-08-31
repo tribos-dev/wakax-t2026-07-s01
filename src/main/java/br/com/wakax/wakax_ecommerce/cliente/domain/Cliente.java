@@ -39,6 +39,9 @@ public class Cliente {
   @Column(name = "data_ativacao")
   private LocalDateTime dataAtivacao;
 
+  @Column(name = "data_desativacao")
+  private LocalDateTime dataDesativacao;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -71,9 +74,7 @@ public class Cliente {
   }
 
   public void desativar() {
-    if (this.status != StatusCliente.ATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está inativo.");
-    }
-    this.status = StatusCliente.INATIVO;
+    pessoa.desativar();
+    this.dataDesativacao = LocalDateTime.now();
   }
 }
