@@ -10,7 +10,6 @@ import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteReque
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResumoResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.PageResponse;
-import br.com.wakax.wakax_ecommerce.cliente.application.service.ClienteApplicationService;
 import br.com.wakax.wakax_ecommerce.cliente.application.service.ClienteService;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +21,6 @@ import lombok.extern.log4j.Log4j2;
 public class ClienteController implements ClienteApi {
 
   private final ClienteService clienteService;
-  private final ClienteApplicationService clienteApplicationService;
 
   @Override
   public ClienteResponse cadastrarCliente(ClienteRequest clienteRequest) {
@@ -52,7 +50,7 @@ public class ClienteController implements ClienteApi {
   @Override
   public ClienteResponse ativarCliente(UUID idCliente) {
     log.debug("[start] ClienteController - ativarCliente");
-    ClienteResponse response = clienteApplicationService.ativarCliente(idCliente);
+    ClienteResponse response = clienteService.ativarCliente(idCliente);
     log.debug("[finish] ClienteController - ativarCliente");
     return response;
   }
