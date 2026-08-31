@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.cliente.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,5 +42,15 @@ public class ClienteApplicationService implements ClienteService {
     Page<Cliente> clientes = clienteRepository.buscarTodos(pageable);
     log.debug("[finish] ClienteApplicationService - buscarTodosClientes");
     return clientes;
+  }
+
+  @Override
+  public ClienteResponse atualizaCliente(UUID idCliente, AtualizaClienteRequest clienteRequest) {
+    log.debug("[start] ClienteApplicationService - atualizaCliente");
+    Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
+    cliente.atualizar(clienteRequest);
+    Cliente clienteAtualizado = clienteRepository.salva(cliente);
+    log.debug("[finish] ClienteApplicationService - atualizaCliente");
+    return new ClienteResponse(clienteAtualizado);
   }
 }
