@@ -1,5 +1,6 @@
 package br.com.wakax.wakax_ecommerce.produto.application.service;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -7,7 +8,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,6 +24,7 @@ import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -66,24 +67,28 @@ public class ProdutoApplicationService implements ProdutoService {
     log.debug("[start] ProdutoApplicationService - atualizaPreco");
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
 
-    Preco preco =
-        produto.getPrecos().stream()
-            .filter(p -> p.getTipo() == precoUpdateRequest.getTipo())
-            .findFirst()
-            .orElseThrow(
-                () ->
-                    new APIException(
-                        HttpStatus.NOT_FOUND, ErrorCode.PRECO_NAO_ENCONTRADO, idProduto));
+    Preco preco = buscaPrecoPorTipo(produto.getPrecos(), precoUpdateRequest.getTipo(), idProduto);
 
-    Authentication autenticacao = SecurityContextHolder.getContext().getAuthentication();
-    Credencial credencial = (Credencial) autenticacao.getPrincipal();
-    String nome = credencial.getUsername();
+    Credencial credencial = buscaUsuarioLogado();
 
-    preco.atualizaValor(precoUpdateRequest.getValor(), precoUpdateRequest.getMotivo(), nome);
-
+    preco.atualizaValor(
+        precoUpdateRequest.getValor(), precoUpdateRequest.getMotivo(), credencial.getUsername());
     produtoRepository.salva(produto);
 
     log.debug("[finish] ProdutoApplicationService - atualizaPreco");
     return new PrecoResponse(preco);
+  }
+
+  private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {
+    return precos.stream()
+        .filter(preco -> preco.getTipo() == tipo)
+        .findFirst()
+        .orElseThrow(
+            () ->
+                new APIException(HttpStatus.NOT_FOUND, ErrorCode.PRECO_NAO_ENCONTRADO, idProduto));
+  }
+
+  private Credencial buscaUsuarioLogado() {
+    return (Credencial) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
   }
 }
