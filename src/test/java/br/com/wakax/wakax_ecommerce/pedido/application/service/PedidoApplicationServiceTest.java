@@ -25,6 +25,7 @@ import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
@@ -47,6 +48,8 @@ class PedidoApplicationServiceTest {
   @Mock private PedidoRepository pedidoRepository;
 
   @Mock private CarrinhoRepository carrinhoRepository;
+
+  @Mock private EstoqueService estoqueService;
 
   @Mock private ClienteRepository clienteRepository;
 
@@ -299,6 +302,161 @@ class PedidoApplicationServiceTest {
     verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
     verifyNoMoreInteractions(pedidoRepository);
     verifyNoInteractions(carrinhoRepository);
+  }
+
+  @Test
+  void deveAtualizarStatusDePagoParaEnviado() {
+    UUID idPedido = UUID.randomUUID();
+    UUID idProduto = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
+    Produto produto = mock(Produto.class);
+
+    ItemPedido item =
+        ItemPedido.builder()
+            .produto(produto)
+            .quantidade(2)
+            .valorUnitario(new BigDecimal("10.00"))
+            .build();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(idCliente)
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.PAGO)
+            .itensPedido(List.of(item))
+            .valorTotal(new BigDecimal("20.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+    item.setPedido(pedido);
+
+    LocalDateTime dataAntes = pedido.getDataAtualizacao();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    applicationService.atualizarStatus(idPedido, StatusPedido.ENVIADO);
+
+    assertEquals(StatusPedido.ENVIADO, pedido.getStatus());
+    assertNotNull(pedido.getDataAtualizacao());
+    assertTrue(
+        pedido.getDataAtualizacao().isAfter(dataAntes)
+            || pedido.getDataAtualizacao().isEqual(dataAntes));
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, never()).liberaReserva(any(), anyInt());
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoTransicaoInvalidaDeCriadoParaEntregue() {
+    UUID idPedido = UUID.randomUUID();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(UUID.randomUUID())
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.CRIADO)
+            .itensPedido(List.of())
+            .valorTotal(new BigDecimal("10.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    APIException ex =
+        assertThrows(
+            APIException.class,
+            () -> applicationService.atualizarStatus(idPedido, StatusPedido.ENTREGUE));
+
+    assertEquals(ErrorCode.PEDIDO_TRANSICAO_INVALIDA, ex.getErrorCode());
+    assertEquals(StatusPedido.CRIADO, pedido.getStatus());
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, never()).liberaReserva(any(), anyInt());
+  }
+
+  @Test
+  void deveCancelarPedidoPagoELiberarEstoque() {
+    UUID idPedido = UUID.randomUUID();
+    UUID idProduto = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
+    Produto produto = mock(Produto.class);
+    when(produto.getId()).thenReturn(idProduto);
+
+    ItemPedido item =
+        ItemPedido.builder()
+            .produto(produto)
+            .quantidade(3)
+            .valorUnitario(new BigDecimal("10.00"))
+            .build();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(idCliente)
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.PAGO)
+            .itensPedido(List.of(item))
+            .valorTotal(new BigDecimal("30.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+    item.setPedido(pedido);
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    applicationService.atualizarStatus(idPedido, StatusPedido.CANCELADO);
+
+    assertEquals(StatusPedido.CANCELADO, pedido.getStatus());
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, times(1)).liberaReserva(idProduto, 3);
   }
 
   @Test

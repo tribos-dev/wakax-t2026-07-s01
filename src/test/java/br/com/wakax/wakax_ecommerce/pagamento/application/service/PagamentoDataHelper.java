@@ -31,9 +31,10 @@ public final class PagamentoDataHelper {
         .cliente(criaClienteValido())
         .enderecoEntrega(criaEnderecoValido())
         .formaPagamento(FormaPagamento.PIX)
-        .status(StatusPedido.AGUARDANDO_PAGAMENTO)
+        .status(StatusPedido.CRIADO)
         .valorTotal(new BigDecimal("299.99"))
         .dataPedido(LocalDateTime.now())
+        .dataAtualizacao(LocalDateTime.now())
         .itensPedido(new ArrayList<>())
         .build();
   }

@@ -13,6 +13,8 @@ public interface PedidoService {
 
   PedidoResponse buscaPedidoPorId(UUID idPedido);
 
+  void atualizarStatus(UUID idPedido, StatusPedido novoStatus);
+
   PedidoPaginadoResponse buscaPedidosDoCliente(
       UUID idCliente, StatusPedido status, int pagina, int tamanho);
 }

@@ -18,10 +18,13 @@ import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.Pagamento
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
+import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,7 @@ public class PagamentoApplicationService implements PagamentoService {
 
   private final PagamentoRepository pagamentoRepository;
   private final PedidoRepository pedidoRepository;
+  private final TentativaPagamentoRepository tentativaPagamentoRepository;
   private final ProcessadorPagamentoFactory processadorFactory;
 
   @Override
@@ -138,5 +142,50 @@ public class PagamentoApplicationService implements PagamentoService {
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - confirmaPagamento");
     return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional
+  public ReprocessarPagamentoResponse reprocessaPagamento(UUID idPagamento) {
+    log.debug("[start] PagamentoApplicationService - reprocessaPagamento");
+
+    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
+    Pedido pedido = pagamento.getPedido();
+
+    validaReprocessamento(pagamento);
+    int numeroTentativa = proximoNumeroTentativa(pagamento);
+
+    pagamento.aguardarPagamento();
+    tentativaPagamentoRepository.salva(TentativaPagamento.nova(pagamento, numeroTentativa));
+
+    var processador = processadorFactory.obterProcessador(pedido.getFormaPagamento());
+    processador.processar(pagamento, pedido);
+
+    pedidoRepository.salva(pedido);
+    pagamentoRepository.salva(pagamento);
+    log.debug("[finish] PagamentoApplicationService - reprocessaPagamento");
+    return new ReprocessarPagamentoResponse(pagamento, numeroTentativa);
+  }
+
+  private void validaReprocessamento(Pagamento pagamento) {
+    if (pagamento.getStatusPagamento() == StatusPagamento.PAGO) {
+      throw new APIException(HttpStatus.CONFLICT, ErrorCode.PAGAMENTO_JA_PROCESSADO_COM_SUCESSO);
+    }
+    if (pagamento.getStatusPagamento() != StatusPagamento.FALHOU) {
+      throw new APIException(
+          HttpStatus.CONFLICT,
+          ErrorCode.PAGAMENTO_NAO_PODE_SER_REPROCESSADO,
+          pagamento.getStatusPagamento());
+    }
+  }
+
+  private int proximoNumeroTentativa(Pagamento pagamento) {
+    long tentativasRealizadas =
+        tentativaPagamentoRepository.contaTentativasDoPagamento(pagamento.getId());
+    if (tentativasRealizadas >= TentativaPagamento.LIMITE_TENTATIVAS) {
+      throw new APIException(
+          HttpStatus.CONFLICT, ErrorCode.LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO, pagamento.getId());
+    }
+    return (int) tentativasRealizadas + 1;
   }
 }

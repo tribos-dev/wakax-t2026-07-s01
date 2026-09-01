@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.handler;
 
 public enum ErrorCode {
   PEDIDO_NAO_ENCONTRADO("pedido.nao.encontrado"),
+  PEDIDO_TRANSICAO_INVALIDA("pedido.transicao.invalida"),
   RASTREAMENTO_NAO_ENCONTRADO("rastreamento.nao.encontrado"),
   RASTREAMENTO_JA_EXISTE("rastreamento.ja.existe"),
   ACESSO_NEGADO("acesso.negado"),
@@ -9,6 +10,7 @@ public enum ErrorCode {
   PRODUTO_DUPLICADO("produto.duplicado"),
   FORNECEDOR_NAO_ENCONTRADO("fornecedor.nao.encontrado"),
   FORNECEDOR_DUPLICADO("fornecedor.duplicado"),
+  FORNECEDOR_COM_RESTRICAO("fornecedor.com.restricao"),
   CLIENTE_NAO_ENCONTRADO("cliente.nao.encontrado"),
   CARRINHO_NAO_ENCONTRADO("carrinho.nao.encontrado"),
   CARRINHO_ATIVO_NAO_EXISTE("carrinho.ativo.nao_existe"),
@@ -26,7 +28,11 @@ public enum ErrorCode {
   QUANTIDADE_INVALIDA("quantidade.invalida"),
   CUSTO_INVALIDO("custo.invalido"),
   ESTOQUE_INVALIDO("estoque.invalido"),
-  PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado");
+  PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado"),
+  PRECO_NAO_ENCONTRADO("preco.nao.encontrado"),
+  PAGAMENTO_JA_PROCESSADO_COM_SUCESSO("pagamento.ja.processado.com.sucesso"),
+  PAGAMENTO_NAO_PODE_SER_REPROCESSADO("pagamento.nao.pode.ser.reprocessado"),
+  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido");
 
   private final String code;
 

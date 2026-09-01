@@ -2,8 +2,6 @@ package br.com.wakax.wakax_ecommerce.pedido.application.service;
 
 import java.util.UUID;
 
-
-
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
+import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
@@ -32,6 +31,7 @@ public class PedidoApplicationService implements PedidoService {
 
   private final PedidoRepository pedidoRepository;
   private final CarrinhoRepository carrinhoRepository;
+  private final EstoqueService estoqueService;
   private final ClienteRepository clienteRepository;
 
   @Override
@@ -51,6 +51,28 @@ public class PedidoApplicationService implements PedidoService {
     var pedido = pedidoRepository.buscaPedidoPorId(idPedido);
     log.debug("[finish] PedidoApplicationService - buscaPedidoPorId");
     return new PedidoResponse(pedido);
+  }
+
+  @Override
+  @Transactional
+  public void atualizarStatus(UUID idPedido, StatusPedido novoStatus) {
+    log.debug("[start] PedidoApplicationService - atualizarStatus");
+    Pedido pedido = pedidoRepository.buscaPedidoPorId(idPedido);
+    pedido.atualizarStatus(novoStatus);
+
+    if (novoStatus == StatusPedido.CANCELADO) {
+      liberarEstoqueReservado(pedido);
+    }
+
+    pedidoRepository.salva(pedido);
+    log.debug("[finish] PedidoApplicationService - atualizarStatus");
+  }
+
+  private void liberarEstoqueReservado(Pedido pedido) {
+    pedido
+        .getItensPedido()
+        .forEach(
+            item -> estoqueService.liberaReserva(item.getProduto().getId(), item.getQuantidade()));
   }
 
   @Override
