@@ -9,9 +9,13 @@ import java.util.stream.Collectors;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import org.springframework.http.HttpStatus;
+
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import lombok.*;
@@ -32,6 +36,10 @@ public class Pedido {
   @Column(nullable = false)
   @NotNull
   private LocalDateTime dataPedido;
+
+  @Column(name = "data_atualizacao", nullable = false)
+  @NotNull
+  private LocalDateTime dataAtualizacao;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
@@ -63,6 +71,7 @@ public class Pedido {
   public Pedido(PedidoRequest request, Carrinho carrinho) {
     this.cliente = carrinho.getCliente();
     this.dataPedido = LocalDateTime.now();
+    this.dataAtualizacao = LocalDateTime.now();
     this.status = StatusPedido.CRIADO;
     this.formaPagamento = request.getFormaPagamento();
     this.enderecoEntrega = carrinho.getCliente().getPessoa().getEnderecos().get(0);
@@ -92,10 +101,20 @@ public class Pedido {
   }
 
   public void marcarComoPago() {
-    this.status = StatusPedido.PAGO;
+    atualizarStatus(StatusPedido.PAGO);
   }
 
   public void aguardarPagamento() {
-    this.status = StatusPedido.AGUARDANDO_PAGAMENTO;
+    atualizarStatus(StatusPedido.AGUARDANDO_PAGAMENTO);
+  }
+
+  public void atualizarStatus(StatusPedido novoStatus) {
+    if (this.status == null || !this.status.podeTransicionarPara(novoStatus)) {
+      throw new APIException(
+          HttpStatus.CONFLICT, ErrorCode.PEDIDO_TRANSICAO_INVALIDA, this.status, novoStatus);
+    }
+
+    this.status = novoStatus;
+    this.dataAtualizacao = LocalDateTime.now();
   }
 }
