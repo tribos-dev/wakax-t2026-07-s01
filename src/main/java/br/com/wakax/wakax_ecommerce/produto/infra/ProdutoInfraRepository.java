@@ -48,11 +48,11 @@ public class ProdutoInfraRepository implements ProdutoRepository {
 
   @Override
   public Page<Produto> listaTodos(Pageable pageable) {
-    log.debug("[start] " + getClass().getSimpleName() + " - listaTodos");
+    log.debug("[start] ProdutoInfraRepository - listaTodos");
 
     Page<UUID> paginaDeIds = produtoJPARepository.paginaIds(pageable);
     if (paginaDeIds.isEmpty()) {
-      log.debug("[finish] " + getClass().getSimpleName() + " - listaTodos (pagina vazia)");
+      log.debug("[finish] ProdutoInfraRepository - listaTodos (pagina vazia)");
       return new PageImpl<>(List.of(), pageable, paginaDeIds.getTotalElements());
     }
 

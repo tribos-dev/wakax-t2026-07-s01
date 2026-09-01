@@ -1,12 +1,18 @@
 package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import javax.persistence.*;
-import javax.validation.constraints.*;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.PositiveOrZero;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -28,9 +34,31 @@ public class Preco {
 
   @ManyToOne private Produto produto;
 
+  @OneToMany(mappedBy = "preco", cascade = CascadeType.ALL)
+  @OrderBy("dataEvento DESC")
+  @Builder.Default
+  private List<HistoricoPreco> historico = new ArrayList<>();
+
   public Preco(TipoPreco tipo, BigDecimal valor, Produto produto) {
     this.tipo = tipo;
     this.valor = valor;
     this.produto = produto;
+  }
+
+  public void atualizaValor(BigDecimal valorPara, String motivo, String usuario) {
+    BigDecimal valorDe = this.valor;
+    this.valor = valorPara;
+
+    HistoricoPreco historicoPreco =
+        HistoricoPreco.builder()
+            .preco(this)
+            .tipo(this.tipo)
+            .valorDe(valorDe)
+            .valorPara(valorPara)
+            .motivo(motivo)
+            .usuario(usuario)
+            .build();
+
+    this.historico.add(historicoPreco);
   }
 }
