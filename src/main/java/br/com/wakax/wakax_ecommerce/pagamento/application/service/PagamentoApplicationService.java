@@ -147,7 +147,7 @@ public class PagamentoApplicationService implements PagamentoService {
   @Override
   @Transactional
   public ReprocessarPagamentoResponse reprocessaPagamento(UUID idPagamento) {
-    log.info("[start] PagamentoApplicationService - reprocessaPagamento");
+    log.debug("[start] PagamentoApplicationService - reprocessaPagamento");
 
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     Pedido pedido = pagamento.getPedido();
