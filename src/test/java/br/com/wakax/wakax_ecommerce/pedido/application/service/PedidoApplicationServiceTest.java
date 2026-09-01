@@ -66,6 +66,7 @@ class PedidoApplicationServiceTest {
     when(carrinho.getCliente()).thenReturn(cliente);
     when(cliente.getId()).thenReturn(idCliente);
     when(cliente.getPessoa()).thenReturn(pessoa);
+    when(pessoa.getStatus()).thenReturn(StatusPessoa.ATIVO);
     when(pessoa.getNome()).thenReturn("Cliente Teste");
     when(pessoa.getEnderecos()).thenReturn(List.of(endereco));
     when(carrinho.getItensCarrinho()).thenReturn(List.of(itemCarrinho));
@@ -76,7 +77,6 @@ class PedidoApplicationServiceTest {
     when(preco.getValor()).thenReturn(new BigDecimal("50.00"));
 
     when(carrinhoRepository.buscaCarrinhoPorId(idCarrinho)).thenReturn(carrinho);
-
     when(pedidoRepository.salva(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
 
     PedidoResponse response = applicationService.cadastraPedido(request);
@@ -321,18 +321,38 @@ class PedidoApplicationServiceTest {
   @DisplayName("WX-17 Cenário 2 (regressão): cliente reativado processa pedido normalmente")
   void cadastraPedido_clienteReativado_processaNormalmente() {
     UUID idCarrinho = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
     PedidoRequest request = mock(PedidoRequest.class);
     when(request.getIdCarrinho()).thenReturn(idCarrinho);
+    when(request.getFormaPagamento()).thenReturn(FormaPagamento.CARTAO_CREDITO);
 
     Carrinho carrinho = mock(Carrinho.class);
     Cliente cliente = mock(Cliente.class);
     Pessoa pessoa = mock(Pessoa.class);
+    Endereco endereco = mock(Endereco.class);
+    Produto produto = mock(Produto.class);
+    Preco preco = mock(Preco.class);
+    ItemCarrinho itemCarrinho = mock(ItemCarrinho.class);
 
     when(carrinho.getCliente()).thenReturn(cliente);
+    when(cliente.getId()).thenReturn(idCliente);
     when(cliente.getPessoa()).thenReturn(pessoa);
     when(pessoa.getStatus()).thenReturn(StatusPessoa.ATIVO);
-    when(carrinhoRepository.buscaCarrinhoPorId(idCarrinho)).thenReturn(carrinho);
+    when(pessoa.getNome()).thenReturn("Cliente Reativado");
+    when(pessoa.getEnderecos()).thenReturn(List.of(endereco));
+    when(carrinho.getItensCarrinho()).thenReturn(List.of(itemCarrinho));
 
-    verify(pedidoRepository).salva(any());
+    when(itemCarrinho.getProduto()).thenReturn(produto);
+    when(itemCarrinho.getQuantidade()).thenReturn(1);
+    when(produto.getPrecos()).thenReturn(List.of(preco));
+    when(preco.getValor()).thenReturn(new BigDecimal("100.00"));
+
+    when(carrinhoRepository.buscaCarrinhoPorId(idCarrinho)).thenReturn(carrinho);
+    when(pedidoRepository.salva(any(Pedido.class))).thenAnswer(inv -> inv.getArgument(0));
+
+    applicationService.cadastraPedido(request);
+
+    verify(pedidoRepository).salva(any(Pedido.class));
   }
 }
