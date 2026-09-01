@@ -2,13 +2,14 @@ package br.com.wakax.wakax_ecommerce.pedido.application.service;
 
 import java.util.UUID;
 
-import javax.transaction.Transactional;
+
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
@@ -53,6 +54,7 @@ public class PedidoApplicationService implements PedidoService {
   }
 
   @Override
+  @Transactional(readOnly = true)
   public PedidoPaginadoResponse buscaPedidosDoCliente(
       UUID idCliente, StatusPedido status, int pagina, int tamanho) {
     log.debug("[start] PedidoApplicationService - buscaPedidosDoCliente");
