@@ -38,9 +38,9 @@ public class ClienteResponse {
     this.emails = new ArrayList<>(cliente.getPessoa().getEmails());
     this.telefones = new ArrayList<>(cliente.getPessoa().getTelefones());
     this.enderecos =
-            cliente.getPessoa().getEnderecos().stream()
-                    .map(EnderecoResponse::new)
-                    .collect(Collectors.toList());
+        cliente.getPessoa().getEnderecos().stream()
+            .map(EnderecoResponse::new)
+            .collect(Collectors.toList());
     this.statusPessoa = cliente.getPessoa().getStatus();
     this.dataCriacao = cliente.getDataCriacao();
     this.dataEdicao = cliente.getDataEdicao();

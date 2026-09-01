@@ -2,8 +2,11 @@ package br.com.wakax.wakax_ecommerce.pessoa.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -78,13 +81,26 @@ public class Pessoa {
 
   public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
     this.nome = dadosAtualizacao.getNome();
-    this.emails = dadosAtualizacao.getEmails();
-    this.telefones = dadosAtualizacao.getTelefones();
+    if (dadosAtualizacao.getEmails() != null) {
+      this.emails = dadosAtualizacao.getEmails();
+    }
+    if (dadosAtualizacao.getTelefones() != null) {
+      this.telefones = dadosAtualizacao.getTelefones();
+    }
     if (this.enderecos == null) {
       this.enderecos = new ArrayList<>();
     }
-    this.enderecos.clear();
-    Optional.ofNullable(dadosAtualizacao.getEnderecos()).ifPresent(this.enderecos::addAll);
+    Set<UUID> idsExistentes =
+        this.enderecos.stream()
+            .map(Endereco::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Optional.ofNullable(dadosAtualizacao.getEnderecos())
+        .ifPresent(
+            novosEnderecos ->
+                novosEnderecos.stream()
+                    .filter(endereco -> !idsExistentes.contains(endereco.getId()))
+                    .forEach(this.enderecos::add));
     vincularEnderecos();
   }
 
