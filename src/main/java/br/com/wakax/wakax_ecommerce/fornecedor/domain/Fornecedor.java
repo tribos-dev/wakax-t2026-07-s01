@@ -8,6 +8,7 @@ import javax.validation.constraints.*;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import lombok.*;
 
 @Entity
@@ -65,5 +66,9 @@ public class Fornecedor {
     this.inscricaoEstadual = request.getInscricaoEstadual();
     this.razaoSocial = request.getRazaoSocial();
     this.nomeFantasia = request.getNomeFantasia();
+  }
+
+  public void inativar() {
+    this.pessoa.setStatus(StatusPessoa.INATIVO);
   }
 }

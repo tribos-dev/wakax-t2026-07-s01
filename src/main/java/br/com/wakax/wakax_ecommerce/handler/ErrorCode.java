@@ -9,6 +9,7 @@ public enum ErrorCode {
   PRODUTO_DUPLICADO("produto.duplicado"),
   FORNECEDOR_NAO_ENCONTRADO("fornecedor.nao.encontrado"),
   FORNECEDOR_DUPLICADO("fornecedor.duplicado"),
+  FORNECEDOR_COM_RESTRICAO("fornecedor.com.restricao"),
   CLIENTE_NAO_ENCONTRADO("cliente.nao.encontrado"),
   CARRINHO_NAO_ENCONTRADO("carrinho.nao.encontrado"),
   CARRINHO_ATIVO_NAO_EXISTE("carrinho.ativo.nao_existe"),
