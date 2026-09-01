@@ -8,7 +8,10 @@ import javax.validation.constraints.NotNull;
 
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Data
@@ -32,6 +35,9 @@ public class Cliente {
   @NotNull
   private LocalDateTime dataEdicao;
 
+  @Column(name = "data_ativacao")
+  private LocalDateTime dataAtivacao;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -45,5 +51,10 @@ public class Cliente {
 
   public Cliente(ClienteRequest request) {
     this.pessoa = Pessoa.criarDe(request);
+  }
+
+  public void ativar() {
+    pessoa.ativar();
+    this.dataAtivacao = LocalDateTime.now();
   }
 }
