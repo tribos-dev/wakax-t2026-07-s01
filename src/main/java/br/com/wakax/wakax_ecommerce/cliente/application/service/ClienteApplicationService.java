@@ -49,6 +49,16 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
+  public ClienteResponse ativarCliente(UUID idCliente) {
+    log.debug("[start] ClienteApplicationService - ativarCliente");
+    Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
+    cliente.ativar();
+    clienteRepository.salva(cliente);
+    log.debug("[finish] ClienteApplicationService - ativarCliente");
+    return new ClienteResponse(cliente);
+  }
+
+  @Override
   @Transactional
   public ClienteResponse atualizaCliente(UUID idCliente, AtualizaClienteRequest clienteRequest) {
     log.debug("[start] ClienteApplicationService - atualizaCliente");

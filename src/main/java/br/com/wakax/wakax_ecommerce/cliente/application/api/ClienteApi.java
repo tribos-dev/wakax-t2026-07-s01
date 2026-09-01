@@ -28,6 +28,10 @@ public interface ClienteApi {
   PageResponse<ClienteResumoResponse> buscarTodosClientes(
       @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size);
 
+  @PatchMapping("/{idCliente}/ativar")
+  @ResponseStatus(HttpStatus.OK)
+  ClienteResponse ativarCliente(@PathVariable UUID idCliente);
+
   @PutMapping("/{idCliente}")
   ClienteResponse atualizarCliente(
       @PathVariable UUID idCliente, @RequestBody @Valid AtualizaClienteRequest clienteRequest);
