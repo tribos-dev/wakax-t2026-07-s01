@@ -39,7 +39,12 @@ public final class CarrinhoDataHelper {
             .build();
 
     Preco preco =
-        new Preco(UUID.randomUUID(), TipoPreco.PADRAO, new BigDecimal("15000.00"), produto);
+        Preco.builder()
+            .id(UUID.randomUUID())
+            .tipo(TipoPreco.PADRAO)
+            .valor(new BigDecimal("15000.00"))
+            .produto(produto)
+            .build();
     produto.getPrecos().add(preco);
     return produto;
   }
@@ -58,7 +63,12 @@ public final class CarrinhoDataHelper {
             .build();
 
     Preco preco =
-        new Preco(UUID.randomUUID(), TipoPreco.PADRAO, new BigDecimal("4500.50"), produto);
+        Preco.builder()
+            .id(UUID.randomUUID())
+            .tipo(TipoPreco.PADRAO)
+            .valor(new BigDecimal("4500.50"))
+            .produto(produto)
+            .build();
     produto.getPrecos().add(preco);
     return produto;
   }

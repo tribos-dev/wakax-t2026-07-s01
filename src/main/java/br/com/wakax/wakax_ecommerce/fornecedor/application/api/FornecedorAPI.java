@@ -26,4 +26,8 @@ public interface FornecedorAPI {
 
   @GetMapping
   FornecedorPageResponse listarFornecedores(@ModelAttribute FornecedorFiltroRequest filtro);
+
+  @DeleteMapping("/{idFornecedor}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void inativarFornecedor(@PathVariable UUID idFornecedor);
 }

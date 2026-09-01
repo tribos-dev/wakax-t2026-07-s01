@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
@@ -209,5 +210,51 @@ class FornecedorApplicationServiceTest {
     assertEquals(1, response.getFornecedoresResumidos().size());
 
     verify(fornecedorRepository, times(1)).buscaFornecedoresPaginados(StatusPessoa.ATIVO, pageable);
+  }
+
+  @Test
+  void deveInativarFornecedorComSucesso() {
+    UUID idFornecedor = UUID.randomUUID();
+    doNothing().when(fornecedorRepository).inativar(idFornecedor);
+
+    fornecedorApplicationService.inativarFornecedor(idFornecedor);
+
+    verify(fornecedorRepository, times(1)).inativar(idFornecedor);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoFornecedorNaoEncontradoAoInativar() {
+    UUID idFornecedor = UUID.randomUUID();
+    doThrow(
+            new APIException(
+                HttpStatus.NOT_FOUND, ErrorCode.FORNECEDOR_NAO_ENCONTRADO, idFornecedor))
+        .when(fornecedorRepository)
+        .inativar(idFornecedor);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> fornecedorApplicationService.inativarFornecedor(idFornecedor));
+
+    assertEquals(ErrorCode.FORNECEDOR_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(idFornecedor, exception.getArgs()[0]);
+    verify(fornecedorRepository, times(1)).inativar(idFornecedor);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoFornecedorComRestricaoDominio() {
+    UUID idFornecedor = UUID.randomUUID();
+    doThrow(new APIException(HttpStatus.CONFLICT, ErrorCode.FORNECEDOR_COM_RESTRICAO, idFornecedor))
+        .when(fornecedorRepository)
+        .inativar(idFornecedor);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> fornecedorApplicationService.inativarFornecedor(idFornecedor));
+
+    assertEquals(ErrorCode.FORNECEDOR_COM_RESTRICAO, exception.getErrorCode());
+    assertEquals(idFornecedor, exception.getArgs()[0]);
+    verify(fornecedorRepository, times(1)).inativar(idFornecedor);
   }
 }

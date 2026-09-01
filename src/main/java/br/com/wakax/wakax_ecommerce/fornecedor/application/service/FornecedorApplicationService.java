@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
@@ -47,5 +48,13 @@ public class FornecedorApplicationService implements FornecedorService {
         fornecedorRepository.buscaFornecedoresPaginados(status, pageable);
     log.debug("[finish] FornecedorApplicationService - listarFornecedores");
     return new FornecedorPageResponse(fornecedoresPaginados);
+  }
+
+  @Override
+  @Transactional
+  public void inativarFornecedor(UUID idFornecedor) {
+    log.debug("[start] FornecedorApplicationService - inativarFornecedor");
+    fornecedorRepository.inativar(idFornecedor);
+    log.debug("[finish] FornecedorApplicationService - inativarFornecedor");
   }
 }

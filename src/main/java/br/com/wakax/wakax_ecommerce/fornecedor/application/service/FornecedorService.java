@@ -17,4 +17,6 @@ public interface FornecedorService {
   FornecedorListResponse buscaFornecedorPorId(UUID idFornecedor);
 
   FornecedorPageResponse listarFornecedores(StatusPessoa status, Pageable pageable);
+
+  void inativarFornecedor(UUID idFornecedor);
 }

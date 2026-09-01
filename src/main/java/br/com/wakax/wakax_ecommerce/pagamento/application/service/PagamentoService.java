@@ -6,6 +6,7 @@ import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPag
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 
 public interface PagamentoService {
@@ -19,6 +20,8 @@ public interface PagamentoService {
   PagamentoPaginadoResponse buscaPagamentos(StatusPagamento status, int pagina, int tamanho);
 
   PagamentoResponse confirmaPagamento(UUID idPagamento);
+
+  ReprocessarPagamentoResponse reprocessaPagamento(UUID idPagamento);
 
   PagamentoResponse cancelaPagamento(UUID idPagamento, CancelaPagamentoRequest request);
 }
