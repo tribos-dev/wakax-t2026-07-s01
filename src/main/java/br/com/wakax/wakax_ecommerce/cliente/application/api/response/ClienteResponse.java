@@ -1,6 +1,7 @@
 package br.com.wakax.wakax_ecommerce.cliente.application.api.response;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,12 +35,12 @@ public class ClienteResponse {
     this.id = cliente.getId();
     this.nome = cliente.getPessoa().getNome();
     this.documento = cliente.getPessoa().getCpfCnpj();
-    this.emails = cliente.getPessoa().getEmails();
-    this.telefones = cliente.getPessoa().getTelefones();
+    this.emails = new ArrayList<>(cliente.getPessoa().getEmails());
+    this.telefones = new ArrayList<>(cliente.getPessoa().getTelefones());
     this.enderecos =
-        cliente.getPessoa().getEnderecos().stream()
-            .map(EnderecoResponse::new)
-            .collect(Collectors.toList());
+            cliente.getPessoa().getEnderecos().stream()
+                    .map(EnderecoResponse::new)
+                    .collect(Collectors.toList());
     this.statusPessoa = cliente.getPessoa().getStatus();
     this.dataCriacao = cliente.getDataCriacao();
     this.dataEdicao = cliente.getDataEdicao();

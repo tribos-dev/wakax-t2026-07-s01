@@ -80,7 +80,10 @@ public class Pessoa {
     this.nome = dadosAtualizacao.getNome();
     this.emails = dadosAtualizacao.getEmails();
     this.telefones = dadosAtualizacao.getTelefones();
-    this.enderecos = new ArrayList<>();
+    if (this.enderecos == null) {
+      this.enderecos = new ArrayList<>();
+    }
+    this.enderecos.clear();
     Optional.ofNullable(dadosAtualizacao.getEnderecos()).ifPresent(this.enderecos::addAll);
     vincularEnderecos();
   }
