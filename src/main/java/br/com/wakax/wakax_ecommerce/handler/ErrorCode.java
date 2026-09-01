@@ -28,7 +28,10 @@ public enum ErrorCode {
   CUSTO_INVALIDO("custo.invalido"),
   ESTOQUE_INVALIDO("estoque.invalido"),
   PAGAMENTO_JA_CONFIRMADO("pagamento.ja.confirmado"),
-  PRECO_NAO_ENCONTRADO("preco.nao.encontrado");
+  PRECO_NAO_ENCONTRADO("preco.nao.encontrado"),
+  PAGAMENTO_JA_PROCESSADO_COM_SUCESSO("pagamento.ja.processado.com.sucesso"),
+  PAGAMENTO_NAO_PODE_SER_REPROCESSADO("pagamento.nao.pode.ser.reprocessado"),
+  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido");
 
   private final String code;
 
