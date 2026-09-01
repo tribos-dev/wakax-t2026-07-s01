@@ -3,6 +3,7 @@ package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,11 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;
@@ -127,12 +123,12 @@ public class PagamentoApplicationService implements PagamentoService {
 
   @Override
   @Transactional
-  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
+  public PagamentoConfirmadoResponse confirmaPagamento(UUID idPagamento) {
     log.debug("[start] PagamentoApplicationService - confirmaPagamento");
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     if (pagamento.getStatusPagamento() != StatusPagamento.AGUARDANDO) {
       throw new APIException(
-          HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_JA_CONFIRMADO, pagamento.getStatusPagamento());
+          HttpStatus.CONFLICT, ErrorCode.PAGAMENTO_JA_CONFIRMADO, pagamento.getStatusPagamento());
     }
     pagamento.confirmarPagamento();
     Pedido pedido = pagamento.getPedido();
@@ -141,7 +137,7 @@ public class PagamentoApplicationService implements PagamentoService {
     pagamentoRepository.salva(pagamento);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - confirmaPagamento");
-    return new PagamentoResponse(pagamento);
+    return new PagamentoConfirmadoResponse(pagamento);
   }
 
   @Override
