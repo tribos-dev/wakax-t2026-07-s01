@@ -11,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
 
 public interface ProdutoJPARepository extends JpaRepository<Produto, UUID> {
   @Query("SELECT p FROM Produto p LEFT JOIN FETCH p.precos WHERE p.id = :id")
@@ -31,4 +32,35 @@ public interface ProdutoJPARepository extends JpaRepository<Produto, UUID> {
       "SELECT DISTINCT p FROM Produto p LEFT JOIN FETCH p.precos "
           + "WHERE p.id IN :ids ORDER BY p.descricao")
   List<Produto> buscaComPrecosPorIds(@Param("ids") List<UUID> ids);
+
+  @Query(
+      value =
+          """
+          SELECT p.id
+          FROM Estoque e
+          JOIN e.produto p
+          WHERE p.status = :status
+            AND e.quantidadeDisponivel > 0
+          ORDER BY p.grupo ASC, p.descricao ASC, p.id ASC
+          """,
+      countQuery =
+          """
+          SELECT COUNT(p.id)
+          FROM Estoque e
+          JOIN e.produto p
+          WHERE p.status = :status
+            AND e.quantidadeDisponivel > 0
+          """)
+  Page<UUID> paginaIdsProdutosComEstoquePorStatus(
+      @Param("status") StatusProduto status, Pageable pageable);
+
+  @Query(
+      """
+      SELECT DISTINCT p, e.quantidadeDisponivel
+      FROM Estoque e
+      JOIN e.produto p
+      LEFT JOIN FETCH p.precos
+      WHERE p.id IN :ids
+      """)
+  List<Object[]> buscaProdutosComPrecosEQuantidadePorIds(@Param("ids") List<UUID> ids);
 }

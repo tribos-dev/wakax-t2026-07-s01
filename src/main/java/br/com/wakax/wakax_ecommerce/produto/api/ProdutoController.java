@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
@@ -49,6 +50,14 @@ public class ProdutoController implements ProdutoAPI {
     log.debug("[start] ProdutoController - atualizaPreco");
     PrecoResponse response = produtoService.atualizaPreco(idProduto, precoUpdateRequest);
     log.debug("[finish] ProdutoController - atualizaPreco");
+    return response;
+  }
+
+  @Override
+  public ProdutoAtivoPaginadoResponse listarProdutosAtivos(int pagina, int tamanho) {
+    log.debug("[start] ProdutoController - listarProdutosAtivos");
+    ProdutoAtivoPaginadoResponse response = produtoService.listarProdutosAtivos(pagina, tamanho);
+    log.debug("[finish] ProdutoController - listarProdutosAtivos");
     return response;
   }
 }
