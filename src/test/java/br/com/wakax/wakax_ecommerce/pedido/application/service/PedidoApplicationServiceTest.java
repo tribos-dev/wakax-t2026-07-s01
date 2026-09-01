@@ -192,6 +192,7 @@ class PedidoApplicationServiceTest {
     when(carrinho.getCliente()).thenReturn(cliente);
     when(cliente.getId()).thenReturn(idCliente);
     when(cliente.getPessoa()).thenReturn(pessoa);
+    when(pessoa.getStatus()).thenReturn(StatusPessoa.ATIVO);
     when(pessoa.getNome()).thenReturn("Cliente Teste");
     when(pessoa.getEnderecos()).thenReturn(List.of(endereco));
     when(carrinho.getItensCarrinho()).thenReturn(List.of(itemCarrinho));
