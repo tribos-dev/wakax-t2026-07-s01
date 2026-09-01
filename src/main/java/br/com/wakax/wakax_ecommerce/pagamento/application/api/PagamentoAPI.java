@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoConfirmadoResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,7 +32,7 @@ public interface PagamentoAPI {
 
   @PostMapping("/{idPagamento}/confirma")
   @ResponseStatus(HttpStatus.CREATED)
-  PagamentoResponse confirmaPagamento(@PathVariable UUID idPagamento);
+  PagamentoConfirmadoResponse confirmaPagamento(@PathVariable UUID idPagamento);
 
   @PutMapping("/{idPagamento}/reprocessar")
   ReprocessarPagamentoResponse reprocessaPagamento(@PathVariable UUID idPagamento);
