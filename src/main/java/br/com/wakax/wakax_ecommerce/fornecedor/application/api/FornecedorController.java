@@ -2,7 +2,6 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.api;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorFiltroRequest;
@@ -11,6 +10,7 @@ import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.Forneced
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.service.FornecedorService;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
