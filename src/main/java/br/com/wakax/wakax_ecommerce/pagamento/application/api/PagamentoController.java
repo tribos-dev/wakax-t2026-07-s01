@@ -2,10 +2,10 @@ package br.com.wakax.wakax_ecommerce.pagamento.application.api;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoConfirmadoResponse;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoConfirmadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;

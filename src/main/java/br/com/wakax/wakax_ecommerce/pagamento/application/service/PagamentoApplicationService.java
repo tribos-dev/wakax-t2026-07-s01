@@ -3,7 +3,6 @@ package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 import java.math.BigDecimal;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;

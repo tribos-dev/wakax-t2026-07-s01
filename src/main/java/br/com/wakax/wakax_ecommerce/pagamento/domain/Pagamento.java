@@ -34,8 +34,7 @@ public class Pagamento {
   @NotNull
   private LocalDateTime dataPagamento;
 
-  @Column
-  private LocalDateTime dataConfirmacao;
+  @Column private LocalDateTime dataConfirmacao;
 
   @Column(nullable = false)
   @NotNull
