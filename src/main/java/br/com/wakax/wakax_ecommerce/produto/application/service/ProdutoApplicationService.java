@@ -17,8 +17,8 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
@@ -66,11 +66,11 @@ public class ProdutoApplicationService implements ProdutoService {
   @Transactional(readOnly = true)
   @Override
   public ProdutoAtivoPaginadoResponse listarProdutosAtivos(int pagina, int tamanho) {
-    log.debug("[start] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    log.debug("[start] ProdutoApplicationService - listarProdutosAtivos");
     Pageable pageable = PageRequest.of(pagina, tamanho);
     Page<ProdutoDisponivel> produtosDisponiveis =
         produtoRepository.listaProdutosAtivosComEstoque(pageable);
-    log.debug("[finish] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    log.debug("[finish] ProdutoApplicationService - listarProdutosAtivos");
     return new ProdutoAtivoPaginadoResponse(produtosDisponiveis);
   }
 

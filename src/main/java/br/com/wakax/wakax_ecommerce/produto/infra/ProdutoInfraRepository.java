@@ -57,22 +57,19 @@ public class ProdutoInfraRepository implements ProdutoRepository {
     }
 
     List<Produto> produtos = produtoJPARepository.buscaComPrecosPorIds(paginaDeIds.getContent());
-    log.debug("[finish] " + getClass().getSimpleName() + " - listaTodos");
+    log.debug("[finish] ProdutoInfraRepository - listaTodos");
 
     return new PageImpl<>(produtos, pageable, paginaDeIds.getTotalElements());
   }
 
   @Override
   public Page<ProdutoDisponivel> listaProdutosAtivosComEstoque(Pageable pageable) {
-    log.debug("[start] " + getClass().getSimpleName() + " - listaProdutosAtivosComEstoque");
+    log.debug("[start] ProdutoInfraRepository - listaProdutosAtivosComEstoque");
 
     Page<UUID> paginaDeIds =
         produtoJPARepository.paginaIdsProdutosComEstoquePorStatus(StatusProduto.ATIVO, pageable);
     if (paginaDeIds.isEmpty()) {
-      log.debug(
-          "[finish] "
-              + getClass().getSimpleName()
-              + " - listaProdutosAtivosComEstoque (pagina vazia)");
+      log.debug("[finish] ProdutoInfraRepository - listaProdutosAtivosComEstoque (pagina vazia)");
       return new PageImpl<>(List.of(), pageable, paginaDeIds.getTotalElements());
     }
 
@@ -88,7 +85,7 @@ public class ProdutoInfraRepository implements ProdutoRepository {
     List<ProdutoDisponivel> produtosOrdenados =
         paginaDeIds.getContent().stream().map(produtosPorId::get).toList();
 
-    log.debug("[finish] " + getClass().getSimpleName() + " - listaProdutosAtivosComEstoque");
+    log.debug("[finish] ProdutoInfraRepository - listaProdutosAtivosComEstoque");
     return new PageImpl<>(produtosOrdenados, pageable, paginaDeIds.getTotalElements());
   }
 }

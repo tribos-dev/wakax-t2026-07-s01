@@ -55,9 +55,9 @@ public class ProdutoController implements ProdutoAPI {
 
   @Override
   public ProdutoAtivoPaginadoResponse listarProdutosAtivos(int pagina, int tamanho) {
-    log.debug("[start] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    log.debug("[start] ProdutoController - listarProdutosAtivos");
     ProdutoAtivoPaginadoResponse response = produtoService.listarProdutosAtivos(pagina, tamanho);
-    log.debug("[finish] " + getClass().getSimpleName() + " - listaProdutosAtivos");
+    log.debug("[finish] ProdutoController - listarProdutosAtivos");
     return response;
   }
 }
