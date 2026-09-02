@@ -2,15 +2,22 @@ package br.com.wakax.wakax_ecommerce.pedido.application.service;
 
 import java.util.UUID;
 
-import javax.transaction.Transactional;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
+import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoProjection;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
@@ -25,6 +32,7 @@ public class PedidoApplicationService implements PedidoService {
   private final PedidoRepository pedidoRepository;
   private final CarrinhoRepository carrinhoRepository;
   private final EstoqueService estoqueService;
+  private final ClienteRepository clienteRepository;
 
   @Override
   @Transactional
@@ -65,5 +73,23 @@ public class PedidoApplicationService implements PedidoService {
         .getItensPedido()
         .forEach(
             item -> estoqueService.liberaReserva(item.getProduto().getId(), item.getQuantidade()));
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public PedidoPaginadoResponse buscaPedidosDoCliente(
+      UUID idCliente, StatusPedido status, int pagina, int tamanho) {
+    log.debug("[start] PedidoApplicationService - buscaPedidosDoCliente");
+    clienteRepository.buscaClientePorId(idCliente);
+    Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.DESC, "dataPedido"));
+    Page<PedidoResumoProjection> pedidosProjection =
+        pedidoRepository.buscaPedidosDoCliente(idCliente, status, pageable);
+    Page<PedidoResumoResponse> pedidos =
+        pedidosProjection.map(
+            p ->
+                new PedidoResumoResponse(
+                    p.getId(), p.getDataPedido(), p.getStatus(), p.getValorTotal()));
+    log.debug("[finish] PedidoApplicationService - buscaPedidosDoCliente");
+    return new PedidoPaginadoResponse(pedidos);
   }
 }

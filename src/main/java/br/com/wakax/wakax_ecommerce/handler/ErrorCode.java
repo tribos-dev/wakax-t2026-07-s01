@@ -32,7 +32,8 @@ public enum ErrorCode {
   PRECO_NAO_ENCONTRADO("preco.nao.encontrado"),
   PAGAMENTO_JA_PROCESSADO_COM_SUCESSO("pagamento.ja.processado.com.sucesso"),
   PAGAMENTO_NAO_PODE_SER_REPROCESSADO("pagamento.nao.pode.ser.reprocessado"),
-  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido");
+  LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido"),
+  PAGAMENTO_JA_PROCESSADO("pagamento.ja.processado");
 
   private final String code;
 

@@ -1,0 +1,1 @@
+ALTER TABLE pagamento ADD COLUMN motivo_cancelamento VARCHAR(255);

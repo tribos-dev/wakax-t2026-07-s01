@@ -24,11 +24,9 @@ import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;
@@ -398,7 +396,8 @@ class PagamentoApplicationServiceTest {
   void deveConfirmarPagamentoComSucesso() {
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
 
-    PagamentoResponse response = pagamentoApplicationService.confirmaPagamento(pagamentoId);
+    PagamentoConfirmadoResponse response =
+        pagamentoApplicationService.confirmaPagamento(pagamentoId);
 
     assertNotNull(response);
     assertEquals(StatusPagamento.PAGO, response.getStatusPagamento());
@@ -539,5 +538,44 @@ class PagamentoApplicationServiceTest {
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.PAGAMENTO_NAO_ENCONTRADO, exception.getErrorCode());
     verify(tentativaPagamentoRepository, never()).salva(any());
+  }
+
+  @Test
+  void deveCancelarPagamentoComSucesso() {
+    // Arrange
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
+
+    // Act
+    PagamentoResponse response = pagamentoApplicationService.cancelaPagamento(pagamentoId, request);
+
+    // Assert
+    assertNotNull(response);
+    assertEquals(StatusPagamento.FALHOU, response.getStatusPagamento());
+    assertEquals(StatusPedido.AGUARDANDO_PAGAMENTO, pedido.getStatus());
+    assertEquals("Cliente desistiu da compra", response.getMotivoCancelamento());
+
+    // Verify
+    verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
+    verify(pagamentoRepository).salva(pagamento);
+    verify(pedidoRepository).salva(pedido);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoPagamentoNaoEstaAguardandoParaCancelar() {
+    // Arrange
+    pagamento.confirmarPagamento(); // Muda para PAGO
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
+
+    // Act & Assert
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.cancelaPagamento(pagamentoId, request));
+
+    assertEquals(ErrorCode.PAGAMENTO_JA_PROCESSADO, exception.getErrorCode());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
   }
 }
