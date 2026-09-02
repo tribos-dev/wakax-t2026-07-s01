@@ -6,6 +6,7 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import lombok.AllArgsConstructor;
@@ -56,5 +57,9 @@ public class Cliente {
   public void ativar() {
     pessoa.ativar();
     this.dataAtivacao = LocalDateTime.now();
+  }
+
+  public void atualizar(AtualizaClienteRequest clienteRequest) {
+    this.pessoa.atualizar(clienteRequest);
   }
 }

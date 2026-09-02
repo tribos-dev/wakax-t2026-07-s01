@@ -2,8 +2,11 @@ package br.com.wakax.wakax_ecommerce.pessoa.domain;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -12,6 +15,7 @@ import javax.validation.constraints.Size;
 import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.DadosAtualizacaoPessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.DadosPessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.application.api.request.PessoaRequest;
 import lombok.AllArgsConstructor;
@@ -76,6 +80,31 @@ public class Pessoa {
     Optional.ofNullable(dadosPessoa.getEnderecos()).ifPresent(pessoa.enderecos::addAll);
     pessoa.vincularEnderecos();
     return pessoa;
+  }
+
+  public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
+    this.nome = dadosAtualizacao.getNome();
+    if (dadosAtualizacao.getEmails() != null) {
+      this.emails = dadosAtualizacao.getEmails();
+    }
+    if (dadosAtualizacao.getTelefones() != null) {
+      this.telefones = dadosAtualizacao.getTelefones();
+    }
+    if (this.enderecos == null) {
+      this.enderecos = new ArrayList<>();
+    }
+    Set<UUID> idsExistentes =
+        this.enderecos.stream()
+            .map(Endereco::getId)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Optional.ofNullable(dadosAtualizacao.getEnderecos())
+        .ifPresent(
+            novosEnderecos ->
+                novosEnderecos.stream()
+                    .filter(endereco -> !idsExistentes.contains(endereco.getId()))
+                    .forEach(this.enderecos::add));
+    vincularEnderecos();
   }
 
   private void vincularEnderecos() {

@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
@@ -17,4 +18,6 @@ public interface ClienteService {
   Page<Cliente> buscarTodosClientes(Pageable pageable);
 
   ClienteResponse ativarCliente(UUID idCliente);
+
+  ClienteResponse atualizaCliente(UUID idCliente, AtualizaClienteRequest clienteRequest);
 }

@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResumoResponse;
@@ -30,4 +31,8 @@ public interface ClienteApi {
   @PatchMapping("/{idCliente}/ativar")
   @ResponseStatus(HttpStatus.OK)
   ClienteResponse ativarCliente(@PathVariable UUID idCliente);
+
+  @PutMapping("/{idCliente}")
+  ClienteResponse atualizarCliente(
+      @PathVariable UUID idCliente, @RequestBody @Valid AtualizaClienteRequest clienteRequest);
 }
