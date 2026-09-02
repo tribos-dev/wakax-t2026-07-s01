@@ -20,4 +20,6 @@ public interface ClienteService {
   ClienteResponse ativarCliente(UUID idCliente);
 
   ClienteResponse atualizaCliente(UUID idCliente, AtualizaClienteRequest clienteRequest);
+
+  ClienteResponse desativarCliente(UUID idCliente);
 }
