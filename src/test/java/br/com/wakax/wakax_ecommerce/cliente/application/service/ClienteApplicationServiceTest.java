@@ -162,4 +162,33 @@ public class ClienteApplicationServiceTest {
     verify(clienteRepository).buscaClientePorId(idCliente);
     verify(clienteRepository, never()).salva(any());
   }
+
+  @Test
+  @DisplayName("WX-26 Cenário 1: desativa cliente ATIVO, salva e retorna response")
+  void desativarCliente_clienteAtivo_desativaESalva() {
+    UUID id = UUID.randomUUID();
+    Cliente cliente = new Cliente(umClienteRequestValido());
+
+    when(clienteRepository.buscaClientePorId(id)).thenReturn(cliente);
+
+    ClienteResponse response = clienteApplicationService.desativarCliente(id);
+
+    assertThat(cliente.getPessoa().getStatus()).isEqualTo(StatusPessoa.INATIVO);
+    assertThat(cliente.getDataDesativacao()).isNotNull();
+    verify(clienteRepository).salva(cliente);
+    assertThat(response).isNotNull();
+  }
+
+  @Test
+  @DisplayName("WX-26 Cenário 3: cliente inexistente propaga NOT_FOUND")
+  void desativarCliente_clienteNaoExiste_propagaExcecao() {
+    UUID id = UUID.randomUUID();
+    when(clienteRepository.buscaClientePorId(id))
+        .thenThrow(APIException.build(HttpStatus.NOT_FOUND, "Cliente não encontrado."));
+
+    assertThatThrownBy(() -> clienteApplicationService.desativarCliente(id))
+        .isInstanceOf(APIException.class);
+
+    verify(clienteRepository, never()).salva(any());
+  }
 }
