@@ -22,9 +22,6 @@ public class PagamentoResponse {
 
   private final LocalDateTime dataPagamento;
 
-  @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private final LocalDateTime dataConfirmacaoPagamento;
-
   private final BigDecimal valor;
   private final FormaPagamento formaPagamento;
 
@@ -34,7 +31,6 @@ public class PagamentoResponse {
     this.statusPagamento = pagamento.getStatusPagamento();
     this.motivoCancelamento = pagamento.getMotivoCancelamento();
     this.dataPagamento = pagamento.getDataPagamento();
-    this.dataConfirmacaoPagamento = pagamento.getDataConfirmacao();
     this.valor = pagamento.getValor();
     this.formaPagamento = pagamento.getPedido().getFormaPagamento();
   }
