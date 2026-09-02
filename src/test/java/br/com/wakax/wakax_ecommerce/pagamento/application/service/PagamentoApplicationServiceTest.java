@@ -24,17 +24,18 @@ import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
+import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.strategy.PagamentoAguardandoStrategy;
 import br.com.wakax.wakax_ecommerce.pagamento.application.strategy.PagamentoImediatoStrategy;
 import br.com.wakax.wakax_ecommerce.pagamento.application.strategy.ProcessadorPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
+import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
@@ -45,6 +46,7 @@ class PagamentoApplicationServiceTest {
 
   @Mock private PagamentoRepository pagamentoRepository;
   @Mock private PedidoRepository pedidoRepository;
+  @Mock private TentativaPagamentoRepository tentativaPagamentoRepository;
   @Mock private ProcessadorPagamentoFactory processadorFactory;
   @Mock private ProcessadorPagamento processadorPagamento;
   @Mock private PagamentoImediatoStrategy pagamentoImediatoStrategy;
@@ -394,7 +396,8 @@ class PagamentoApplicationServiceTest {
   void deveConfirmarPagamentoComSucesso() {
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
 
-    PagamentoResponse response = pagamentoApplicationService.confirmaPagamento(pagamentoId);
+    PagamentoConfirmadoResponse response =
+        pagamentoApplicationService.confirmaPagamento(pagamentoId);
 
     assertNotNull(response);
     assertEquals(StatusPagamento.PAGO, response.getStatusPagamento());
@@ -415,6 +418,163 @@ class PagamentoApplicationServiceTest {
             APIException.class, () -> pagamentoApplicationService.confirmaPagamento(pagamentoId));
 
     assertEquals(ErrorCode.PAGAMENTO_JA_CONFIRMADO, exception.getErrorCode());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
+
+  @Test
+  void deveReprocessarPagamentoFalhoRegistrandoPrimeiraTentativa() {
+    pagamento.setStatusPagamento(StatusPagamento.FALHOU);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    when(tentativaPagamentoRepository.contaTentativasDoPagamento(pagamentoId)).thenReturn(0L);
+    when(processadorFactory.obterProcessador(pedido.getFormaPagamento()))
+        .thenReturn(processadorPagamento);
+
+    ReprocessarPagamentoResponse response =
+        pagamentoApplicationService.reprocessaPagamento(pagamentoId);
+
+    assertNotNull(response);
+    assertEquals(pagamentoId, response.getIdPagamento());
+    assertEquals(StatusPagamento.AGUARDANDO, response.getStatusPagamento());
+    assertEquals(1, response.getNumeroTentativas());
+
+    ArgumentCaptor<TentativaPagamento> captor = ArgumentCaptor.forClass(TentativaPagamento.class);
+    verify(tentativaPagamentoRepository).salva(captor.capture());
+    assertEquals(pagamento, captor.getValue().getPagamento());
+    assertEquals(1, captor.getValue().getNumeroTentativa());
+
+    verify(processadorPagamento).processar(pagamento, pedido);
+    verify(pagamentoRepository).salva(pagamento);
+    verify(pedidoRepository).salva(pedido);
+  }
+
+  @Test
+  void devePermitirATerceiraTentativaDeReprocessamento() {
+    pagamento.setStatusPagamento(StatusPagamento.FALHOU);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    when(tentativaPagamentoRepository.contaTentativasDoPagamento(pagamentoId)).thenReturn(2L);
+    when(processadorFactory.obterProcessador(pedido.getFormaPagamento()))
+        .thenReturn(processadorPagamento);
+
+    ReprocessarPagamentoResponse response =
+        pagamentoApplicationService.reprocessaPagamento(pagamentoId);
+
+    assertEquals(3, response.getNumeroTentativas());
+    verify(tentativaPagamentoRepository).salva(any(TentativaPagamento.class));
+  }
+
+  @Test
+  void deveConcluirReprocessamentoDeFormaImediataComoPago() {
+    pedido.setFormaPagamento(FormaPagamento.CARTAO_CREDITO);
+    pagamento.setStatusPagamento(StatusPagamento.FALHOU);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    when(tentativaPagamentoRepository.contaTentativasDoPagamento(pagamentoId)).thenReturn(1L);
+    when(processadorFactory.obterProcessador(FormaPagamento.CARTAO_CREDITO))
+        .thenReturn(new PagamentoImediatoStrategy());
+
+    ReprocessarPagamentoResponse response =
+        pagamentoApplicationService.reprocessaPagamento(pagamentoId);
+
+    assertEquals(StatusPagamento.PAGO, response.getStatusPagamento());
+    assertEquals(StatusPedido.PAGO, pedido.getStatus());
+    assertEquals(2, response.getNumeroTentativas());
+  }
+
+  @Test
+  void deveRejeitarReprocessamentoDePagamentoJaPago() {
+    pagamento.confirmarPagamento();
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.reprocessaPagamento(pagamentoId));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_JA_PROCESSADO_COM_SUCESSO, exception.getErrorCode());
+    verify(tentativaPagamentoRepository, never()).salva(any());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+  }
+
+  @Test
+  void deveRejeitarReprocessamentoDeStatusDiferenteDeFalhou() {
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.reprocessaPagamento(pagamentoId));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_NAO_PODE_SER_REPROCESSADO, exception.getErrorCode());
+    verify(tentativaPagamentoRepository, never()).salva(any());
+  }
+
+  @Test
+  void deveRejeitarReprocessamentoAposLimiteDeTentativas() {
+    pagamento.setStatusPagamento(StatusPagamento.FALHOU);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    when(tentativaPagamentoRepository.contaTentativasDoPagamento(pagamentoId)).thenReturn(3L);
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.reprocessaPagamento(pagamentoId));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO, exception.getErrorCode());
+    verify(tentativaPagamentoRepository, never()).salva(any());
+    verify(processadorFactory, never()).obterProcessador(any());
+  }
+
+  @Test
+  void devePropagarErroQuandoPagamentoNaoExisteAoReprocessar() {
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId))
+        .thenThrow(
+            new APIException(
+                HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, pagamentoId));
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> pagamentoApplicationService.reprocessaPagamento(pagamentoId));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_NAO_ENCONTRADO, exception.getErrorCode());
+    verify(tentativaPagamentoRepository, never()).salva(any());
+  }
+
+  @Test
+  void deveCancelarPagamentoComSucesso() {
+    // Arrange
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
+
+    // Act
+    PagamentoResponse response = pagamentoApplicationService.cancelaPagamento(pagamentoId, request);
+
+    // Assert
+    assertNotNull(response);
+    assertEquals(StatusPagamento.FALHOU, response.getStatusPagamento());
+    assertEquals(StatusPedido.AGUARDANDO_PAGAMENTO, pedido.getStatus());
+    assertEquals("Cliente desistiu da compra", response.getMotivoCancelamento());
+
+    // Verify
+    verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
+    verify(pagamentoRepository).salva(pagamento);
+    verify(pedidoRepository).salva(pedido);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoPagamentoNaoEstaAguardandoParaCancelar() {
+    // Arrange
+    pagamento.confirmarPagamento(); // Muda para PAGO
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
+
+    // Act & Assert
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.cancelaPagamento(pagamentoId, request));
+
+    assertEquals(ErrorCode.PAGAMENTO_JA_PROCESSADO, exception.getErrorCode());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
     verify(pedidoRepository, never()).salva(any(Pedido.class));
   }

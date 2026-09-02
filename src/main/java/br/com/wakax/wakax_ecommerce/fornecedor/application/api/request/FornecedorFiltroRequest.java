@@ -13,7 +13,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 public class FornecedorFiltroRequest {
-  private StatusPessoa status;
+  private StatusPessoa status = StatusPessoa.ATIVO;
+  private boolean todos = false;
   private int page = 0;
   private int size = 10;
   private String sortBy = "razaoSocial";

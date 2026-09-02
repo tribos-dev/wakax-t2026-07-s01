@@ -15,4 +15,6 @@ public interface FornecedorRepository {
   Fornecedor buscaFornecedorPorId(UUID id);
 
   Page<Fornecedor> buscaFornecedoresPaginados(StatusPessoa status, Pageable pageable);
+
+  void inativar(UUID id);
 }

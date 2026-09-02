@@ -10,6 +10,7 @@ import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.Forneced
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.service.FornecedorService;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -39,9 +40,17 @@ public class FornecedorController implements FornecedorAPI {
   @Override
   public FornecedorPageResponse listarFornecedores(FornecedorFiltroRequest filtro) {
     log.debug("[start] FornecedorController - listarFornecedores");
+    StatusPessoa status = filtro.isTodos() ? null : filtro.getStatus();
     FornecedorPageResponse response =
-        fornecedorService.listarFornecedores(filtro.getStatus(), filtro.toPageable());
+        fornecedorService.listarFornecedores(status, filtro.toPageable());
     log.debug("[finish] FornecedorController - listarFornecedores");
     return response;
+  }
+
+  @Override
+  public void inativarFornecedor(UUID idFornecedor) {
+    log.debug("[start] FornecedorController - inativarFornecedor");
+    fornecedorService.inativarFornecedor(idFornecedor);
+    log.debug("[finish] FornecedorController - inativarFornecedor");
   }
 }

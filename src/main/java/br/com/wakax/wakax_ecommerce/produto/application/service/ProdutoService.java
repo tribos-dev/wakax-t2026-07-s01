@@ -5,6 +5,7 @@ import java.util.UUID;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
@@ -15,6 +16,8 @@ public interface ProdutoService {
   ProdutoListResponse buscaProdutoPorId(UUID idProduto);
 
   ProdutoPaginadoResponse listaProduto(int pagina, int tamanho);
+
+  ProdutoAtivoPaginadoResponse listarProdutosAtivos(int pagina, int tamanho);
 
   PrecoResponse atualizaPreco(UUID idProduto, PrecoUpdateRequest precoUpdateRequest);
 }

@@ -17,6 +17,7 @@ public class PedidoResponse {
   private UUID clienteId;
   private String nomeCliente;
   private LocalDateTime dataPedido;
+  private LocalDateTime dataAtualizacao;
   private StatusPedido status;
   private List<ItemPedidoResponse> itensPedido;
   private BigDecimal valorTotal;
@@ -28,6 +29,7 @@ public class PedidoResponse {
     this.clienteId = pedido.getCliente().getId();
     this.nomeCliente = pedido.getCliente().getPessoa().getNome();
     this.dataPedido = pedido.getDataPedido();
+    this.dataAtualizacao = pedido.getDataAtualizacao();
     this.status = pedido.getStatus();
     this.itensPedido =
         pedido.getItensPedido().stream().map(ItemPedidoResponse::new).collect(Collectors.toList());

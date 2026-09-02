@@ -38,6 +38,7 @@ import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
@@ -46,6 +47,7 @@ import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoReposi
 import br.com.wakax.wakax_ecommerce.produto.domain.HistoricoPreco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
 import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 
@@ -431,5 +433,46 @@ class ProdutoApplicationServiceTest {
     // preco original e mantido (o service nunca chega a ser acionado)
     assertEquals(new BigDecimal("100.00"), precoOriginal.getValor());
     verifyNoInteractions(produtoRepository);
+  }
+
+  @Test
+  void deveListarProdutosAtivosComEstoqueUsandoAPaginacaoSolicitada() {
+    Produto notebook = criaProduto("Notebook", StatusProduto.ATIVO, "4500.00");
+    notebook.setGrupo("Eletronicos");
+    notebook.setDescricaoComplementar("Notebook para trabalho");
+    Pageable pageable = PageRequest.of(1, 5);
+    Page<ProdutoDisponivel> pagina =
+        new PageImpl<>(List.of(new ProdutoDisponivel(notebook, 7)), pageable, 6);
+    when(produtoRepository.listaProdutosAtivosComEstoque(any(Pageable.class))).thenReturn(pagina);
+
+    ProdutoAtivoPaginadoResponse response = produtoApplicationService.listarProdutosAtivos(1, 5);
+
+    assertEquals(1, response.getPagina());
+    assertEquals(2, response.getTotalPaginas());
+    assertEquals(6L, response.getTotal());
+    assertEquals(1, response.getProdutos().size());
+    assertEquals(notebook.getId(), response.getProdutos().get(0).getIdProduto());
+    assertEquals(new BigDecimal("4500.00"), response.getProdutos().get(0).getPrecoAtual());
+    assertEquals(7, response.getProdutos().get(0).getQuantidadeDisponivel());
+
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+    verify(produtoRepository).listaProdutosAtivosComEstoque(captor.capture());
+    assertEquals(1, captor.getValue().getPageNumber());
+    assertEquals(5, captor.getValue().getPageSize());
+  }
+
+  @Test
+  void deveRetornarPaginaVaziaQuandoNaoHaProdutosAtivosComEstoque() {
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<ProdutoDisponivel> paginaVazia = new PageImpl<>(List.of(), pageable, 0);
+    when(produtoRepository.listaProdutosAtivosComEstoque(any(Pageable.class)))
+        .thenReturn(paginaVazia);
+
+    ProdutoAtivoPaginadoResponse response = produtoApplicationService.listarProdutosAtivos(0, 10);
+
+    assertTrue(response.getProdutos().isEmpty());
+    assertEquals(0L, response.getTotal());
+    assertEquals(0, response.getTotalPaginas());
+    verify(produtoRepository).listaProdutosAtivosComEstoque(any(Pageable.class));
   }
 }

@@ -16,15 +16,24 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
+import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.ItemPedido;
@@ -42,6 +51,10 @@ class PedidoApplicationServiceTest {
   @Mock private PedidoRepository pedidoRepository;
 
   @Mock private CarrinhoRepository carrinhoRepository;
+
+  @Mock private EstoqueService estoqueService;
+
+  @Mock private ClienteRepository clienteRepository;
 
   @InjectMocks private PedidoApplicationService applicationService;
 

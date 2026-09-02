@@ -1,6 +1,7 @@
 package br.com.wakax.wakax_ecommerce.produto.api;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
@@ -68,5 +70,16 @@ class ProdutoControllerTest {
     ProdutoListResponse response = produtoController.buscaProdutoPorId(produtoId);
     assertNotNull(response);
     verify(produtoService, times(1)).buscaProdutoPorId(produtoId);
+  }
+
+  @Test
+  void deveDelegarListagemDeProdutosAtivosComPaginacao() {
+    ProdutoAtivoPaginadoResponse responseEsperada = mock(ProdutoAtivoPaginadoResponse.class);
+    when(produtoService.listarProdutosAtivos(2, 15)).thenReturn(responseEsperada);
+
+    ProdutoAtivoPaginadoResponse response = produtoController.listarProdutosAtivos(2, 15);
+
+    assertSame(responseEsperada, response);
+    verify(produtoService).listarProdutosAtivos(2, 15);
   }
 }
