@@ -6,7 +6,6 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
-import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import lombok.AllArgsConstructor;
@@ -62,36 +61,8 @@ public class Cliente {
     this.dataAtivacao = LocalDateTime.now();
   }
 
-  public void atualizar(AtualizaClienteRequest clienteRequest) {
-    this.pessoa.atualizar(clienteRequest);
-  }
-
-  public void desativar() {
-    if (this.status != StatusCliente.ATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está inativo.");
-    }
-    this.status = StatusCliente.INATIVO;
-  }
-
   public void desativar() {
     pessoa.desativar();
     this.dataDesativacao = LocalDateTime.now();
-  }
-
-  public void desativar() {
-    pessoa.desativar();
-    this.dataDesativacao = LocalDateTime.now();
-  }
-
-  public void desativar() {
-    pessoa.desativar();
-    this.dataDesativacao = LocalDateTime.now();
-  }
-
-  public void desativar() {
-    if (this.status != StatusCliente.ATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está inativo.");
-    }
-    this.status = StatusCliente.INATIVO;
   }
 }

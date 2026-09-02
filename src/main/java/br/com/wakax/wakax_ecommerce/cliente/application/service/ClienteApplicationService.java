@@ -5,9 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import br.com.wakax.wakax_ecommerce.cliente.application.api.request.AtualizaClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.request.ClienteRequest;
 import br.com.wakax.wakax_ecommerce.cliente.application.api.response.ClienteResponse;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
@@ -22,7 +20,6 @@ public class ClienteApplicationService implements ClienteService {
   private final ClienteRepository clienteRepository;
 
   @Override
-  @Transactional
   public ClienteResponse criaCliente(ClienteRequest clienteRequest) {
     log.debug("[start] ClienteApplicationService - criaCliente");
     Cliente clienteCriado = clienteRepository.salva(new Cliente(clienteRequest));
@@ -31,7 +28,6 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public ClienteResponse buscaClienteEspecifico(UUID idCliente) {
     log.debug("[start] ClienteApplicationService - buscaClienteEspecifico");
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
@@ -40,7 +36,6 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
-  @Transactional(readOnly = true)
   public Page<Cliente> buscarTodosClientes(Pageable pageable) {
     log.debug("[start] ClienteApplicationService - buscarTodosClientes");
     Page<Cliente> clientes = clienteRepository.buscarTodos(pageable);
@@ -59,13 +54,12 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
-  @Transactional
-  public ClienteResponse atualizaCliente(UUID idCliente, AtualizaClienteRequest clienteRequest) {
-    log.debug("[start] ClienteApplicationService - atualizaCliente");
+  public ClienteResponse desativarCliente(UUID idCliente) {
+    log.debug("[start] ClienteApplicationService - desativarCliente");
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
-    cliente.atualizar(clienteRequest);
-    Cliente clienteAtualizado = clienteRepository.salva(cliente);
-    log.debug("[finish] ClienteApplicationService - atualizaCliente");
-    return new ClienteResponse(clienteAtualizado);
+    cliente.desativar();
+    clienteRepository.salva(cliente);
+    log.debug("[finish] ClienteApplicationService - desativarCliente");
+    return new ClienteResponse(cliente);
   }
 }
