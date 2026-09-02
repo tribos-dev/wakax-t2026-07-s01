@@ -5,10 +5,17 @@ import static org.mockito.Mockito.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -22,17 +29,25 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 
+import br.com.wakax.wakax_ecommerce.auth.credencial.domain.Credencial;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.HistoricoPreco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
 import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 
@@ -46,6 +61,11 @@ class ProdutoApplicationServiceTest {
   private ProdutoRequest produtoRequest;
   private Produto produto;
   private UUID produtoId;
+
+  @AfterEach
+  void limpaContextoDeSeguranca() {
+    SecurityContextHolder.clearContext();
+  }
 
   @BeforeEach
   void setUp() {
@@ -281,5 +301,178 @@ class ProdutoApplicationServiceTest {
     assertEquals(0L, response.getTotal());
     assertEquals(0, response.getTotalPaginas());
     verify(produtoRepository, times(1)).listaTodos(any(Pageable.class));
+  }
+
+  // Teste BDD task WX-28
+  private Produto criaProdutoComPreco(TipoPreco tipo, BigDecimal valor) {
+    Produto produtoComPreco =
+        Produto.builder()
+            .id(UUID.randomUUID())
+            .descricao("Produto Teste Preco")
+            .status(StatusProduto.ATIVO)
+            .pesoLiquido(new BigDecimal("1.0"))
+            .pesoBruto(new BigDecimal("1.5"))
+            .dataCriacao(LocalDateTime.now())
+            .build();
+
+    Preco preco =
+        Preco.builder()
+            .id(UUID.randomUUID())
+            .tipo(tipo)
+            .valor(valor)
+            .produto(produtoComPreco)
+            .build();
+
+    produtoComPreco.setPrecos(new ArrayList<>(List.of(preco)));
+    return produtoComPreco;
+  }
+
+  private void autenticaComo(String usuario) {
+    Credencial credencial = Credencial.builder().usuario(usuario).build();
+    SecurityContextHolder.getContext()
+        .setAuthentication(new UsernamePasswordAuthenticationToken(credencial, null));
+  }
+
+  // Cenario 1: Atualizar preco com sucesso
+  @Test
+  void deveAtualizarPrecoComSucesso() {
+    Produto produtoComPreco = criaProdutoComPreco(TipoPreco.PADRAO, new BigDecimal("100.00"));
+    UUID idDoProduto = produtoComPreco.getId();
+    autenticaComo("gestor.comercial@teste.com");
+
+    PrecoUpdateRequest request =
+        PrecoUpdateRequest.builder()
+            .tipo(TipoPreco.PADRAO)
+            .valor(new BigDecimal("120.00"))
+            .motivo("Ajuste de mercado")
+            .build();
+
+    when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoComPreco);
+    when(produtoRepository.salva(produtoComPreco)).thenReturn(produtoComPreco);
+
+    PrecoResponse response = produtoApplicationService.atualizaPreco(idDoProduto, request);
+
+    // novo preco e salvo
+    assertNotNull(response);
+    assertEquals(new BigDecimal("120.00"), response.getValor());
+    assertEquals(TipoPreco.PADRAO, response.getTipo());
+    Preco precoAtualizado = produtoComPreco.getPrecos().get(0);
+    assertEquals(new BigDecimal("120.00"), precoAtualizado.getValor());
+    verify(produtoRepository, times(1)).salva(produtoComPreco);
+
+    // historico de precos e atualizado
+    assertEquals(1, precoAtualizado.getHistorico().size());
+    HistoricoPreco evento = precoAtualizado.getHistorico().get(0);
+    assertEquals(new BigDecimal("100.00"), evento.getValorDe());
+    assertEquals(new BigDecimal("120.00"), evento.getValorPara());
+    assertEquals(TipoPreco.PADRAO, evento.getTipo());
+    assertEquals("Ajuste de mercado", evento.getMotivo());
+    assertEquals("gestor.comercial@teste.com", evento.getUsuario());
+
+    // recebo confirmacao com novo preco
+    assertEquals(precoAtualizado.getId(), response.getId());
+  }
+
+  // Regra: apenas precos existentes podem ser atualizados
+  @Test
+  void deveLancarExcecaoQuandoTipoDePrecoNaoExisteNoProduto() {
+    Produto produtoComPreco = criaProdutoComPreco(TipoPreco.PADRAO, new BigDecimal("100.00"));
+    UUID idDoProduto = produtoComPreco.getId();
+
+    PrecoUpdateRequest request =
+        PrecoUpdateRequest.builder()
+            .tipo(TipoPreco.PROMOCIONAL)
+            .valor(new BigDecimal("80.00"))
+            .motivo("Campanha")
+            .build();
+
+    when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoComPreco);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> produtoApplicationService.atualizaPreco(idDoProduto, request));
+
+    assertEquals(ErrorCode.PRECO_NAO_ENCONTRADO, exception.getErrorCode());
+    verify(produtoRepository, never()).salva(any(Produto.class));
+  }
+
+  // Cenario 2: Falha por preco invalido
+  @Test
+  void deveFalharValidacaoQuandoPrecoForZeroOuNegativo() {
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    Produto produtoComPreco = criaProdutoComPreco(TipoPreco.PADRAO, new BigDecimal("100.00"));
+    Preco precoOriginal = produtoComPreco.getPrecos().get(0);
+
+    PrecoUpdateRequest precoZero =
+        PrecoUpdateRequest.builder()
+            .tipo(TipoPreco.PADRAO)
+            .valor(BigDecimal.ZERO)
+            .motivo("Tentativa invalida")
+            .build();
+
+    PrecoUpdateRequest precoNegativo =
+        PrecoUpdateRequest.builder()
+            .tipo(TipoPreco.PADRAO)
+            .valor(new BigDecimal("-10.00"))
+            .motivo("Tentativa invalida")
+            .build();
+
+    // recebo erro de validacao
+    Set<ConstraintViolation<PrecoUpdateRequest>> violacoesZero = validator.validate(precoZero);
+    Set<ConstraintViolation<PrecoUpdateRequest>> violacoesNegativo =
+        validator.validate(precoNegativo);
+
+    assertFalse(violacoesZero.isEmpty());
+    assertFalse(violacoesNegativo.isEmpty());
+    assertTrue(
+        violacoesZero.stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("valor")));
+
+    // preco original e mantido (o service nunca chega a ser acionado)
+    assertEquals(new BigDecimal("100.00"), precoOriginal.getValor());
+    verifyNoInteractions(produtoRepository);
+  }
+
+  @Test
+  void deveListarProdutosAtivosComEstoqueUsandoAPaginacaoSolicitada() {
+    Produto notebook = criaProduto("Notebook", StatusProduto.ATIVO, "4500.00");
+    notebook.setGrupo("Eletronicos");
+    notebook.setDescricaoComplementar("Notebook para trabalho");
+    Pageable pageable = PageRequest.of(1, 5);
+    Page<ProdutoDisponivel> pagina =
+        new PageImpl<>(List.of(new ProdutoDisponivel(notebook, 7)), pageable, 6);
+    when(produtoRepository.listaProdutosAtivosComEstoque(any(Pageable.class))).thenReturn(pagina);
+
+    ProdutoAtivoPaginadoResponse response = produtoApplicationService.listarProdutosAtivos(1, 5);
+
+    assertEquals(1, response.getPagina());
+    assertEquals(2, response.getTotalPaginas());
+    assertEquals(6L, response.getTotal());
+    assertEquals(1, response.getProdutos().size());
+    assertEquals(notebook.getId(), response.getProdutos().get(0).getIdProduto());
+    assertEquals(new BigDecimal("4500.00"), response.getProdutos().get(0).getPrecoAtual());
+    assertEquals(7, response.getProdutos().get(0).getQuantidadeDisponivel());
+
+    ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+    verify(produtoRepository).listaProdutosAtivosComEstoque(captor.capture());
+    assertEquals(1, captor.getValue().getPageNumber());
+    assertEquals(5, captor.getValue().getPageSize());
+  }
+
+  @Test
+  void deveRetornarPaginaVaziaQuandoNaoHaProdutosAtivosComEstoque() {
+    Pageable pageable = PageRequest.of(0, 10);
+    Page<ProdutoDisponivel> paginaVazia = new PageImpl<>(List.of(), pageable, 0);
+    when(produtoRepository.listaProdutosAtivosComEstoque(any(Pageable.class)))
+        .thenReturn(paginaVazia);
+
+    ProdutoAtivoPaginadoResponse response = produtoApplicationService.listarProdutosAtivos(0, 10);
+
+    assertTrue(response.getProdutos().isEmpty());
+    assertEquals(0L, response.getTotal());
+    assertEquals(0, response.getTotalPaginas());
+    verify(produtoRepository).listaProdutosAtivosComEstoque(any(Pageable.class));
   }
 }

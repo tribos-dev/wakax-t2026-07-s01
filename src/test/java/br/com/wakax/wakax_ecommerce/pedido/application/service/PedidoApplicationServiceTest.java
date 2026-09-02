@@ -19,16 +19,25 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
+import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.ItemPedido;
@@ -45,6 +54,10 @@ class PedidoApplicationServiceTest {
   @Mock private PedidoRepository pedidoRepository;
 
   @Mock private CarrinhoRepository carrinhoRepository;
+
+  @Mock private EstoqueService estoqueService;
+
+  @Mock private ClienteRepository clienteRepository;
 
   @InjectMocks private PedidoApplicationService applicationService;
 
@@ -295,6 +308,245 @@ class PedidoApplicationServiceTest {
     verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
     verifyNoMoreInteractions(pedidoRepository);
     verifyNoInteractions(carrinhoRepository);
+  }
+
+  @Test
+  void deveAtualizarStatusDePagoParaEnviado() {
+    UUID idPedido = UUID.randomUUID();
+    UUID idProduto = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
+    Produto produto = mock(Produto.class);
+
+    ItemPedido item =
+        ItemPedido.builder()
+            .produto(produto)
+            .quantidade(2)
+            .valorUnitario(new BigDecimal("10.00"))
+            .build();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(idCliente)
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.PAGO)
+            .itensPedido(List.of(item))
+            .valorTotal(new BigDecimal("20.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+    item.setPedido(pedido);
+
+    LocalDateTime dataAntes = pedido.getDataAtualizacao();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    applicationService.atualizarStatus(idPedido, StatusPedido.ENVIADO);
+
+    assertEquals(StatusPedido.ENVIADO, pedido.getStatus());
+    assertNotNull(pedido.getDataAtualizacao());
+    assertTrue(
+        pedido.getDataAtualizacao().isAfter(dataAntes)
+            || pedido.getDataAtualizacao().isEqual(dataAntes));
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, never()).liberaReserva(any(), anyInt());
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoTransicaoInvalidaDeCriadoParaEntregue() {
+    UUID idPedido = UUID.randomUUID();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(UUID.randomUUID())
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.CRIADO)
+            .itensPedido(List.of())
+            .valorTotal(new BigDecimal("10.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    APIException ex =
+        assertThrows(
+            APIException.class,
+            () -> applicationService.atualizarStatus(idPedido, StatusPedido.ENTREGUE));
+
+    assertEquals(ErrorCode.PEDIDO_TRANSICAO_INVALIDA, ex.getErrorCode());
+    assertEquals(StatusPedido.CRIADO, pedido.getStatus());
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, never()).liberaReserva(any(), anyInt());
+  }
+
+  @Test
+  void deveCancelarPedidoPagoELiberarEstoque() {
+    UUID idPedido = UUID.randomUUID();
+    UUID idProduto = UUID.randomUUID();
+    UUID idCliente = UUID.randomUUID();
+
+    Produto produto = mock(Produto.class);
+    when(produto.getId()).thenReturn(idProduto);
+
+    ItemPedido item =
+        ItemPedido.builder()
+            .produto(produto)
+            .quantidade(3)
+            .valorUnitario(new BigDecimal("10.00"))
+            .build();
+
+    Endereco endereco = new Endereco();
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Fulano");
+    pessoa.setEnderecos(List.of(endereco));
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(idCliente)
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    Pedido pedido =
+        Pedido.builder()
+            .id(idPedido)
+            .cliente(cliente)
+            .dataPedido(LocalDateTime.now())
+            .dataAtualizacao(LocalDateTime.now())
+            .status(StatusPedido.PAGO)
+            .itensPedido(List.of(item))
+            .valorTotal(new BigDecimal("30.00"))
+            .formaPagamento(FormaPagamento.PIX)
+            .enderecoEntrega(endereco)
+            .build();
+    item.setPedido(pedido);
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    applicationService.atualizarStatus(idPedido, StatusPedido.CANCELADO);
+
+    assertEquals(StatusPedido.CANCELADO, pedido.getStatus());
+
+    verify(pedidoRepository, times(1)).buscaPedidoPorId(idPedido);
+    verify(estoqueService, times(1)).liberaReserva(idProduto, 3);
+  }
+
+  @Test
+  void deveListarPedidosDoClienteSemFiltroDeStatus() {
+    UUID idCliente = UUID.randomUUID();
+    PedidoResumoProjection criado =
+        criaPedidoResumoProjection(
+            StatusPedido.CRIADO, LocalDateTime.now(), new BigDecimal("50.00"));
+    PedidoResumoProjection entregue =
+        criaPedidoResumoProjection(
+            StatusPedido.ENTREGUE, LocalDateTime.now().minusDays(1), new BigDecimal("120.00"));
+    Page<PedidoResumoProjection> pagina =
+        new PageImpl<>(List.of(criado, entregue), PageRequest.of(0, 10), 2);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class)))
+        .thenReturn(pagina);
+    PedidoPaginadoResponse response =
+        applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10);
+    assertNotNull(response);
+    assertEquals(2, response.getPedidos().size());
+    assertEquals(2L, response.getTotalPedidos());
+    assertEquals(1, response.getTotalPaginas());
+    assertEquals(0, response.getPaginaAtual());
+    assertEquals(StatusPedido.CRIADO, response.getPedidos().get(0).getStatus());
+    assertEquals(StatusPedido.ENTREGUE, response.getPedidos().get(1).getStatus());
+    verify(clienteRepository).buscaClientePorId(idCliente);
+    verify(pedidoRepository).buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class));
+  }
+
+  @Test
+  void deveListarApenasPedidosDoStatusInformado() {
+    UUID idCliente = UUID.randomUUID();
+    PedidoResumoProjection pago =
+        criaPedidoResumoProjection(StatusPedido.PAGO, LocalDateTime.now(), new BigDecimal("80.00"));
+    Page<PedidoResumoProjection> pagina = new PageImpl<>(List.of(pago), PageRequest.of(0, 10), 1);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(
+            eq(idCliente), eq(StatusPedido.PAGO), any(Pageable.class)))
+        .thenReturn(pagina);
+    PedidoPaginadoResponse response =
+        applicationService.buscaPedidosDoCliente(idCliente, StatusPedido.PAGO, 0, 10);
+    assertNotNull(response);
+    assertEquals(1, response.getPedidos().size());
+    assertEquals(StatusPedido.PAGO, response.getPedidos().get(0).getStatus());
+    verify(pedidoRepository)
+        .buscaPedidosDoCliente(eq(idCliente), eq(StatusPedido.PAGO), any(Pageable.class));
+  }
+
+  @Test
+  void deveRetornarListaVaziaQuandoClienteNaoPossuiPedidos() {
+    UUID idCliente = UUID.randomUUID();
+    Page<PedidoResumoProjection> paginaVazia = new PageImpl<>(List.of(), PageRequest.of(0, 10), 0);
+    when(clienteRepository.buscaClientePorId(idCliente)).thenReturn(mock(Cliente.class));
+    when(pedidoRepository.buscaPedidosDoCliente(eq(idCliente), isNull(), any(Pageable.class)))
+        .thenReturn(paginaVazia);
+    PedidoPaginadoResponse response =
+        applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10);
+    assertNotNull(response);
+    assertEquals(0, response.getPedidos().size());
+    assertEquals(0L, response.getTotalPedidos());
+  }
+
+  @Test
+  void deveLancarExcecaoAoListarPedidosQuandoClienteNaoExiste() {
+    UUID idCliente = UUID.randomUUID();
+    when(clienteRepository.buscaClientePorId(idCliente))
+        .thenThrow(new APIException(HttpStatus.NOT_FOUND, ErrorCode.CLIENTE_NAO_ENCONTRADO));
+    APIException ex =
+        assertThrows(
+            APIException.class,
+            () -> applicationService.buscaPedidosDoCliente(idCliente, null, 0, 10));
+    assertEquals(ErrorCode.CLIENTE_NAO_ENCONTRADO, ex.getErrorCode());
+    verify(clienteRepository).buscaClientePorId(idCliente);
+    verifyNoInteractions(pedidoRepository);
+  }
+
+  private PedidoResumoProjection criaPedidoResumoProjection(
+      StatusPedido status, LocalDateTime dataPedido, BigDecimal valorTotal) {
+    PedidoResumoProjection projection = mock(PedidoResumoProjection.class);
+    when(projection.getId()).thenReturn(UUID.randomUUID());
+    when(projection.getStatus()).thenReturn(status);
+    when(projection.getDataPedido()).thenReturn(dataPedido);
+    when(projection.getValorTotal()).thenReturn(valorTotal);
+    return projection;
   }
 
   // Teste BDD task WX-27

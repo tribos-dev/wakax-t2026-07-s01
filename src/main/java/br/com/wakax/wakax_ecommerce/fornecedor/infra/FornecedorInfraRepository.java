@@ -57,4 +57,25 @@ public class FornecedorInfraRepository implements FornecedorRepository {
     log.debug("[finish] FornecedorInfraRepository - buscaFornecedoresPaginados");
     return fornecedores;
   }
+
+  @Override
+  public void inativar(UUID id) {
+    log.debug("[start] FornecedorInfraRepository - inativar");
+    Fornecedor fornecedor = buscaFornecedorPorId(id);
+
+    if (temRestricaoDominio(fornecedor)) {
+      log.warn("Tentativa de inativar fornecedor com restrição de domínio: {}", id);
+      throw new APIException(HttpStatus.CONFLICT, ErrorCode.FORNECEDOR_COM_RESTRICAO, id);
+    }
+
+    fornecedor.inativar();
+    fornecedorJPARepository.save(fornecedor);
+    log.debug("[finish] FornecedorInfraRepository - inativar");
+  }
+
+  private boolean temRestricaoDominio(Fornecedor fornecedor) {
+    // Placeholder: sempre retorna false (permite inativação), apenas loga warning
+    // Atualmente nada restringe a inativação
+    return false;
+  }
 }

@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
@@ -31,9 +32,10 @@ public final class PagamentoDataHelper {
         .cliente(criaClienteValido())
         .enderecoEntrega(criaEnderecoValido())
         .formaPagamento(FormaPagamento.PIX)
-        .status(StatusPedido.AGUARDANDO_PAGAMENTO)
+        .status(StatusPedido.CRIADO)
         .valorTotal(new BigDecimal("299.99"))
         .dataPedido(LocalDateTime.now())
+        .dataAtualizacao(LocalDateTime.now())
         .itensPedido(new ArrayList<>())
         .build();
   }
@@ -100,5 +102,9 @@ public final class PagamentoDataHelper {
     when(projection.getDataPagamento()).thenReturn(dataPagamento);
     when(projection.getValor()).thenReturn(valor);
     return projection;
+  }
+
+  public static CancelaPagamentoRequest criaCancelaPagamentoRequestValido() {
+    return CancelaPagamentoRequest.builder().motivo("Cliente desistiu da compra").build();
   }
 }

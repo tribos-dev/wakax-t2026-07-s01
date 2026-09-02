@@ -7,6 +7,10 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import org.springframework.http.HttpStatus;
+
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.*;
 
@@ -34,6 +38,8 @@ public class Pagamento {
   @NotNull
   private LocalDateTime dataPagamento;
 
+  @Column private LocalDateTime dataConfirmacao;
+
   @Column(nullable = false)
   @NotNull
   @PositiveOrZero
@@ -48,6 +54,7 @@ public class Pagamento {
 
   public void confirmarPagamento() {
     this.statusPagamento = StatusPagamento.PAGO;
+    this.dataConfirmacao = LocalDateTime.now();
   }
 
   public void aguardarPagamento() {
@@ -55,7 +62,12 @@ public class Pagamento {
   }
 
   public void cancelarPagamento(String motivo) {
-    this.statusPagamento = StatusPagamento.CANCELADO;
+    if (this.statusPagamento != StatusPagamento.AGUARDANDO) {
+      throw new APIException(
+          HttpStatus.CONFLICT, ErrorCode.PAGAMENTO_JA_PROCESSADO, this.statusPagamento);
+    }
+
+    this.statusPagamento = StatusPagamento.FALHOU;
     this.motivoCancelamento = motivo;
   }
 }
