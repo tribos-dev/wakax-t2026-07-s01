@@ -41,7 +41,7 @@ public class ClienteApplicationServiceTest {
   @InjectMocks private ClienteApplicationService clienteApplicationService;
 
   private ClienteRequest umClienteRequestValido() {
-    return new ClienteRequest();
+    return ClienteDataHelper.criaClienteRequestValido();
   }
 
   private UUID idCliente;
