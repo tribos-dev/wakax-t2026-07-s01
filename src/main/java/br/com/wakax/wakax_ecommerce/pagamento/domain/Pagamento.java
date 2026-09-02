@@ -38,6 +38,8 @@ public class Pagamento {
   @NotNull
   private LocalDateTime dataPagamento;
 
+  @Column private LocalDateTime dataConfirmacao;
+
   @Column(nullable = false)
   @NotNull
   @PositiveOrZero
@@ -52,6 +54,7 @@ public class Pagamento {
 
   public void confirmarPagamento() {
     this.statusPagamento = StatusPagamento.PAGO;
+    this.dataConfirmacao = LocalDateTime.now();
   }
 
   public void aguardarPagamento() {

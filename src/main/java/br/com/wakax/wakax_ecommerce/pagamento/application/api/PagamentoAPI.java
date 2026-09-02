@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoConfirmadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
@@ -32,7 +33,7 @@ public interface PagamentoAPI {
 
   @PostMapping("/{idPagamento}/confirma")
   @ResponseStatus(HttpStatus.CREATED)
-  PagamentoResponse confirmaPagamento(@PathVariable UUID idPagamento);
+  PagamentoConfirmadoResponse confirmaPagamento(@PathVariable UUID idPagamento);
 
   @PutMapping("/{idPagamento}/reprocessar")
   ReprocessarPagamentoResponse reprocessaPagamento(@PathVariable UUID idPagamento);

@@ -26,10 +26,7 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
-import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.PagamentoRepository;
 import br.com.wakax.wakax_ecommerce.pagamento.application.repository.TentativaPagamentoRepository;
@@ -399,7 +396,8 @@ class PagamentoApplicationServiceTest {
   void deveConfirmarPagamentoComSucesso() {
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
 
-    PagamentoResponse response = pagamentoApplicationService.confirmaPagamento(pagamentoId);
+    PagamentoConfirmadoResponse response =
+        pagamentoApplicationService.confirmaPagamento(pagamentoId);
 
     assertNotNull(response);
     assertEquals(StatusPagamento.PAGO, response.getStatusPagamento());

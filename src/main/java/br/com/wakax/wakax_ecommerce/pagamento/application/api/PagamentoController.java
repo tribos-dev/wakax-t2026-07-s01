@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoConfirmadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
@@ -38,9 +39,9 @@ public class PagamentoController implements PagamentoAPI {
   }
 
   @Override
-  public PagamentoResponse confirmaPagamento(UUID idPagamento) {
+  public PagamentoConfirmadoResponse confirmaPagamento(UUID idPagamento) {
     log.debug("[start] PagamentoController - confirmaPagamento");
-    PagamentoResponse response = pagamentoService.confirmaPagamento(idPagamento);
+    PagamentoConfirmadoResponse response = pagamentoService.confirmaPagamento(idPagamento);
     log.debug("[finish] PagamentoController - confirmaPagamento");
     return response;
   }

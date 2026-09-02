@@ -1,0 +1,1 @@
+ALTER TABLE pagamento ADD COLUMN data_confirmacao TIMESTAMP;
