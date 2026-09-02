@@ -25,6 +25,7 @@ import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResumo
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -43,6 +44,11 @@ public class PedidoApplicationService implements PedidoService {
   public PedidoResponse cadastraPedido(PedidoRequest request) {
     log.info("[start] PedidoApplicationService - cadastraPedido");
     Carrinho carrinho = carrinhoRepository.buscaCarrinhoPorId(request.getIdCarrinho());
+
+    if (carrinho.getCliente().getPessoa().getStatus() != StatusPessoa.ATIVO) {
+      throw APIException.build(HttpStatus.CONFLICT, "Cliente inativo não pode realizar pedidos.");
+    }
+
     Pedido pedido = new Pedido(request, carrinho);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PedidoApplicationService - cadastraPedido");

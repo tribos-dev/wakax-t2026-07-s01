@@ -52,4 +52,35 @@ class ClienteTest {
         .isInstanceOf(APIException.class)
         .hasMessageContaining("já está ativo");
   }
+
+  @Test
+  @DisplayName("WX-26 Cenário 1: desativar cliente ATIVO muda status para INATIVO")
+  void desativar_clienteAtivo_tornaStatusInativo() {
+    Cliente cliente = new Cliente(umClienteRequestValido());
+
+    cliente.desativar();
+
+    assertThat(cliente.getPessoa().getStatus()).isEqualTo(StatusPessoa.INATIVO);
+  }
+
+  @Test
+  @DisplayName("WX-26 Cenário 1 (extra): desativar registra dataDesativacao")
+  void desativar_clienteAtivo_registraDataDesativacao() {
+    Cliente cliente = new Cliente(umClienteRequestValido());
+
+    cliente.desativar();
+
+    assertThat(cliente.getDataDesativacao()).isNotNull();
+  }
+
+  @Test
+  @DisplayName("WX-26 Cenário 4: desativar cliente já INATIVO lança CONFLICT")
+  void desativar_clienteJaInativo_lancaConflict() {
+    Cliente cliente = new Cliente(umClienteRequestValido());
+    cliente.desativar();
+
+    assertThatThrownBy(cliente::desativar)
+        .isInstanceOf(APIException.class)
+        .hasMessageContaining("já está inativo");
+  }
 }

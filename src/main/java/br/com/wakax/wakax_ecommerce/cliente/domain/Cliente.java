@@ -39,6 +39,9 @@ public class Cliente {
   @Column(name = "data_ativacao")
   private LocalDateTime dataAtivacao;
 
+  @Column(name = "data_Desativacao")
+  private LocalDateTime dataDesativacao;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -61,5 +64,10 @@ public class Cliente {
 
   public void atualizar(AtualizaClienteRequest clienteRequest) {
     this.pessoa.atualizar(clienteRequest);
+  }
+
+  public void desativar() {
+    pessoa.desativar();
+    this.dataDesativacao = LocalDateTime.now();
   }
 }
