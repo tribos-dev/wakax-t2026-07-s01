@@ -193,7 +193,6 @@ public class PagamentoApplicationService implements PagamentoService {
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     pagamento.cancelarPagamento(request.getMotivo());
     Pedido pedido = pagamento.getPedido();
-    pedido.aguardarPagamento();
     pagamentoRepository.salva(pagamento);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - cancelaPagamento");
