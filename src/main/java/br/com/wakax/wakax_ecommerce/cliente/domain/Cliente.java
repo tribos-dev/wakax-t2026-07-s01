@@ -66,4 +66,3 @@ public class Cliente {
     this.dataDesativacao = LocalDateTime.now();
   }
 }
-

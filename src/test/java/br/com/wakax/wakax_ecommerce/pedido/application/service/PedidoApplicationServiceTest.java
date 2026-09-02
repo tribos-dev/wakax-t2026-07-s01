@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,6 +39,7 @@ import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 
