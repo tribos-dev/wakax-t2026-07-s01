@@ -123,6 +123,11 @@ public class Pedido {
     this.status = StatusPedido.CRIADO;
   }
 
+  @PreUpdate
+  protected void onUpdate() {
+    this.dataAtualizacao = LocalDateTime.now();
+  }
+
   public boolean podeAlterarEndereco() {
     return status == StatusPedido.CRIADO
         || status == StatusPedido.PAGO
@@ -130,6 +135,7 @@ public class Pedido {
   }
 
   public void alteraEndereco(EnderecoUpdateRequest enderecoNovo) {
+    // this.dataAtualizacao = LocalDateTime.now();
     this.enderecoEntrega =
         Endereco.builder()
             .pessoa(this.cliente.getPessoa())
