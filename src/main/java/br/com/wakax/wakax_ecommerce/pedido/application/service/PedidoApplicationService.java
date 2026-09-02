@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,9 @@ import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepo
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
@@ -91,5 +95,24 @@ public class PedidoApplicationService implements PedidoService {
                     p.getId(), p.getDataPedido(), p.getStatus(), p.getValorTotal()));
     log.debug("[finish] PedidoApplicationService - buscaPedidosDoCliente");
     return new PedidoPaginadoResponse(pedidos);
+  }
+
+  @Override
+  @Transactional
+  public void alteraEnderecoEntrega(UUID idPedido, EnderecoUpdateRequest enderecoUpdateRequest) {
+    log.debug("[start] PedidoApplicationService - alteraEnderecoEntrega");
+
+    Pedido pedido = pedidoRepository.buscaPedidoPorId(idPedido);
+    if (!pedido.podeAlterarEndereco()) {
+      throw new APIException(
+          HttpStatus.CONFLICT,
+          ErrorCode.PEDIDO_NAO_PERMITE_ALTERACAO_ENDERECO,
+          pedido.getStatus(),
+          idPedido);
+    }
+    pedido.alteraEndereco(enderecoUpdateRequest);
+    pedidoRepository.salva(pedido);
+
+    log.debug("[finish] PedidoApplicationService - alteraEnderecoEntrega");
   }
 }

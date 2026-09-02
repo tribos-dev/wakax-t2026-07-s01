@@ -16,6 +16,7 @@ import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import lombok.*;
@@ -60,7 +61,7 @@ public class Pedido {
   @NotNull
   private FormaPagamento formaPagamento;
 
-  @ManyToOne(optional = false)
+  @ManyToOne(optional = false, cascade = CascadeType.PERSIST)
   @JoinColumn(nullable = false)
   @NotNull
   private Endereco enderecoEntrega;
@@ -120,5 +121,31 @@ public class Pedido {
 
   public void desfazPagamento() {
     this.status = StatusPedido.CRIADO;
+  }
+
+  @PreUpdate
+  protected void onUpdate() {
+    this.dataAtualizacao = LocalDateTime.now();
+  }
+
+  public boolean podeAlterarEndereco() {
+    return status == StatusPedido.CRIADO
+        || status == StatusPedido.PAGO
+        || status == StatusPedido.AGUARDANDO_PAGAMENTO;
+  }
+
+  public void alteraEndereco(EnderecoUpdateRequest enderecoNovo) {
+    // this.dataAtualizacao = LocalDateTime.now();
+    this.enderecoEntrega =
+        Endereco.builder()
+            .pessoa(this.cliente.getPessoa())
+            .logradouro(enderecoNovo.getLogradouro())
+            .numero(enderecoNovo.getNumero())
+            .complemento(enderecoNovo.getComplemento())
+            .bairro(enderecoNovo.getBairro())
+            .cidade(enderecoNovo.getCidade())
+            .estado(enderecoNovo.getEstado())
+            .cep(enderecoNovo.getCep())
+            .build();
   }
 }

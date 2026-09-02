@@ -7,7 +7,12 @@ import static org.mockito.Mockito.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,6 +33,7 @@ import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
@@ -541,5 +547,176 @@ class PedidoApplicationServiceTest {
     when(projection.getDataPedido()).thenReturn(dataPedido);
     when(projection.getValorTotal()).thenReturn(valorTotal);
     return projection;
+  }
+
+  // Teste BDD task WX-27
+  private Pedido criaPedidoComEndereco(StatusPedido status) {
+    Endereco enderecoAtual =
+        Endereco.builder()
+            .id(UUID.randomUUID())
+            .logradouro("Rua Joaquim Nabuco")
+            .numero("96")
+            .bairro("Centro")
+            .cidade("Salto")
+            .estado("SP")
+            .cep("13320-000")
+            .build();
+
+    Pessoa pessoa = new Pessoa();
+    pessoa.setNome("Cliente Teste");
+    pessoa.setEnderecos(List.of(enderecoAtual));
+    enderecoAtual.setPessoa(pessoa);
+
+    Cliente cliente =
+        Cliente.builder()
+            .id(UUID.randomUUID())
+            .pessoa(pessoa)
+            .dataCriacao(LocalDateTime.now())
+            .dataEdicao(LocalDateTime.now())
+            .build();
+
+    return Pedido.builder()
+        .id(UUID.randomUUID())
+        .cliente(cliente)
+        .dataPedido(LocalDateTime.now())
+        .status(status)
+        .itensPedido(List.of())
+        .valorTotal(new BigDecimal("100.00"))
+        .formaPagamento(FormaPagamento.PIX)
+        .enderecoEntrega(enderecoAtual)
+        .build();
+  }
+
+  // Cenario 1: Alterar endereco antes do envio
+  @Test
+  void deveAlterarEnderecoDeEntregaComSucesso() {
+    Pedido pedido = criaPedidoComEndereco(StatusPedido.PAGO);
+    UUID idPedido = pedido.getId();
+    Endereco enderecoAntigo = pedido.getEnderecoEntrega();
+
+    EnderecoUpdateRequest request =
+        EnderecoUpdateRequest.builder()
+            .logradouro("Rua Monsenhor Couto")
+            .numero("96")
+            .bairro("Centro")
+            .cidade("Salto")
+            .estado("SP")
+            .cep("13320-000")
+            .build();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+    when(pedidoRepository.salva(pedido)).thenReturn(pedido);
+
+    applicationService.alteraEnderecoEntrega(idPedido, request);
+
+    // novo endereco salvo
+    Endereco enderecoNovo = pedido.getEnderecoEntrega();
+    assertNotEquals(enderecoAntigo, enderecoNovo);
+    assertEquals("Rua Monsenhor Couto", enderecoNovo.getLogradouro());
+    assertEquals("96", enderecoNovo.getNumero());
+    assertEquals(pedido.getCliente().getPessoa(), enderecoNovo.getPessoa());
+
+    // o endereco antigo nao foi mutado (continua intacto, so a referencia trocou)
+    assertEquals("Rua Joaquim Nabuco", enderecoAntigo.getLogradouro());
+
+    verify(pedidoRepository, times(1)).salva(pedido);
+  }
+
+  // Cenario 2: Falha ao alterar pedido enviado
+  @Test
+  void deveLancarExcecaoAoAlterarEnderecoDePedidoJaEnviado() {
+    Pedido pedido = criaPedidoComEndereco(StatusPedido.ENVIADO);
+    UUID idPedido = pedido.getId();
+    Endereco enderecoOriginal = pedido.getEnderecoEntrega();
+
+    EnderecoUpdateRequest request =
+        EnderecoUpdateRequest.builder()
+            .logradouro("Tentativa Invalida")
+            .numero("1")
+            .bairro("Centro")
+            .cidade("Salto")
+            .estado("SP")
+            .cep("13320-000")
+            .build();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido)).thenReturn(pedido);
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> applicationService.alteraEnderecoEntrega(idPedido, request));
+
+    assertEquals(ErrorCode.PEDIDO_NAO_PERMITE_ALTERACAO_ENDERECO, exception.getErrorCode());
+
+    // endereco original e mantido
+    assertEquals(enderecoOriginal, pedido.getEnderecoEntrega());
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
+
+  // Cenario 3: Endereco incompleto
+  @Test
+  void deveFalharValidacaoQuandoEnderecoForIncompleto() {
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    EnderecoUpdateRequest enderecoIncompleto =
+        EnderecoUpdateRequest.builder().logradouro("Rua Incompleta").numero("50").build();
+
+    Set<ConstraintViolation<EnderecoUpdateRequest>> violacoes =
+        validator.validate(enderecoIncompleto);
+
+    // recebo erro de validacao
+    assertFalse(violacoes.isEmpty());
+    assertTrue(
+        violacoes.stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("bairro")));
+    assertTrue(
+        violacoes.stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("cidade")));
+    assertTrue(
+        violacoes.stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("estado")));
+    assertTrue(
+        violacoes.stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("cep")));
+
+    // um endereco completo nao deveria gerar violacao nenhuma
+    EnderecoUpdateRequest enderecoCompleto =
+        EnderecoUpdateRequest.builder()
+            .logradouro("Rua Monsenhor Couto")
+            .numero("96")
+            .bairro("Centro")
+            .cidade("Salto")
+            .estado("SP")
+            .cep("13320-000")
+            .build();
+    assertTrue(validator.validate(enderecoCompleto).isEmpty());
+  }
+
+  // Regra: pedido precisa existir
+  @Test
+  void deveLancarExcecaoAoAlterarEnderecoDePedidoInexistente() {
+    UUID idPedido = UUID.randomUUID();
+    EnderecoUpdateRequest request =
+        EnderecoUpdateRequest.builder()
+            .logradouro("Rua Qualquer")
+            .numero("1")
+            .bairro("Centro")
+            .cidade("Salto")
+            .estado("SP")
+            .cep("13320-000")
+            .build();
+
+    when(pedidoRepository.buscaPedidoPorId(idPedido))
+        .thenThrow(
+            new APIException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                ErrorCode.PEDIDO_NAO_ENCONTRADO,
+                idPedido));
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> applicationService.alteraEnderecoEntrega(idPedido, request));
+
+    assertEquals(ErrorCode.PEDIDO_NAO_ENCONTRADO, exception.getErrorCode());
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
   }
 }
