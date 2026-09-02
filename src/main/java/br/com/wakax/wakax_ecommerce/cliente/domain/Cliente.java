@@ -65,12 +65,5 @@ public class Cliente {
     pessoa.desativar();
     this.dataDesativacao = LocalDateTime.now();
   }
-
-  public void desativar() {
-    if (this.status != StatusCliente.ATIVO) {
-      throw APIException.build(HttpStatus.CONFLICT, "Cliente já está inativo.");
-    }
-    this.status = StatusCliente.INATIVO;
-  }
 }
 
