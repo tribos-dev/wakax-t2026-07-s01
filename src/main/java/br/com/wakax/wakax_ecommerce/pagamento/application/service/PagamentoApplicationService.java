@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
@@ -187,5 +188,19 @@ public class PagamentoApplicationService implements PagamentoService {
           HttpStatus.CONFLICT, ErrorCode.LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO, pagamento.getId());
     }
     return (int) tentativasRealizadas + 1;
+  }
+
+  @Override
+  @Transactional
+  public PagamentoResponse cancelaPagamento(UUID idPagamento, CancelaPagamentoRequest request) {
+    log.debug("[start] PagamentoApplicationService - cancelaPagamento");
+    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
+    pagamento.cancelarPagamento(request.getMotivo());
+    Pedido pedido = pagamento.getPedido();
+    pedido.aguardarPagamento();
+    pagamentoRepository.salva(pagamento);
+    pedidoRepository.salva(pedido);
+    log.debug("[finish] PagamentoApplicationService - cancelaPagamento");
+    return new PagamentoResponse(pagamento);
   }
 }

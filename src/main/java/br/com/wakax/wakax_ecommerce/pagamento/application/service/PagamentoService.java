@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.pagamento.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
@@ -21,4 +22,6 @@ public interface PagamentoService {
   PagamentoResponse confirmaPagamento(UUID idPagamento);
 
   ReprocessarPagamentoResponse reprocessaPagamento(UUID idPagamento);
+
+  PagamentoResponse cancelaPagamento(UUID idPagamento, CancelaPagamentoRequest request);
 }

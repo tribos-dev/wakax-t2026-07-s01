@@ -117,4 +117,8 @@ public class Pedido {
     this.status = novoStatus;
     this.dataAtualizacao = LocalDateTime.now();
   }
+
+  public void desfazPagamento() {
+    this.status = StatusPedido.CRIADO;
+  }
 }
