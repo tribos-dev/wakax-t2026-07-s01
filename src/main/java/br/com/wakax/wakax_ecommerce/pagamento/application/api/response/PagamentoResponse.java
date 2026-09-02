@@ -21,6 +21,7 @@ public class PagamentoResponse {
   private final String motivoCancelamento;
 
   private final LocalDateTime dataPagamento;
+
   private final BigDecimal valor;
   private final FormaPagamento formaPagamento;
 

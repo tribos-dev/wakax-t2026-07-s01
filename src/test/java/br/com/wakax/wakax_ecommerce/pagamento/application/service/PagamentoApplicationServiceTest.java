@@ -543,6 +543,7 @@ class PagamentoApplicationServiceTest {
   @Test
   void deveCancelarPagamentoComSucesso() {
     // Arrange
+    pedido.aguardarPagamento();
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
     CancelaPagamentoRequest request = PagamentoDataHelper.criaCancelaPagamentoRequestValido();
 
