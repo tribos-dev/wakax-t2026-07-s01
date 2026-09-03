@@ -49,6 +49,7 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
+  @Transactional
   public ClienteResponse ativarCliente(UUID idCliente) {
     log.debug("[start] ClienteApplicationService - ativarCliente");
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
@@ -70,6 +71,7 @@ public class ClienteApplicationService implements ClienteService {
   }
 
   @Override
+  @Transactional
   public ClienteResponse desativarCliente(UUID idCliente) {
     log.debug("[start] ClienteApplicationService - desativarCliente");
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
