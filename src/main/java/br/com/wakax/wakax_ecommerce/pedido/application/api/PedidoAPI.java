@@ -10,9 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
-import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 
 @RestController
 @RequestMapping("/pedido")
@@ -29,13 +27,6 @@ public interface PedidoAPI {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void atualizarStatus(
       @PathVariable UUID idPedido, @Valid @RequestBody AtualizarStatusPedidoRequest request);
-
-  @GetMapping("/cliente/{idCliente}")
-  PedidoPaginadoResponse buscaPedidosDoCliente(
-      @PathVariable UUID idCliente,
-      @RequestParam(required = false) StatusPedido status,
-      @RequestParam(defaultValue = "0") int pagina,
-      @RequestParam(defaultValue = "10") int tamanho);
 
   @PatchMapping("/{idPedido}/endereco")
   @ResponseStatus(HttpStatus.NO_CONTENT)
