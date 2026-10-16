@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -69,6 +70,8 @@ public class Produto {
     dataCriacao = LocalDateTime.now();
   }
 
+  private List<HistoricoStatus> historicoStatusTotal = new ArrayList<>();
+
   public Produto(ProdutoRequest request) {
     this.descricao = request.getDescricao();
     this.status = StatusProduto.ATIVO;
@@ -101,5 +104,18 @@ public class Produto {
         .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
         .map(Preco::getValor)
         .orElse(BigDecimal.ZERO);
+  }
+
+  public void atualizaProdutoStatus(StatusProduto status, String motivo, String usuario){
+    this.status= status;
+
+    HistoricoStatus historicoStatus =
+      HistoricoStatus.builder()
+            .status(status)
+              .motivo(motivo)
+              .usuario(usuario)
+              .build();
+
+            this.historicoStatusTotal.add(historicoStatus);
   }
 }
