@@ -3,6 +3,7 @@ package br.com.wakax.wakax_ecommerce.produto.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,11 +18,6 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
@@ -35,7 +31,6 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class ProdutoApplicationService implements ProdutoService {
   private final ProdutoRepository produtoRepository;
-
   @Override
   public ProdutoResponse cadastraProduto(ProdutoRequest novoProduto) {
     log.debug("[start] ProdutoApplicationService - cadastraProduto");
@@ -90,6 +85,16 @@ public class ProdutoApplicationService implements ProdutoService {
 
     log.debug("[finish] ProdutoApplicationService - atualizaPreco");
     return new PrecoResponse(preco);
+  }
+
+  @Override
+  public ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoRequest produtoRequest) {
+    log.debug("[start] ProdutoApplicationService - atualizaProduto");
+    Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
+    produto.atualiza(produtoRequest);
+    produtoRepository.salva(produto);
+    log.debug("[start] ProdutoApplicationService - atualizaProduto");
+    return new ProdutoAtualizaResponse(produto);
   }
 
   private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {
