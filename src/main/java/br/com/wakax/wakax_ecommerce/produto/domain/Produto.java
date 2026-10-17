@@ -2,11 +2,14 @@ package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -64,6 +67,10 @@ public class Produto {
   @NotNull
   private LocalDateTime dataCriacao;
 
+  @Column(nullable = false, name = "data_atualizacao")
+  @NotNull
+  private LocalDateTime dataAtualizacao;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -101,5 +108,28 @@ public class Produto {
         .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
         .map(Preco::getValor)
         .orElse(BigDecimal.ZERO);
+  }
+
+  public void atualiza(ProdutoRequest produtoRequest) {
+    atualizaSeNaoNulo(produtoRequest.getDescricao(), valor -> this.descricao = valor);
+    atualizaSeNaoNulo(produtoRequest.getGrupo(),valor -> this.grupo = valor );
+    atualizaSeNaoNulo(produtoRequest.getUnidade(), valor -> this.unidade = valor);
+    atualizaSeNaoNulo(produtoRequest.getEstoqueMinimo(), valor -> this.estoqueMinimo = valor);
+    atualizaSeNaoNulo(produtoRequest.getEstoqueMaximo(), valor -> this.estoqueMaximo = valor);
+    atualizaSeNaoNulo(produtoRequest.getDescricaoComplementar(), valor -> this.descricaoComplementar = valor);
+    atualizaSeNaoNulo(produtoRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
+    atualizaSeNaoNulo(produtoRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
+    if (produtoRequest.getPrecos() != null) {
+      if(this.precos == null){
+        this.precos = new ArrayList<>();
+      }
+    }
+  }
+
+  private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {
+    if (valor != null) {
+      setter.accept(valor);
+    }
+
   }
 }
