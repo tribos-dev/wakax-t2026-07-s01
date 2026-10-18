@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -99,10 +101,11 @@ public class PedidoApplicationService implements PedidoService {
   }
 
     @Override
-    public Page<PedidoListResponse> buscarTodosPedidosComFiltro(UUID idCliente) {
+    public Page<PedidoListResponse> buscarTodosPedidosComFiltro
+            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
       log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
       Page<PedidoListResponse> pedidoListResponses = pedidoRepository.buscarPedidosComFiltro(idCliente);
       log.info("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
-      return null;
+      return pedidoListResponses;
     }
 }

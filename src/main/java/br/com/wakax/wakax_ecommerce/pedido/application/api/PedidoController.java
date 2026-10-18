@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
@@ -53,9 +55,11 @@ public class PedidoController implements PedidoAPI {
   }
 
     @Override
-    public Page<PedidoListResponse> buscaPedidoPorClienteId(UUID idCliente) {
+    public Page<PedidoListResponse> buscaPedidoPorClienteId
+            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
       log.info("[start] PedidoController - buscaClientePorId");
-      Page<PedidoListResponse> pedidoListResponses = pedidoService.buscarTodosPedidosComFiltro(idCliente);
+      Page<PedidoListResponse> pedidoListResponses
+              = pedidoService.buscarTodosPedidosComFiltro(loteFilterRequest, pageable, idCliente);
       log.info("[finish] PedidoController - buscaClientePorId");
       return pedidoListResponses;
     }
