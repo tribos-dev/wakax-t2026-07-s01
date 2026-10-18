@@ -2,6 +2,8 @@ package br.com.wakax.wakax_ecommerce.pedido.infra;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -39,4 +41,12 @@ public class PedidoInfraRepository implements PedidoRepository {
     log.debug("[finish] PedidoInfraRepository - buscaPedidoPorId");
     return pedido;
   }
+
+    @Override
+    public Page<PedidoListResponse> buscarPedidosComFiltro(UUID idCliente) {
+      log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
+
+      log.info("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
+      return null;
+    }
 }

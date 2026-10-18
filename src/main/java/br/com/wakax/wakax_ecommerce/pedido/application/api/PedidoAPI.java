@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,4 +34,8 @@ public interface PedidoAPI {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void alteraEnderecoPedido(
       @PathVariable UUID idPedido, @Valid @RequestBody EnderecoUpdateRequest enderecoUpdateRequest);
+
+  @GetMapping("/{idCliente}")
+  @ResponseStatus(HttpStatus.OK)
+  Page<PedidoListResponse> buscaPedidoPorClienteId(@PathVariable UUID idCliente);
 }

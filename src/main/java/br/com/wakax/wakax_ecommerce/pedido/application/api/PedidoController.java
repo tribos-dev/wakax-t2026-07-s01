@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
@@ -49,4 +51,12 @@ public class PedidoController implements PedidoAPI {
     pedidoService.alteraEnderecoEntrega(idPedido, enderecoUpdateRequest);
     log.debug("[finish] PedidoController - alteraEnderecoPedido");
   }
+
+    @Override
+    public Page<PedidoListResponse> buscaPedidoPorClienteId(UUID idCliente) {
+      log.info("[start] PedidoController - buscaClientePorId");
+      Page<PedidoListResponse> pedidoListResponses = pedidoService.buscarTodosPedidosComFiltro(idCliente);
+      log.info("[finish] PedidoController - buscaClientePorId");
+      return pedidoListResponses;
+    }
 }
