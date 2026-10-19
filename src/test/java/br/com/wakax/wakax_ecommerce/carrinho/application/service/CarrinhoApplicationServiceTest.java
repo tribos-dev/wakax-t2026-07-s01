@@ -1,17 +1,23 @@
 package br.com.wakax.wakax_ecommerce.carrinho.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,6 +25,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.*;
+import org.springframework.http.HttpStatus;
 
 import br.com.wakax.wakax_ecommerce.carrinho.api.request.CarrinhoPaginacaoRequest;
 import br.com.wakax.wakax_ecommerce.carrinho.api.request.ItemCarrinhoRequest;
@@ -28,9 +35,12 @@ import br.com.wakax.wakax_ecommerce.carrinho.application.factory.ProcessadorEsto
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.application.strategy.ProcessadorEstoque;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
+import br.com.wakax.wakax_ecommerce.carrinho.domain.ItemCarrinho;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.StatusCarrinho;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 
@@ -81,6 +91,7 @@ class CarrinhoApplicationServiceTest {
   void deveCriarNovoCarrinhoSeNaoExistirCarrinhoAtivo() {
     Cliente cliente = CarrinhoDataHelper.criaCliente();
     Carrinho carrinho = CarrinhoDataHelper.criaCarrinhoAtivoVazio(cliente);
+    int quantidadeOriginal = carrinho.getItensCarrinho().size();
     Produto produto = CarrinhoDataHelper.criaProduto();
     ItemCarrinhoRequest itemCarrinhoRequest =
         CarrinhoDataHelper.criaItemCarrinhoRequest(produto.getId());
@@ -178,5 +189,129 @@ class CarrinhoApplicationServiceTest {
 
     assertEquals(maisRecente.getId(), resposta.getCarrinhos().get(0).getId());
     assertEquals(maisAntigo.getId(), resposta.getCarrinhos().get(1).getId());
+  }
+
+  @Test
+  void deveRemoverUltimoItemEManterCarrinhoAtivoComTotalZero() {
+    Cliente cliente = CarrinhoDataHelper.criaCliente();
+    Carrinho carrinho = CarrinhoDataHelper.criaCarrinhoAtivoComUmItem(cliente);
+    UUID idItem = carrinho.getItensCarrinho().get(0).getId();
+
+    when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
+    when(carrinhoRepository.salva(carrinho)).thenReturn(carrinho);
+
+    applicationService.removeItemDoCarrinho(cliente.getId(), carrinho.getId(), idItem);
+
+    assertTrue(carrinho.getItensCarrinho().isEmpty());
+    assertEquals(BigDecimal.ZERO, carrinho.calculaValorTotal());
+    assertEquals(StatusCarrinho.ATIVO, carrinho.getStatusCarrinho());
+    verify(carrinhoRepository).salva(carrinho);
+  }
+
+  @Test
+  void deveLancarErroQuandoItemNaoExisteNoCarrinho() {
+    Cliente cliente = CarrinhoDataHelper.criaCliente();
+    Carrinho carrinho = CarrinhoDataHelper.criaCarrinhoAtivoComUmItem(cliente);
+    int quantidadeOriginal = carrinho.getItensCarrinho().size();
+    UUID idItemInexistente = java.util.UUID.randomUUID();
+
+    when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () ->
+                applicationService.removeItemDoCarrinho(
+                    cliente.getId(), carrinho.getId(), idItemInexistente));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.ITEM_CARRINHO_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(quantidadeOriginal, carrinho.getItensCarrinho().size());
+    verify(carrinhoRepository, never()).salva(any(Carrinho.class));
+  }
+
+  @Test
+  void deveLancarErroAoRemoverItemDeCarrinhoFinalizado() {
+    Cliente cliente = CarrinhoDataHelper.criaCliente();
+    Carrinho carrinho =
+        CarrinhoDataHelper.criaCarrinhoModular(
+            cliente, LocalDateTime.now(), StatusCarrinho.FINALIZADO);
+
+    when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () ->
+                applicationService.removeItemDoCarrinho(
+                    cliente.getId(), carrinho.getId(), java.util.UUID.randomUUID()));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.CARRINHO_NAO_ATIVO, exception.getErrorCode());
+    verify(carrinhoRepository, never()).salva(any(Carrinho.class));
+  }
+
+  @Test
+  void deveRemoverItemERecalcularTotalSemOItemRemovido() {
+    Cliente cliente = CarrinhoDataHelper.criaCliente();
+    Produto produto = CarrinhoDataHelper.criaProduto();
+    Carrinho carrinho =
+        Carrinho.builder()
+            .id(UUID.randomUUID())
+            .cliente(cliente)
+            .dataCriacao(LocalDateTime.now())
+            .statusCarrinho(StatusCarrinho.ATIVO)
+            .itensCarrinho(new ArrayList<>())
+            .build();
+    ItemCarrinho itemRemovido =
+        ItemCarrinho.builder()
+            .id(UUID.randomUUID())
+            .carrinho(carrinho)
+            .produto(produto)
+            .quantidade(2)
+            .build();
+    ItemCarrinho itemMantido =
+        ItemCarrinho.builder()
+            .id(UUID.randomUUID())
+            .carrinho(carrinho)
+            .produto(produto)
+            .quantidade(3)
+            .build();
+    carrinho.getItensCarrinho().add(itemRemovido);
+    carrinho.getItensCarrinho().add(itemMantido);
+    BigDecimal totalAntes = carrinho.calculaValorTotal();
+
+    when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
+    when(carrinhoRepository.salva(carrinho)).thenReturn(carrinho);
+
+    applicationService.removeItemDoCarrinho(
+        cliente.getId(), carrinho.getId(), itemRemovido.getId());
+
+    assertEquals(1, carrinho.getItensCarrinho().size());
+    assertEquals(itemMantido.getId(), carrinho.getItensCarrinho().get(0).getId());
+    BigDecimal totalEsperado = totalAntes.subtract(itemRemovido.getValorTotalDoItem());
+    assertEquals(0, totalEsperado.compareTo(carrinho.calculaValorTotal()));
+    verify(carrinhoRepository).salva(carrinho);
+  }
+
+  @Test
+  void deveLancarItemNaoEncontradoAoRemoverItemDeCarrinhoDeOutroCliente() {
+    Cliente dono = CarrinhoDataHelper.criaCliente();
+    Carrinho carrinho = CarrinhoDataHelper.criaCarrinhoAtivoComUmItem(dono);
+    UUID idItem = carrinho.getItensCarrinho().get(0).getId();
+    UUID idOutroCliente = UUID.randomUUID();
+
+    when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () ->
+                applicationService.removeItemDoCarrinho(idOutroCliente, carrinho.getId(), idItem));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.ITEM_CARRINHO_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(1, carrinho.getItensCarrinho().size());
+    verify(carrinhoRepository, never()).salva(any(Carrinho.class));
   }
 }

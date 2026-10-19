@@ -17,6 +17,7 @@ import br.com.wakax.wakax_ecommerce.carrinho.application.strategy.ProcessadorEst
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
 import br.com.wakax.wakax_ecommerce.cliente.application.repository.ClienteRepository;
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
+import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 import lombok.RequiredArgsConstructor;
@@ -76,5 +77,24 @@ public class CarrinhoApplicationService implements CarrinhoService {
     Page<Carrinho> carrinhos = carrinhoRepository.buscaTodosCarrinhosDoCliente(idCliente, pageable);
     log.debug("[finish] CarrinhoApplicationService - listaCarrinhosDoCliente");
     return new CarrinhoListPageResponse(carrinhos);
+  }
+
+  @Override
+  @Transactional
+  public void removeItemDoCarrinho(UUID idCliente, UUID idCarrinho, UUID idItem) {
+    log.info("[start] CarrinhoApplicationService - removeItemDoCarrinho");
+
+    Carrinho carrinho = carrinhoRepository.buscaCarrinhoPorId(idCarrinho);
+
+    if (!carrinho.getCliente().getId().equals(idCliente)) {
+      throw new APIException(
+          org.springframework.http.HttpStatus.NOT_FOUND,
+          br.com.wakax.wakax_ecommerce.handler.ErrorCode.ITEM_CARRINHO_NAO_ENCONTRADO);
+    }
+
+    carrinho.removeItemPorId(idItem);
+    carrinhoRepository.salva(carrinho);
+
+    log.debug("[finish] CarrinhoApplicationService - removeItemDoCarrinho");
   }
 }
