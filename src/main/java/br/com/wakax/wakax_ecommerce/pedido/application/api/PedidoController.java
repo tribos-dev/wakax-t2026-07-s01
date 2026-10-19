@@ -58,6 +58,8 @@ public class PedidoController implements PedidoAPI {
     public Page<PedidoListResponse> buscaPedidoPorClienteId
             (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
       log.info("[start] PedidoController - buscaClientePorId");
+      log.info("[info] idCliente: {}", idCliente);
+      log.info("[info] filtro: {}", loteFilterRequest.getStatus());
       Page<PedidoListResponse> pedidoListResponses
               = pedidoService.buscarTodosPedidosComFiltro(loteFilterRequest, pageable, idCliente);
       log.info("[finish] PedidoController - buscaClientePorId");

@@ -40,7 +40,7 @@ public interface PedidoAPI {
   void alteraEnderecoPedido(
       @PathVariable UUID idPedido, @Valid @RequestBody EnderecoUpdateRequest enderecoUpdateRequest);
 
-  @GetMapping("/{idCliente}")
+  @GetMapping("/cliente/{idCliente}")
   @ResponseStatus(HttpStatus.OK)
   Page<PedidoListResponse> buscaPedidoPorClienteId(
           @ParameterObject

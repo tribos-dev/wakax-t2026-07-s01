@@ -1,9 +1,12 @@
 package br.com.wakax.wakax_ecommerce.pedido.infra;
 
+import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Repository;
 
@@ -43,10 +46,12 @@ public class PedidoInfraRepository implements PedidoRepository {
   }
 
     @Override
-    public Page<PedidoListResponse> buscarPedidosComFiltro(UUID idCliente) {
+    public Page<Pedido> buscarPedidosComFiltro
+            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
       log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
-
+      Page<Pedido> pedidos = pedidoJPARepository
+              .findAllByClienteIdWithFilters(loteFilterRequest, pageable, idCliente);
       log.info("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
-      return null;
+      return pedidos;
     }
 }
