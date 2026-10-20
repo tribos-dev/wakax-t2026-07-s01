@@ -2,13 +2,14 @@ package br.com.wakax.wakax_ecommerce.produto.api.response;
 
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
 import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
+import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
+@Getter
 public class ProdutoAtualizaResponse{
     private UUID idProduto;
     private String descricao;
@@ -21,7 +22,7 @@ public class ProdutoAtualizaResponse{
     private String unidade;
     private Integer estoqueMinimo;
     private Integer estoqueMaximo;
-    private LocalDateTime dataDeCadastro;
+    private LocalDateTime dataDeCriacao;
     private LocalDateTime dataDeAtualizacao;
 
     public ProdutoAtualizaResponse(Produto produto){
@@ -41,7 +42,7 @@ public class ProdutoAtualizaResponse{
         this.unidade = produto.getUnidade();
         this.estoqueMinimo = produto.getEstoqueMinimo();
         this.estoqueMaximo = produto.getEstoqueMaximo();
-        this.dataDeCadastro = produto.getDataCriacao();
+        this.dataDeCriacao = produto.getDataCriacao();
         this.dataDeAtualizacao = produto.getDataAtualizacao();
     }
 

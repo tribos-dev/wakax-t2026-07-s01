@@ -73,7 +73,9 @@ public class Produto {
 
   @PrePersist
   protected void onCreate() {
+
     dataCriacao = LocalDateTime.now();
+    dataAtualizacao = LocalDateTime.now();
   }
 
   public Produto(ProdutoRequest request) {
@@ -124,12 +126,12 @@ public class Produto {
         this.precos = new ArrayList<>();
       }
     }
+    this.dataAtualizacao = LocalDateTime.now();
   }
 
   private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {
     if (valor != null) {
       setter.accept(valor);
     }
-
   }
 }
