@@ -7,9 +7,9 @@ import lombok.NoArgsConstructor;
 @Getter
 @NoArgsConstructor
 public class PedidoFilterRequest {
-    private StatusPedido status;
+  private StatusPedido status;
 
-    public PedidoFilterRequest (StatusPedido status) {
-        this.status = status;
-    }
+  public PedidoFilterRequest(StatusPedido status) {
+    this.status = status;
+  }
 }

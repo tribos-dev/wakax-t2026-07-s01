@@ -2,10 +2,11 @@ package br.com.wakax.wakax_ecommerce.pedido.application.repository;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
-import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
+import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 
 public interface PedidoRepository {
 
@@ -13,6 +14,6 @@ public interface PedidoRepository {
 
   Pedido buscaPedidoPorId(UUID idPedido);
 
-  Page<Pedido> buscarPedidosPorClienteComFiltro
-          (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente);
+  Page<Pedido> buscarPedidosPorClienteComFiltro(
+      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente);
 }

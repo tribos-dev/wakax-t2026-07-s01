@@ -15,14 +15,13 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.*;
 
 import br.com.wakax.wakax_ecommerce.carrinho.application.repository.CarrinhoRepository;
 import br.com.wakax.wakax_ecommerce.carrinho.domain.Carrinho;
@@ -32,6 +31,7 @@ import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
@@ -44,7 +44,6 @@ import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoApplicationServiceTest {
@@ -694,58 +693,50 @@ class PedidoApplicationServiceTest {
     verify(pedidoRepository).salva(any(Pedido.class));
   }
 
-    @Test
-    @DisplayName("WX-16 Cenário 1: Cliente sem pedidos")
-    void buscaPedidoPorCliente() {
-        Pageable pageable = PageRequest.of(
-                0,
-                10,
-                Sort.by(Sort.Direction.DESC, "dataPedido")
-        );
+  @Test
+  @DisplayName("WX-16 Cenário 1: Cliente sem pedidos")
+  void buscaPedidoPorCliente() {
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataPedido"));
 
-        UUID idCliente = UUID.randomUUID();
-        PedidoFilterRequest filtro = new PedidoFilterRequest();
-        Pedido pedido1 = criaPedidoComEndereco(StatusPedido.PAGO);
-        Pedido pedido2 = criaPedidoComEndereco(StatusPedido.ENVIADO);
-        Pedido pedido3 = criaPedidoComEndereco(StatusPedido.ENTREGUE);
+    UUID idCliente = UUID.randomUUID();
+    PedidoFilterRequest filtro = new PedidoFilterRequest();
+    Pedido pedido1 = criaPedidoComEndereco(StatusPedido.PAGO);
+    Pedido pedido2 = criaPedidoComEndereco(StatusPedido.ENVIADO);
+    Pedido pedido3 = criaPedidoComEndereco(StatusPedido.ENTREGUE);
 
-        List<Pedido> pedidos = List.of(pedido1, pedido2, pedido3);
+    List<Pedido> pedidos = List.of(pedido1, pedido2, pedido3);
 
-        Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
+    Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
 
-        when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
-                .thenReturn(pagina);
+    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+        .thenReturn(pagina);
 
-        var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
+    var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
 
-        verify(pedidoRepository, times(1))
-                .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
-        assertNotNull(result);
-        assertEquals(result.getTotalElements(), pagina.getTotalElements());
-    }
+    verify(pedidoRepository, times(1))
+        .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+    assertNotNull(result);
+    assertEquals(result.getTotalElements(), pagina.getTotalElements());
+  }
 
   @Test
   @DisplayName("WX-16 Cenário 2: Cliente sem pedidos")
   void buscaPedidoPorClienteRetornaListaVazia() {
-      Pageable pageable = PageRequest.of(
-              0,
-              10,
-              Sort.by(Sort.Direction.DESC, "dataPedido")
-      );
+    Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataPedido"));
 
-      UUID idCliente = UUID.randomUUID();
-      PedidoFilterRequest filtro = new PedidoFilterRequest();
+    UUID idCliente = UUID.randomUUID();
+    PedidoFilterRequest filtro = new PedidoFilterRequest();
 
-      Page<Pedido> pagina = Page.empty(pageable);
+    Page<Pedido> pagina = Page.empty(pageable);
 
-      when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
-              .thenReturn(pagina);
+    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+        .thenReturn(pagina);
 
-      var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
+    var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
 
-      verify(pedidoRepository, times(1))
-              .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
-      assertNotNull(result);
-      assertEquals(result, pagina);
+    verify(pedidoRepository, times(1))
+        .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+    assertNotNull(result);
+    assertEquals(result, pagina);
   }
 }

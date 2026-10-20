@@ -1,10 +1,7 @@
 package br.com.wakax.wakax_ecommerce.pedido.infra;
 
-import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -12,6 +9,7 @@ import org.springframework.stereotype.Repository;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import lombok.RequiredArgsConstructor;
@@ -45,13 +43,13 @@ public class PedidoInfraRepository implements PedidoRepository {
     return pedido;
   }
 
-    @Override
-    public Page<Pedido> buscarPedidosPorClienteComFiltro
-            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
-      log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
-      Page<Pedido> pedidos = pedidoJPARepository
-              .findAllByClienteIdWithFilters(loteFilterRequest, pageable, idCliente);
-      log.info("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
-      return pedidos;
-    }
+  @Override
+  public Page<Pedido> buscarPedidosPorClienteComFiltro(
+      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+    log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
+    Page<Pedido> pedidos =
+        pedidoJPARepository.findAllByClienteIdWithFilters(loteFilterRequest, pageable, idCliente);
+    log.info("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
+    return pedidos;
+  }
 }

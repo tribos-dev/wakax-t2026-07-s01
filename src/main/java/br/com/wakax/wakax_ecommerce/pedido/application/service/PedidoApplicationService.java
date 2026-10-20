@@ -4,8 +4,6 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,7 +15,9 @@ import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
@@ -100,14 +100,15 @@ public class PedidoApplicationService implements PedidoService {
     log.debug("[finish] PedidoApplicationService - alteraEnderecoEntrega");
   }
 
-    @Override
-    public Page<PedidoListResponse> buscarTodosPedidosComFiltro
-            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
-      log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
-      Page<PedidoListResponse> pedidoListResponses = pedidoRepository
-              .buscarPedidosPorClienteComFiltro(loteFilterRequest, pageable, idCliente)
-              .map(PedidoListResponse::new);
-      log.info("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
-      return pedidoListResponses;
-    }
+  @Override
+  public Page<PedidoListResponse> buscarTodosPedidosComFiltro(
+      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+    log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    Page<PedidoListResponse> pedidoListResponses =
+        pedidoRepository
+            .buscarPedidosPorClienteComFiltro(loteFilterRequest, pageable, idCliente)
+            .map(PedidoListResponse::new);
+    log.info("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    return pedidoListResponses;
+  }
 }

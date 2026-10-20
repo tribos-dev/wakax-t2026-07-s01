@@ -4,15 +4,15 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import lombok.RequiredArgsConstructor;
@@ -54,15 +54,15 @@ public class PedidoController implements PedidoAPI {
     log.debug("[finish] PedidoController - alteraEnderecoPedido");
   }
 
-    @Override
-    public Page<PedidoListResponse> buscaPedidoPorClienteId
-            (PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
-      log.info("[start] PedidoController - buscaClientePorId");
-      log.info("[info] idCliente: {}", idCliente);
-      log.info("[info] filtro: {}", loteFilterRequest.getStatus());
-      Page<PedidoListResponse> pedidoListResponses
-              = pedidoService.buscarTodosPedidosComFiltro(loteFilterRequest, pageable, idCliente);
-      log.info("[finish] PedidoController - buscaClientePorId");
-      return pedidoListResponses;
-    }
+  @Override
+  public Page<PedidoListResponse> buscaPedidoPorClienteId(
+      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+    log.info("[start] PedidoController - buscaClientePorId");
+    log.info("[info] idCliente: {}", idCliente);
+    log.info("[info] filtro: {}", loteFilterRequest.getStatus());
+    Page<PedidoListResponse> pedidoListResponses =
+        pedidoService.buscarTodosPedidosComFiltro(loteFilterRequest, pageable, idCliente);
+    log.info("[finish] PedidoController - buscaClientePorId");
+    return pedidoListResponses;
+  }
 }
