@@ -44,10 +44,7 @@ import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoApplicationServiceTest {
@@ -696,6 +693,36 @@ class PedidoApplicationServiceTest {
 
     verify(pedidoRepository).salva(any(Pedido.class));
   }
+
+    @Test
+    @DisplayName("WX-16 Cenário 1: Cliente sem pedidos")
+    void buscaPedidoPorCliente() {
+        Pageable pageable = PageRequest.of(
+                0,
+                10,
+                Sort.by(Sort.Direction.DESC, "dataPedido")
+        );
+
+        UUID idCliente = UUID.randomUUID();
+        PedidoFilterRequest filtro = new PedidoFilterRequest();
+        Pedido pedido1 = criaPedidoComEndereco(StatusPedido.PAGO);
+        Pedido pedido2 = criaPedidoComEndereco(StatusPedido.ENVIADO);
+        Pedido pedido3 = criaPedidoComEndereco(StatusPedido.ENTREGUE);
+
+        List<Pedido> pedidos = List.of(pedido1, pedido2, pedido3);
+
+        Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
+
+        when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+                .thenReturn(pagina);
+
+        var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
+
+        verify(pedidoRepository, times(1))
+                .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), pagina.getTotalElements());
+    }
 
   @Test
   @DisplayName("WX-16 Cenário 2: Cliente sem pedidos")
