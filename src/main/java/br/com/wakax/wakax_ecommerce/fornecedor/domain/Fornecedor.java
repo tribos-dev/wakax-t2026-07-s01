@@ -6,6 +6,7 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
@@ -70,5 +71,15 @@ public class Fornecedor {
 
   public void inativar() {
     this.pessoa.setStatus(StatusPessoa.INATIVO);
+  }
+
+  public void alterarDadosFornecedor(FornecedorAlteracaoRequest fornecedorAlteracaoRequest) {
+    this.inscricaoEstadual = fornecedorAlteracaoRequest.getInscricaoEstadual();
+    this.razaoSocial = fornecedorAlteracaoRequest.getRazaoSocial();
+    this.nomeFantasia = fornecedorAlteracaoRequest.getNomeFantasia();
+    this.pessoa.setEmails(fornecedorAlteracaoRequest.getEmails());
+    this.pessoa.setEnderecos(fornecedorAlteracaoRequest.getEnderecos());
+    this.pessoa.setTelefones(fornecedorAlteracaoRequest.getTelefones());
+    this.dataEdicao = LocalDateTime.now();
   }
 }

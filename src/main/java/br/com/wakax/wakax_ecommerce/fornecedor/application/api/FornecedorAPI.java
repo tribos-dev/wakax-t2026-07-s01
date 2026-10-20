@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,4 +32,10 @@ public interface FornecedorAPI {
   @DeleteMapping("/{idFornecedor}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void inativarFornecedor(@PathVariable UUID idFornecedor);
+
+  @PatchMapping("/{idFornecedor}")
+  @ResponseStatus(HttpStatus.OK)
+  FornecedorAlteracaoResponse alterarDadosFornecedor(@PathVariable UUID idFornecedor,
+          @Valid @RequestBody FornecedorAlteracaoRequest fornecedorAlteracao);
+
 }

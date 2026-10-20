@@ -6,6 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -51,6 +52,7 @@ public class Endereco {
   @NotNull
   private boolean principal;
 
+  @JsonIgnore
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "pessoa_id", nullable = false)
   private Pessoa pessoa;
