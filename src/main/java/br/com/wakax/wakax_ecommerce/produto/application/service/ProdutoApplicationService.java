@@ -1,9 +1,13 @@
 package br.com.wakax.wakax_ecommerce.produto.application.service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.auth.usuario.api.repository.UsuarioRepository;
+import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -28,6 +32,8 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class ProdutoApplicationService implements ProdutoService {
   private final ProdutoRepository produtoRepository;
+  private final HistoricoProdutoRepository historicoProdutoRepository;
+  private  final UsuarioRepository usuarioRepository;
   @Override
   public ProdutoResponse cadastraProduto(ProdutoRequest novoProduto) {
     log.debug("[start] ProdutoApplicationService - cadastraProduto");
@@ -90,8 +96,16 @@ public class ProdutoApplicationService implements ProdutoService {
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
     produto.atualiza(produtoRequest);
     produtoRepository.salva(produto);
-    HistoricoProduto historico =  
-    log.debug("[start] ProdutoApplicationService - atualizaProduto");
+    Credencial credencial = buscaUsuarioLogado();
+    Usuario usuario = credencial.getUser();
+    HistoricoProduto historico = HistoricoProduto.builder()
+            .produto(produto)
+            .dataRegistro(LocalDateTime.now())
+            .usuario(usuario)
+            .build();
+
+    historicoProdutoRepository.salva(historico);
+    log.debug("[finish] ProdutoApplicationService - atualizaProduto");
     return new ProdutoAtualizaResponse(produto);
   }
 
