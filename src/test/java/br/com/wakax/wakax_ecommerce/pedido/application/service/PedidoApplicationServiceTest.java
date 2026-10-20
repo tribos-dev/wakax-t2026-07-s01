@@ -739,4 +739,28 @@ class PedidoApplicationServiceTest {
     assertNotNull(result);
     assertEquals(result, pagina);
   }
+
+    @Test
+    @DisplayName("WX-16 Cenário 3: Visualizar diferentes status de pedidos")
+    void buscaPedidoPorClienteComFiltroDeStatus() {
+        Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataPedido"));
+
+        UUID idCliente = UUID.randomUUID();
+        PedidoFilterRequest filtro = new PedidoFilterRequest(StatusPedido.PAGO);
+        Pedido pedido = criaPedidoComEndereco(StatusPedido.PAGO);
+
+        List<Pedido> pedidos = List.of(pedido);
+
+        Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
+
+        when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+                .thenReturn(pagina);
+
+        var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
+
+        verify(pedidoRepository, times(1))
+                .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+        assertNotNull(result);
+        assertEquals(result.getTotalElements(), pagina.getTotalElements());
+    }
 }
