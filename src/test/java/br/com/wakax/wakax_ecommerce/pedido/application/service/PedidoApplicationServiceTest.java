@@ -15,6 +15,8 @@ import javax.validation.ConstraintViolation;
 import javax.validation.Validation;
 import javax.validation.Validator;
 
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -42,6 +44,10 @@ import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
 import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 
 @ExtendWith(MockitoExtension.class)
 class PedidoApplicationServiceTest {
@@ -689,5 +695,30 @@ class PedidoApplicationServiceTest {
     applicationService.cadastraPedido(request);
 
     verify(pedidoRepository).salva(any(Pedido.class));
+  }
+
+  @Test
+  @DisplayName("WX-16 Cenário 2: Cliente sem pedidos")
+  void buscaPedidoPorClienteRetornaListaVazia() {
+      Pageable pageable = PageRequest.of(
+              0,
+              10,
+              Sort.by(Sort.Direction.DESC, "dataPedido")
+      );
+
+      UUID idCliente = UUID.randomUUID();
+      PedidoFilterRequest filtro = new PedidoFilterRequest();
+
+      Page<Pedido> pagina = Page.empty(pageable);
+
+      when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+              .thenReturn(pagina);
+
+      var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
+
+      verify(pedidoRepository, times(1))
+              .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+      assertNotNull(result);
+      assertEquals(result, pagina);
   }
 }
