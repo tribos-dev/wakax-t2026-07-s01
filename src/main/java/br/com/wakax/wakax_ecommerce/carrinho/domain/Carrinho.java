@@ -67,11 +67,11 @@ public class Carrinho {
             () -> new APIException(HttpStatus.NOT_FOUND, ErrorCode.ITEM_CARRINHO_NAO_ENCONTRADO));
   }
 
-  public void removeItemPorId(UUID idItem) {
+  public ItemCarrinho removeItemPorId(UUID idItem) {
     verificaSeCarrinhoEstaAtivo();
-
     ItemCarrinho item = buscaItemPorId(idItem);
     this.itensCarrinho.remove(item);
+    return item;
   }
 
   void verificaSeCarrinhoEstaAtivo() {

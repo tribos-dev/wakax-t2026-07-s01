@@ -199,6 +199,8 @@ class CarrinhoApplicationServiceTest {
 
     when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
     when(carrinhoRepository.salva(carrinho)).thenReturn(carrinho);
+    when(processadorEstoqueFactory.obterProcessador()).thenReturn(processadorEstoque);
+    ItemCarrinho itemRemovido = carrinho.getItensCarrinho().get(0);
 
     applicationService.removeItemDoCarrinho(cliente.getId(), carrinho.getId(), idItem);
 
@@ -206,6 +208,8 @@ class CarrinhoApplicationServiceTest {
     assertEquals(BigDecimal.ZERO, carrinho.calculaValorTotal());
     assertEquals(StatusCarrinho.ATIVO, carrinho.getStatusCarrinho());
     verify(carrinhoRepository).salva(carrinho);
+    verify(processadorEstoque)
+        .aoRemoverItem(itemRemovido.getProduto(), itemRemovido.getQuantidade());
   }
 
   @Test
@@ -283,6 +287,7 @@ class CarrinhoApplicationServiceTest {
 
     when(carrinhoRepository.buscaCarrinhoPorId(carrinho.getId())).thenReturn(carrinho);
     when(carrinhoRepository.salva(carrinho)).thenReturn(carrinho);
+    when(processadorEstoqueFactory.obterProcessador()).thenReturn(processadorEstoque);
 
     applicationService.removeItemDoCarrinho(
         cliente.getId(), carrinho.getId(), itemRemovido.getId());
@@ -292,6 +297,8 @@ class CarrinhoApplicationServiceTest {
     BigDecimal totalEsperado = totalAntes.subtract(itemRemovido.getValorTotalDoItem());
     assertEquals(0, totalEsperado.compareTo(carrinho.calculaValorTotal()));
     verify(carrinhoRepository).salva(carrinho);
+    verify(processadorEstoque)
+        .aoRemoverItem(itemRemovido.getProduto(), itemRemovido.getQuantidade());
   }
 
   @Test
