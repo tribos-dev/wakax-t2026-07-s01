@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,10 +20,6 @@ import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
-import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
-import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -93,6 +90,7 @@ public class ProdutoApplicationService implements ProdutoService {
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
     produto.atualiza(produtoRequest);
     produtoRepository.salva(produto);
+    HistoricoProduto historico =  
     log.debug("[start] ProdutoApplicationService - atualizaProduto");
     return new ProdutoAtualizaResponse(produto);
   }
