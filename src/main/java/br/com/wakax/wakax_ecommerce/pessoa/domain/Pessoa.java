@@ -106,7 +106,34 @@ public class Pessoa {
                     .forEach(this.enderecos::add));
     vincularEnderecos();
   }
+  public void atualiza(DadosAtualizacaoPessoa dadosAtualizacao) {
+    if (dadosAtualizacao.getNome() != null) {
+      this.nome = dadosAtualizacao.getNome();
+    }
+    if (dadosAtualizacao.getEmails() != null) {
+      this.emails = dadosAtualizacao.getEmails();
+    }
+    if (dadosAtualizacao.getTelefones() != null) {
+      this.telefones = dadosAtualizacao.getTelefones();
+    }
+    if (dadosAtualizacao.getEnderecos() != null) {
+      if (this.enderecos == null) {
+        this.enderecos = new ArrayList<>();
+      }
+      Set<UUID> idsExistentes = this.enderecos.stream()
+              .map(Endereco::getId)
+              .filter(Objects::nonNull)
+              .collect(Collectors.toSet());
 
+      dadosAtualizacao.getEnderecos().stream()
+              .filter(endereco ->
+                      endereco.getId() == null
+                              || !idsExistentes.contains(endereco.getId()))
+              .forEach(this.enderecos::add);
+
+      vincularEnderecos();
+    }
+  }
   private void vincularEnderecos() {
     if (this.enderecos != null) {
       this.enderecos.forEach(endereco -> endereco.setPessoa(this));
