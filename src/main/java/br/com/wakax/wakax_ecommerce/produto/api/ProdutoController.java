@@ -51,11 +51,10 @@ public class ProdutoController implements ProdutoAPI {
   }
 
   @Override
-  public StatusResponse atualizaStatus(UUID idProduto, StatusProdutoRequest statusProdutoRequest) {
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
     log.debug("[start] ProdutoController - atualizaStatus");
-    StatusResponse  response = produtoService.atualizaStatus(idProduto, statusProdutoRequest);
+    produtoService.atualizaStatus(idProduto, request);
     log.debug("[finish] ProdutoController - atualizaStatus");
-    return response;
   }
 
   @Override

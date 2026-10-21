@@ -2,7 +2,6 @@ package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -65,12 +64,17 @@ public class Produto {
   @NotNull
   private LocalDateTime dataCriacao;
 
+  @Column(name = "data_alteracao_status")
+  private LocalDateTime dataAlteracaoStatus;
+
+  @Column(name = "motivo_alteracao_status", length = 255)
+  @Size(max = 255)
+  private String motivoAlteracaoStatus;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
   }
-
-  private List<HistoricoStatus> historicoStatusTotal = new ArrayList<>();
 
   public Produto(ProdutoRequest request) {
     this.descricao = request.getDescricao();
@@ -84,10 +88,23 @@ public class Produto {
     this.estoqueMaximo = request.getEstoqueMaximo();
     if (request.getPrecos() != null) {
       this.precos =
-          request.getPrecos().stream()
-              .map(precoReq -> new Preco(precoReq.getTipo(), precoReq.getValor(), this))
-              .collect(Collectors.toList());
+              request.getPrecos().stream()
+                      .map(precoReq -> new Preco(precoReq.getTipo(), precoReq.getValor(), this))
+                      .collect(Collectors.toList());
     }
+  }
+
+  public void alteraStatus(StatusProduto novoStatus, String motivo) {
+    if (this.status == novoStatus) {
+      return;
+    }
+    this.status = novoStatus;
+    this.motivoAlteracaoStatus = motivo;
+    this.dataAlteracaoStatus = LocalDateTime.now();
+  }
+
+  public boolean estaAtivo() {
+    return this.status == StatusProduto.ATIVO;
   }
 
   public BigDecimal getPrecoPadrao() {
@@ -99,23 +116,10 @@ public class Produto {
 
   public BigDecimal getPrecoAtual() {
     return precos.stream()
-        .filter(p -> p.getTipo() == TipoPreco.PROMOCIONAL)
-        .findFirst()
-        .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
-        .map(Preco::getValor)
-        .orElse(BigDecimal.ZERO);
-  }
-
-  public void atualizaProdutoStatus(StatusProduto status, String motivo, String usuario){
-    this.status= status;
-
-    HistoricoStatus historicoStatus =
-      HistoricoStatus.builder()
-            .status(status)
-              .motivo(motivo)
-              .usuario(usuario)
-              .build();
-
-            this.historicoStatusTotal.add(historicoStatus);
+            .filter(p -> p.getTipo() == TipoPreco.PROMOCIONAL)
+            .findFirst()
+            .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
+            .map(Preco::getValor)
+            .orElse(BigDecimal.ZERO);
   }
 }

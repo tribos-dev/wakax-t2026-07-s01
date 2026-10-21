@@ -34,6 +34,7 @@ public interface ProdutoAPI {
   ProdutoAtivoPaginadoResponse listarProdutosAtivos(
       @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
 
-  @PatchMapping("/{idProduto}/status/{status}")
-  StatusResponse atualizaStatus(@PathVariable UUID idProduto, @Valid @RequestBody StatusProdutoRequest statusProdutoRequest);
+  @PatchMapping("/{idProduto}/status")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void atualizaStatus(@PathVariable UUID idProduto, @Valid @RequestBody StatusProdutoRequest request);
 }

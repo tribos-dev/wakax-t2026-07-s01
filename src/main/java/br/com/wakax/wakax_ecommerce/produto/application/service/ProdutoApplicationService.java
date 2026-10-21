@@ -88,20 +88,12 @@ public class ProdutoApplicationService implements ProdutoService {
 
   @Transactional
   @Override
-  public StatusResponse atualizaStatus(UUID idProduto, StatusProdutoRequest statusProdutoRequest) {
-    log.debug("[start] ProdutoController - atualizaStatus");
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
+    log.debug("[start] ProdutoApplicationService - atualizaStatus");
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
-
-    StatusProduto statusProduto = produto.getStatus();
-
-      Credencial credencial = buscaUsuarioLogado();
-
-      produto.atualizaProdutoStatus(
-              statusProdutoRequest.getStatus(), statusProdutoRequest.getMotivo(), credencial.getUsername());
-      produtoRepository.salva(produto);
-
-    log.debug("[finish] ProdutoController - atualizaStatus");
-    return new StatusResponse(produto);
+    produto.alteraStatus(request.getStatus(), request.getMotivo());
+    produtoRepository.salva(produto);
+    log.debug("[finish] ProdutoApplicationService - atualizaStatus");
   }
 
   private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {
