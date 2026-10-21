@@ -39,5 +39,4 @@ public class FornecedorAlteracaoRequest implements DadosAtualizacaoPessoa {
 
     @Size(max = 100, message = "{validacao.nomefantasia.tamanho}")
     private String nomeFantasia;
-
 }
