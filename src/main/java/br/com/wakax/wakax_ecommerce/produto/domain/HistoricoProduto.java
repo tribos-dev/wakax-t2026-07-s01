@@ -36,5 +36,8 @@ public class HistoricoProduto {
     @NotNull
     private Usuario usuario;
 
+    @Column(name = "descricao_alteracao", length = 1000)
+    private String descricaoAlteracao;
+
 
 }

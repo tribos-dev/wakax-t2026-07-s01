@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -34,6 +35,6 @@ public interface ProdutoAPI {
       @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
 
   @PutMapping("/{idProduto}")
-  ProdutoAtualizaResponse atualizarProduto(@PathVariable UUID idProduto, @Valid @RequestBody ProdutoRequest produtoRequest);
+  ProdutoAtualizaResponse atualizarProduto(@PathVariable UUID idProduto, @Valid @RequestBody ProdutoUpdateRequest produtoUpdateRequest);
 
 }

@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.auth.usuario.api.repository.UsuarioRepository;
 import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.*;
@@ -91,20 +92,20 @@ public class ProdutoApplicationService implements ProdutoService {
   }
 
   @Override
-  public ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoRequest produtoRequest) {
+  @Transactional
+  public ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest) {
     log.debug("[start] ProdutoApplicationService - atualizaProduto");
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
-    produto.atualiza(produtoRequest);
+    produto.atualiza(produtoUpdateRequest);
     produtoRepository.salva(produto);
-    Credencial credencial = buscaUsuarioLogado();
-    Usuario usuario = credencial.getUser();
-    HistoricoProduto historico = HistoricoProduto.builder()
-            .produto(produto)
-            .dataRegistro(LocalDateTime.now())
-            .usuario(usuario)
-            .build();
-
-    historicoProdutoRepository.salva(historico);
+      Credencial credencial = buscaUsuarioLogado();
+      Usuario usuario = credencial.getUser();
+      HistoricoProduto historico = HistoricoProduto.builder()
+              .produto(produto)
+              .dataRegistro(LocalDateTime.now())
+              .usuario(usuario)
+              .build();
+      historicoProdutoRepository.salva(historico);
     log.debug("[finish] ProdutoApplicationService - atualizaProduto");
     return new ProdutoAtualizaResponse(produto);
   }

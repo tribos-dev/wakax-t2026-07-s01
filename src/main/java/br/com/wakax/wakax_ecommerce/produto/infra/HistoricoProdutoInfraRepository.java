@@ -14,7 +14,7 @@ public class HistoricoProdutoInfraRepository implements HistoricoProdutoReposito
     @Override
     public void salva(HistoricoProduto historico) {
         log.debug("[start] HistoricoProdutoInfraRepository - salva");
-        historicoProdutoJPARepository.salva(historico);
+        historicoProdutoJPARepository.save(historico);
         log.debug("[finish] HistoricoProdutoInfraRepository - salva");
 
 

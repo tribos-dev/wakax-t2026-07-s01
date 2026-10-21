@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 
 public interface ProdutoService {
@@ -17,5 +18,5 @@ public interface ProdutoService {
 
   PrecoResponse atualizaPreco(UUID idProduto, PrecoUpdateRequest precoUpdateRequest);
 
-  ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoRequest produtoRequest);
+  ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest);
 }
