@@ -3,10 +3,13 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -257,4 +260,104 @@ class FornecedorApplicationServiceTest {
     assertEquals(idFornecedor, exception.getArgs()[0]);
     verify(fornecedorRepository, times(1)).inativar(idFornecedor);
   }
+
+
+  @Test
+  void deveAlterarRazaoSocialENomeFantasiaComSucesso() {
+    Fornecedor fornecedorExistente = FornecedorDataHelper.criarFornecedorAtivo();
+    UUID idFornecedor = fornecedorExistente.getId();
+    LocalDateTime dataEdicaoAnterior = fornecedorExistente.getDataEdicao();
+
+    FornecedorAlteracaoRequest request =
+            new FornecedorAlteracaoRequest(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Nova Razao Social",
+                    "Nova Fantasia");
+
+    when(fornecedorRepository.buscaFornecedorPorId(idFornecedor)).thenReturn(fornecedorExistente);
+    when(fornecedorRepository.atualiza(any(Fornecedor.class)))
+            .thenAnswer(invocation -> invocation.getArgument(0));
+
+    FornecedorAlteracaoResponse response = fornecedorApplicationService.alterarDadosFornecedor(idFornecedor, request);
+    assertNotNull(response);
+    assertEquals("Nova Razao Social", response.getRazaoSocial());
+    assertEquals("Nova Fantasia", response.getNomeFantasia());
+    assertEquals(fornecedorExistente.getDocumento(), response.getDocumento());
+    assertNotNull(response.getDataEdicao());
+    assertTrue(!response.getDataEdicao().isBefore(dataEdicaoAnterior));
+    verify(fornecedorRepository).buscaFornecedorPorId(idFornecedor);
+    verify(fornecedorRepository).atualiza(fornecedorExistente);
+  }
+
+  @Test
+  void deveAlterarEmailsETelefonesComSucesso() {
+    Fornecedor fornecedorExistente = FornecedorDataHelper.criarFornecedorAtivo();
+    UUID idFornecedor = fornecedorExistente.getId();
+
+    List<String> novosEmails = List.of("novo@empresa.com.br", "vendas@empresa.com.br");
+    List<String> novosTelefones = List.of("(11) 97777-7777");
+    FornecedorAlteracaoRequest request =
+            new FornecedorAlteracaoRequest(
+                    null,
+                    novosEmails,
+                    novosTelefones,
+                    null,
+                    null,
+                    null,
+                    null);
+
+    when(fornecedorRepository.buscaFornecedorPorId(idFornecedor)).thenReturn(fornecedorExistente);
+    when(fornecedorRepository.atualiza(any(Fornecedor.class))).thenAnswer(invocation -> invocation.getArgument(0));
+    FornecedorAlteracaoResponse response = fornecedorApplicationService.alterarDadosFornecedor(idFornecedor, request);
+
+    assertNotNull(response);
+    assertEquals(novosEmails, response.getEmails());
+    assertEquals(novosTelefones, response.getTelefones());
+    verify(fornecedorRepository).atualiza(fornecedorExistente);
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoFornecedorNaoExisteNaAlteracao() {
+    UUID idInexistente = UUID.randomUUID();
+    FornecedorAlteracaoRequest request =
+            new FornecedorAlteracaoRequest(
+                    null,
+                    null,
+                    null,
+                    null,
+                    null,
+                    "Nova Razao Social",
+                    "Nova Fantasia");
+
+    when(fornecedorRepository.buscaFornecedorPorId(idInexistente)).thenThrow(new APIException(
+            HttpStatus.NOT_FOUND, ErrorCode.FORNECEDOR_NAO_ENCONTRADO, idInexistente));
+    APIException exception = assertThrows(APIException.class, () -> fornecedorApplicationService
+            .alterarDadosFornecedor(idInexistente, request));
+    assertEquals(ErrorCode.FORNECEDOR_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(idInexistente, exception.getArgs()[0]);
+    verify(fornecedorRepository).buscaFornecedorPorId(idInexistente);
+    verify(fornecedorRepository, never()).atualiza(any(Fornecedor.class));
+  }
+
+  @Test
+  void deveRejeitarDadosInvalidosNaRequisicaoDeAlteracao() {
+    FornecedorAlteracaoRequest request =
+            new FornecedorAlteracaoRequest(
+                    null,
+                    List.of("email-invalido"),
+                    null,
+                    null,
+                    null,
+                    "R".repeat(101),
+                    null);
+
+    javax.validation.Validator validator = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
+    var violacoes = validator.validate(request);
+    assertTrue(violacoes.size() >= 2);
+  }
+
 }
