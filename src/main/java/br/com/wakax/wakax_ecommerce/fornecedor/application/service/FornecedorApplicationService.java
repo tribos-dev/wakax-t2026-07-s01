@@ -2,6 +2,8 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -56,5 +58,17 @@ public class FornecedorApplicationService implements FornecedorService {
     log.debug("[start] FornecedorApplicationService - inativarFornecedor");
     fornecedorRepository.inativar(idFornecedor);
     log.debug("[finish] FornecedorApplicationService - inativarFornecedor");
+  }
+
+  @Override
+  @Transactional
+  public FornecedorAlteracaoResponse alterarDadosFornecedor(UUID idFornecedor,
+     FornecedorAlteracaoRequest fornecedorAlteracaoRequest) {
+    log.debug("[start] FornecedorApplicationService - alterarDadosFornecedor");
+    Fornecedor fornecedor = fornecedorRepository.buscaFornecedorPorId(idFornecedor);
+    fornecedor.alterarDadosFornecedor(fornecedorAlteracaoRequest);
+    fornecedorRepository.atualiza(fornecedor);
+    log.debug("[finish] FornecedorApplicationService - alterarDadosFornecedor");
+    return new FornecedorAlteracaoResponse(fornecedor);
   }
 }

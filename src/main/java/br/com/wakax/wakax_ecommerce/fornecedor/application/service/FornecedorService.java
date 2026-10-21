@@ -2,6 +2,8 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import org.springframework.data.domain.Pageable;
 
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
@@ -19,4 +21,7 @@ public interface FornecedorService {
   FornecedorPageResponse listarFornecedores(StatusPessoa status, Pageable pageable);
 
   void inativarFornecedor(UUID idFornecedor);
+
+  FornecedorAlteracaoResponse alterarDadosFornecedor(UUID idFornecedor, FornecedorAlteracaoRequest
+          fornecedorAlteracaoRequest);
 }
