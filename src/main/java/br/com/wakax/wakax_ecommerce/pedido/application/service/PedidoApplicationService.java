@@ -108,7 +108,7 @@ public class PedidoApplicationService implements PedidoService {
         pedidoRepository
             .buscarPedidosPorClienteComFiltro(loteFilterRequest, pageable, idCliente)
             .map(PedidoListResponse::new);
-    log.info("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    log.debug("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
     return pedidoListResponses;
   }
 }

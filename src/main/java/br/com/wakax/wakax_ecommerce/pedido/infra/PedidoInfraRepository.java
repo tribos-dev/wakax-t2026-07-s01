@@ -49,7 +49,7 @@ public class PedidoInfraRepository implements PedidoRepository {
     log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
     Page<Pedido> pedidos =
         pedidoJPARepository.findAllByClienteIdWithFilters(loteFilterRequest, pageable, idCliente);
-    log.info("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
+    log.debug("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
     return pedidos;
   }
 }
