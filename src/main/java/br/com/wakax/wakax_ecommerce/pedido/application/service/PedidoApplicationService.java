@@ -106,7 +106,7 @@ public class PedidoApplicationService implements PedidoService {
     log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
     Page<PedidoListResponse> pedidoListResponses =
         pedidoRepository
-            .buscarPedidosPorClienteComFiltro(loteFilterRequest, pageable, idCliente)
+            .buscarPedidosPorClienteComFiltro(loteFilterRequest.getStatus(), pageable, idCliente)
             .map(PedidoListResponse::new);
     log.debug("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
     return pedidoListResponses;

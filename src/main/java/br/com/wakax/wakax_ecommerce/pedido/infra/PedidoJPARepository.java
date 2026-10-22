@@ -3,6 +3,7 @@ package br.com.wakax.wakax_ecommerce.pedido.infra;
 import java.util.Optional;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -29,10 +30,10 @@ public interface PedidoJPARepository extends JpaRepository<Pedido, UUID> {
       """
         SELECT p from Pedido p
         WHERE p.cliente.id = :idCliente
-                AND (:#{#filter.status} IS NULL OR p.status = :#{#filter.status})
+                AND (:#{#status.toString()} IS NULL OR p.status = :#{#status.toString()})
         """)
   Page<Pedido> findAllByClienteIdWithFilters(
-      @Param("filter") PedidoFilterRequest loteFilterRequest,
+      @Param("status") StatusPedido status,
       Pageable pageable,
       @Param("idCliente") UUID idCliente);
 }

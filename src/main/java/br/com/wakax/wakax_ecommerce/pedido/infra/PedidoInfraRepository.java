@@ -2,6 +2,7 @@ package br.com.wakax.wakax_ecommerce.pedido.infra;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -45,10 +46,10 @@ public class PedidoInfraRepository implements PedidoRepository {
 
   @Override
   public Page<Pedido> buscarPedidosPorClienteComFiltro(
-      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+          StatusPedido status, Pageable pageable, UUID idCliente) {
     log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
     Page<Pedido> pedidos =
-        pedidoJPARepository.findAllByClienteIdWithFilters(loteFilterRequest, pageable, idCliente);
+        pedidoJPARepository.findAllByClienteIdWithFilters(status, pageable, idCliente);
     log.debug("[finish] PedidoInfraRepository - buscarPedidosComFiltro");
     return pedidos;
   }
