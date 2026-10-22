@@ -2,11 +2,8 @@ package br.com.wakax.wakax_ecommerce.pessoa.domain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -102,7 +99,8 @@ public class Pessoa {
   public void atualizarEnderecos(List<Endereco> enderecos) {
     for (Endereco enderecoRecebido : enderecos) {
       if (enderecoRecebido.getId() == null) {
-        throw APIException.build(HttpStatus.BAD_REQUEST, "O ID do endereço é obrigatório para alteração.");
+        throw APIException.build(
+            HttpStatus.BAD_REQUEST, "O ID do endereço é obrigatório para alteração.");
       }
       buscaEnderecoPorId(enderecoRecebido.getId()).atualizar(enderecoRecebido);
     }
@@ -110,9 +108,11 @@ public class Pessoa {
 
   private Endereco buscaEnderecoPorId(UUID idEndereco) {
     return this.enderecos.stream()
-            .filter(endereco -> idEndereco.equals(endereco.getId()))
-            .findFirst()
-            .orElseThrow(()->APIException.build(HttpStatus.NOT_FOUND, "Endereço não encontrado!" + idEndereco));
+        .filter(endereco -> idEndereco.equals(endereco.getId()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                APIException.build(HttpStatus.NOT_FOUND, "Endereço não encontrado!" + idEndereco));
   }
 
   private void vincularEnderecos() {

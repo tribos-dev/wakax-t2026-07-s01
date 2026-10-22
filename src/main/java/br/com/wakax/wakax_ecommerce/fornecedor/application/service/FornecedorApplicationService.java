@@ -2,14 +2,14 @@ package br.com.wakax.wakax_ecommerce.fornecedor.application.service;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
-import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
@@ -62,8 +62,8 @@ public class FornecedorApplicationService implements FornecedorService {
 
   @Override
   @Transactional
-  public FornecedorAlteracaoResponse alterarDadosFornecedor(UUID idFornecedor,
-     FornecedorAlteracaoRequest fornecedorAlteracaoRequest) {
+  public FornecedorAlteracaoResponse alterarDadosFornecedor(
+      UUID idFornecedor, FornecedorAlteracaoRequest fornecedorAlteracaoRequest) {
     log.debug("[start] FornecedorApplicationService - alterarDadosFornecedor");
     Fornecedor fornecedor = fornecedorRepository.buscaFornecedorPorId(idFornecedor);
     fornecedor.alterarDadosFornecedor(fornecedorAlteracaoRequest);

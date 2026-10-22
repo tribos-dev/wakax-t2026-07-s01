@@ -78,6 +78,7 @@ public class FornecedorInfraRepository implements FornecedorRepository {
     // Atualmente nada restringe a inativação
     return false;
   }
+
   @Override
   public Fornecedor atualiza(Fornecedor fornecedor) {
     log.debug("[start] FornecedorInfraRepository - atualiza");
