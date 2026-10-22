@@ -56,4 +56,15 @@ public class Endereco {
   @ManyToOne(optional = false, fetch = FetchType.LAZY)
   @JoinColumn(name = "pessoa_id", nullable = false)
   private Pessoa pessoa;
+
+  public void atualizar(Endereco enderecoRecebido) {
+    this.logradouro = enderecoRecebido.getLogradouro();
+    this.numero = enderecoRecebido.getNumero();
+    this.complemento = enderecoRecebido.getComplemento();
+    this.bairro = enderecoRecebido.getBairro();
+    this.cidade = enderecoRecebido.getCidade();
+    this.estado = enderecoRecebido.getEstado();
+    this.cep = enderecoRecebido.getCep();
+    this.principal = enderecoRecebido.isPrincipal();
+  }
 }
