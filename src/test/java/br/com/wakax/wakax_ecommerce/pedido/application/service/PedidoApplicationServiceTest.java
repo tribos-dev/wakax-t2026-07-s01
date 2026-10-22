@@ -708,13 +708,13 @@ class PedidoApplicationServiceTest {
 
     Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
 
-    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente))
         .thenReturn(pagina);
 
     var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
 
     verify(pedidoRepository, times(1))
-        .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+        .buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente);
     assertNotNull(result);
     assertEquals(result.getTotalElements(), pagina.getTotalElements());
   }
@@ -729,13 +729,13 @@ class PedidoApplicationServiceTest {
 
     Page<Pedido> pagina = Page.empty(pageable);
 
-    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente))
         .thenReturn(pagina);
 
     var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
 
     verify(pedidoRepository, times(1))
-        .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+        .buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente);
     assertNotNull(result);
     assertEquals(result, pagina);
   }
@@ -753,13 +753,13 @@ class PedidoApplicationServiceTest {
 
     Page<Pedido> pagina = new PageImpl(pedidos, pageable, pedidos.size());
 
-    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente))
+    when(pedidoRepository.buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente))
         .thenReturn(pagina);
 
     var result = applicationService.buscarTodosPedidosComFiltro(filtro, pageable, idCliente);
 
     verify(pedidoRepository, times(1))
-        .buscarPedidosPorClienteComFiltro(filtro, pageable, idCliente);
+        .buscarPedidosPorClienteComFiltro(filtro.getStatus(), pageable, idCliente);
     assertNotNull(result);
     assertEquals(result.getTotalElements(), pagina.getTotalElements());
   }
