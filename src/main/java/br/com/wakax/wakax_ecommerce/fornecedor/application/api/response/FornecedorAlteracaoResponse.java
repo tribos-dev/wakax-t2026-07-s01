@@ -36,21 +36,4 @@ public class FornecedorAlteracaoResponse {
         this.enderecos = new ArrayList<>(fornecedor.getPessoa().getEnderecos());
         this.dataEdicao = fornecedor.getDataEdicao();
     }
-
-
-   /* public FornecedorAlteracaoResponse(Fornecedor fornecedor) {
-        this.id = fornecedor.getId();
-        this.nome = fornecedor.getPessoa().getNome();
-        this.documento = fornecedor.getDocumento();
-        this.inscricaoEstadual = fornecedor.getInscricaoEstadual();
-        this.razaoSocial = fornecedor.getRazaoSocial();
-        this.nomeFantasia = fornecedor.getNomeFantasia();
-        this.emails = new ArrayList<>(fornecedor.getPessoa().getEmails());
-        this.telefones = new ArrayList<>(fornecedor.getPessoa().getTelefones());
-        this.enderecos =
-                fornecedor.getPessoa().getEnderecos().stream()
-                        .map(EnderecoResponse::new)
-                        .collect(Collectors.toList());
-        this.dataEdicao = fornecedor.getDataEdicao();
-    }*/
 }

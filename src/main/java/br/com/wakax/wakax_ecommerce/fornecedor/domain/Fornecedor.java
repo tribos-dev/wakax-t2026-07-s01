@@ -76,23 +76,6 @@ public class Fornecedor {
         this.pessoa.setStatus(StatusPessoa.INATIVO);
     }
 
-    /*public void alterarDadosFornecedor(FornecedorAlteracaoRequest fornecedorAlteracaoRequest) {
-        if (fornecedorAlteracaoRequest.getInscricaoEstadual() != null &&
-                !fornecedorAlteracaoRequest.getInscricaoEstadual().isBlank())
-            this.inscricaoEstadual = fornecedorAlteracaoRequest.getInscricaoEstadual();
-
-        if (fornecedorAlteracaoRequest.getRazaoSocial() != null &&
-                !fornecedorAlteracaoRequest.getRazaoSocial().isBlank()) {
-            this.razaoSocial = fornecedorAlteracaoRequest.getRazaoSocial();
-
-            if (fornecedorAlteracaoRequest.getNomeFantasia() != null &&
-                    !fornecedorAlteracaoRequest.getNomeFantasia().isBlank()) {
-                this.nomeFantasia = fornecedorAlteracaoRequest.getNomeFantasia();
-            }
-            this.pessoa.atualizar(request);
-            this.dataEdicao = LocalDateTime.now();
-        }
-    }*/
     public void alterarDadosFornecedor(
             FornecedorAlteracaoRequest request) {
         if (request.getRazaoSocial() != null) {

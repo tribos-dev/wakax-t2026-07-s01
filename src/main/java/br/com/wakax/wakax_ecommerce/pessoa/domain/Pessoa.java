@@ -85,7 +85,8 @@ public class Pessoa {
   public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
     if (dadosAtualizacao.getNome() != null) {
       this.nome = dadosAtualizacao.getNome();
-    }    if (dadosAtualizacao.getEmails() != null) {
+    }
+    if (dadosAtualizacao.getEmails() != null) {
       this.emails = dadosAtualizacao.getEmails();
     }
     if (dadosAtualizacao.getTelefones() != null) {
@@ -94,18 +95,24 @@ public class Pessoa {
     if (this.enderecos == null) {
       this.enderecos = new ArrayList<>();
     }
-    Set<UUID> idsExistentes =
-        this.enderecos.stream()
-            .map(Endereco::getId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-    Optional.ofNullable(dadosAtualizacao.getEnderecos())
-        .ifPresent(
-            novosEnderecos ->
-                novosEnderecos.stream()
-                    .filter(endereco -> !idsExistentes.contains(endereco.getId()))
-                    .forEach(this.enderecos::add));
+    Optional.ofNullable(dadosAtualizacao.getEnderecos()).ifPresent(this::atualizarEnderecos);
     vincularEnderecos();
+  }
+
+  public void atualizarEnderecos(List<Endereco> enderecos) {
+    for (Endereco enderecoRecebido : enderecos) {
+      if (enderecoRecebido.getId() == null) {
+        throw APIException.build(HttpStatus.BAD_REQUEST, "O ID do endereço é obrigatório para alteração.");
+      }
+      buscaEnderecoPorId(enderecoRecebido.getId()).atualizar(enderecoRecebido);
+    }
+  }
+
+  private Endereco buscaEnderecoPorId(UUID idEndereco) {
+    return this.enderecos.stream()
+            .filter(endereco -> idEndereco.equals(endereco.getId()))
+            .findFirst()
+            .orElseThrow(()->APIException.build(HttpStatus.NOT_FOUND, "Endereço não encontrado!" + idEndereco));
   }
 
   private void vincularEnderecos() {

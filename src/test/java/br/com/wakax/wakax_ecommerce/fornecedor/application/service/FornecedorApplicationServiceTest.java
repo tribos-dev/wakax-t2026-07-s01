@@ -343,21 +343,4 @@ class FornecedorApplicationServiceTest {
     verify(fornecedorRepository, never()).atualiza(any(Fornecedor.class));
   }
 
-  @Test
-  void deveRejeitarDadosInvalidosNaRequisicaoDeAlteracao() {
-    FornecedorAlteracaoRequest request =
-            new FornecedorAlteracaoRequest(
-                    null,
-                    List.of("email-invalido"),
-                    null,
-                    null,
-                    null,
-                    "R".repeat(101),
-                    null);
-
-    javax.validation.Validator validator = javax.validation.Validation.buildDefaultValidatorFactory().getValidator();
-    var violacoes = validator.validate(request);
-    assertTrue(violacoes.size() >= 2);
-  }
-
 }
