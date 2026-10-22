@@ -41,8 +41,9 @@ public enum ErrorCode {
   VALIDACAO_NOME_TAMANHO("validacao.fornecedor.nome.tamanho"),
   VALIDACAO_FORNECEDOR_EMAIL_TAMANHO("validacao.fornecedor.email.tamanho"),
   VALIDACAO_FORNECEDOR_EMAIL_INVALIDO("validacao.fornecedor.email.invalido"),
-  VALIDACAO_FORNECEDOR_TELEFONE_TAMANHO("validacao.fornecedor.telefone.tamanho");
-
+  VALIDACAO_FORNECEDOR_TELEFONE_TAMANHO("validacao.fornecedor.telefone.tamanho"),
+  VALIDACAO_FORNECEDOR_DOCUMENTO_ALTERACAO_PROIBIDA(
+      "validacao.fornecedor.documento.alteracao.proibida");
 
   private final String code;
 
