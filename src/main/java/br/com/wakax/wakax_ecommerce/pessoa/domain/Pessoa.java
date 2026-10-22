@@ -99,10 +99,11 @@ public class Pessoa {
   public void atualizarEnderecos(List<Endereco> enderecos) {
     for (Endereco enderecoRecebido : enderecos) {
       if (enderecoRecebido.getId() == null) {
-        throw APIException.build(
-            HttpStatus.BAD_REQUEST, "O ID do endereço é obrigatório para alteração.");
+        enderecoRecebido.setPessoa(this);
+        this.enderecos.add(enderecoRecebido);
+      } else {
+        buscaEnderecoPorId(enderecoRecebido.getId()).atualizar(enderecoRecebido);
       }
-      buscaEnderecoPorId(enderecoRecebido.getId()).atualizar(enderecoRecebido);
     }
   }
 
