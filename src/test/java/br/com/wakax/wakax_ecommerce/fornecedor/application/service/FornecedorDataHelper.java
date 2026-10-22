@@ -41,7 +41,6 @@ public class FornecedorDataHelper {
   }
 
   public static FornecedorAlteracaoRequest criarRequestAlteracao(
-      String documento,
       String nome,
       List<String> emails,
       List<String> telefones,
@@ -50,7 +49,6 @@ public class FornecedorDataHelper {
       String razaoSocial,
       String nomeFantasia) {
     return new FornecedorAlteracaoRequest(
-        documento,
         nome,
         emails,
         telefones,
@@ -62,12 +60,12 @@ public class FornecedorDataHelper {
 
   public static FornecedorAlteracaoRequest criarRequestAlteracaoRazaoSocialENomeFantasia() {
     return criarRequestAlteracao(
-        null, null, null, null, null, null, "Nova Razao Social", "Nova Fantasia");
+         null, null, null, null, null, "Nova Razao Social", "Nova Fantasia");
   }
 
   public static FornecedorAlteracaoRequest criarRequestAlteracaoEmailsETelefones(
       List<String> emails, List<String> telefones) {
 
-    return criarRequestAlteracao(null, null, emails, telefones, null, null, null, null);
+    return criarRequestAlteracao(null, emails, telefones, null, null, null, null);
   }
 }

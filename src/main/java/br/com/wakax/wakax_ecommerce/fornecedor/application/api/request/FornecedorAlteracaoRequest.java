@@ -19,9 +19,6 @@ import lombok.ToString;
 @AllArgsConstructor
 public class FornecedorAlteracaoRequest implements DadosAtualizacaoPessoa {
 
-  @Size(max = 0, message = "{validacao.fornecedor.documento.alteracao.proibida}")
-  private String documento;
-
   @Size(max = 150, message = "{validacao.fornecedor.nome.tamanho}")
   private String nome;
 
