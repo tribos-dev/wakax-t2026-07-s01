@@ -49,18 +49,12 @@ public class FornecedorDataHelper {
       String razaoSocial,
       String nomeFantasia) {
     return new FornecedorAlteracaoRequest(
-        nome,
-        emails,
-        telefones,
-        enderecos,
-        inscricaoEstadual,
-        razaoSocial,
-        nomeFantasia);
+        nome, emails, telefones, enderecos, inscricaoEstadual, razaoSocial, nomeFantasia);
   }
 
   public static FornecedorAlteracaoRequest criarRequestAlteracaoRazaoSocialENomeFantasia() {
     return criarRequestAlteracao(
-         null, null, null, null, null, "Nova Razao Social", "Nova Fantasia");
+        null, null, null, null, null, "Nova Razao Social", "Nova Fantasia");
   }
 
   public static FornecedorAlteracaoRequest criarRequestAlteracaoEmailsETelefones(
