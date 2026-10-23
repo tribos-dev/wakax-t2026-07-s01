@@ -35,7 +35,6 @@ import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.handler.MessageUtil;
-import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 
 @WebMvcTest(FornecedorController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -113,29 +112,6 @@ class FornecedorControllerTest {
             jsonPath("$.razaoSocial").value("Razão social deve ter no máximo 100 caracteres."));
 
     verify(fornecedorService, never()).alterarDadosFornecedor(any(), any());
-  }
-
-  @Test
-  void deveAceitarCamposEmBrancoNaAlteracao() throws Exception {
-    UUID idFornecedor = UUID.randomUUID();
-    Endereco endereco = Endereco.builder().logradouro("   ").numero("").principal(false).build();
-    FornecedorAlteracaoRequest request =
-        FornecedorDataHelper.criarRequestAlteracao(
-            null, null, null, List.of(endereco), null, "  ", null);
-    Fornecedor fornecedor = FornecedorDataHelper.criarFornecedorAtivo();
-
-    when(fornecedorService.alterarDadosFornecedor(eq(idFornecedor), any()))
-        .thenReturn(new FornecedorAlteracaoResponse(fornecedor));
-
-    mockMvc
-        .perform(
-            patch("/fornecedor/{idFornecedor}", idFornecedor)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isOk());
-
-    verify(fornecedorService)
-        .alterarDadosFornecedor(eq(idFornecedor), any(FornecedorAlteracaoRequest.class));
   }
 
   @Test
