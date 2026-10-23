@@ -4,6 +4,8 @@ import java.util.UUID;
 
 import javax.transaction.Transactional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +15,9 @@ import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
@@ -94,5 +98,17 @@ public class PedidoApplicationService implements PedidoService {
     pedidoRepository.salva(pedido);
 
     log.debug("[finish] PedidoApplicationService - alteraEnderecoEntrega");
+  }
+
+  @Override
+  public Page<PedidoListResponse> buscarTodosPedidosComFiltro(
+      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+    log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    Page<PedidoListResponse> pedidoListResponses =
+        pedidoRepository
+            .buscarPedidosPorClienteComFiltro(loteFilterRequest.getStatus(), pageable, idCliente)
+            .map(PedidoListResponse::new);
+    log.debug("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    return pedidoListResponses;
   }
 }
