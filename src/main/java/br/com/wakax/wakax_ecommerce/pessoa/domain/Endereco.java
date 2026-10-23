@@ -59,13 +59,20 @@ public class Endereco {
   private Pessoa pessoa;
 
   public void atualizar(Endereco enderecoRecebido) {
-    this.logradouro = enderecoRecebido.getLogradouro();
-    this.numero = enderecoRecebido.getNumero();
-    this.complemento = enderecoRecebido.getComplemento();
-    this.bairro = enderecoRecebido.getBairro();
-    this.cidade = enderecoRecebido.getCidade();
-    this.estado = enderecoRecebido.getEstado();
-    this.cep = enderecoRecebido.getCep();
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getLogradouro())
+        .ifPresent(valor -> this.logradouro = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getNumero())
+        .ifPresent(valor -> this.numero = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getComplemento())
+        .ifPresent(valor -> this.complemento = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getBairro())
+        .ifPresent(valor -> this.bairro = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getCidade())
+        .ifPresent(valor -> this.cidade = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getEstado())
+        .ifPresent(valor -> this.estado = valor);
+    ValidationHelper.validaStringEmBranco(enderecoRecebido.getCep())
+        .ifPresent(valor -> this.cep = valor);
     this.principal = enderecoRecebido.isPrincipal();
   }
 }

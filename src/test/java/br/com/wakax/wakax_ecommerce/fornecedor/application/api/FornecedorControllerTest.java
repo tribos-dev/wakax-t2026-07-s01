@@ -116,24 +116,26 @@ class FornecedorControllerTest {
   }
 
   @Test
-  void deveRetornarBadRequestQuandoCamposEstaoEmBranco() throws Exception {
+  void deveAceitarCamposEmBrancoNaAlteracao() throws Exception {
     UUID idFornecedor = UUID.randomUUID();
     Endereco endereco = Endereco.builder().logradouro("   ").numero("").principal(false).build();
     FornecedorAlteracaoRequest request =
         FornecedorDataHelper.criarRequestAlteracao(
             null, null, null, List.of(endereco), null, "  ", null);
+    Fornecedor fornecedor = FornecedorDataHelper.criarFornecedorAtivo();
+
+    when(fornecedorService.alterarDadosFornecedor(eq(idFornecedor), any()))
+        .thenReturn(new FornecedorAlteracaoResponse(fornecedor));
 
     mockMvc
         .perform(
             patch("/fornecedor/{idFornecedor}", idFornecedor)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(request)))
-        .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.razaoSocial").value("Razão social não pode estar em branco."))
-        .andExpect(
-            jsonPath("$['enderecos[0].logradouro']").value("Logradouro não pode estar em branco."));
+        .andExpect(status().isOk());
 
-    verify(fornecedorService, never()).alterarDadosFornecedor(any(), any());
+    verify(fornecedorService)
+        .alterarDadosFornecedor(eq(idFornecedor), any(FornecedorAlteracaoRequest.class));
   }
 
   @Test

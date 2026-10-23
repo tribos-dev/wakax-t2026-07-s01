@@ -80,15 +80,12 @@ public class Pessoa {
   }
 
   public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
-    if (dadosAtualizacao.getNome() != null) {
-      this.nome = dadosAtualizacao.getNome();
-    }
-    if (dadosAtualizacao.getEmails() != null) {
-      this.emails = dadosAtualizacao.getEmails();
-    }
-    if (dadosAtualizacao.getTelefones() != null) {
-      this.telefones = dadosAtualizacao.getTelefones();
-    }
+    ValidationHelper.validaStringEmBranco(dadosAtualizacao.getNome())
+        .ifPresent(valor -> this.nome = valor);
+    ValidationHelper.validaListaStrings(dadosAtualizacao.getEmails())
+        .ifPresent(valores -> this.emails = valores);
+    ValidationHelper.validaListaStrings(dadosAtualizacao.getTelefones())
+        .ifPresent(valores -> this.telefones = valores);
     if (this.enderecos == null) {
       this.enderecos = new ArrayList<>();
     }

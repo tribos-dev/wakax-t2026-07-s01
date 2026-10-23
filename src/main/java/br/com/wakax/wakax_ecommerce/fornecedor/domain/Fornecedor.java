@@ -10,6 +10,7 @@ import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.Fornecedo
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.ValidationHelper;
 import lombok.*;
 
 @Entity
@@ -74,15 +75,12 @@ public class Fornecedor {
   }
 
   public void alterarDadosFornecedor(FornecedorAlteracaoRequest request) {
-    if (request.getRazaoSocial() != null) {
-      this.razaoSocial = request.getRazaoSocial();
-    }
-    if (request.getNomeFantasia() != null) {
-      this.nomeFantasia = request.getNomeFantasia();
-    }
-    if (request.getInscricaoEstadual() != null) {
-      this.inscricaoEstadual = request.getInscricaoEstadual();
-    }
+    ValidationHelper.validaStringEmBranco(request.getRazaoSocial())
+        .ifPresent(valor -> this.razaoSocial = valor);
+    ValidationHelper.validaStringEmBranco(request.getNomeFantasia())
+        .ifPresent(valor -> this.nomeFantasia = valor);
+    ValidationHelper.validaStringEmBranco(request.getInscricaoEstadual())
+        .ifPresent(valor -> this.inscricaoEstadual = valor);
     this.pessoa.atualizar(request);
     this.dataEdicao = LocalDateTime.now();
   }

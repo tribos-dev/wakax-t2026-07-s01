@@ -389,5 +389,37 @@ class FornecedorApplicationServiceTest {
     assertEquals("São Paulo", response.getEnderecos().get(0).getCidade());
     assertEquals("SP", response.getEnderecos().get(0).getEstado());
     assertEquals("01000-000", response.getEnderecos().get(0).getCep());
+    assertTrue(response.getEnderecos().get(0).isPrincipal());
+  }
+
+  @Test
+  void deveAlterarPrincipalQuandoInformadoExplicitamente() {
+    Fornecedor fornecedorExistente = FornecedorDataHelper.criarFornecedorAtivo();
+    UUID idFornecedor = fornecedorExistente.getId();
+    UUID enderecoId = UUID.randomUUID();
+    Endereco enderecoAtual =
+        Endereco.builder()
+            .id(enderecoId)
+            .logradouro("Rua Antiga")
+            .numero("10")
+            .principal(true)
+            .build();
+    fornecedorExistente.getPessoa().getEnderecos().add(enderecoAtual);
+
+    Endereco enderecoRecebido = Endereco.builder().id(enderecoId).principal(false).build();
+    FornecedorAlteracaoRequest request =
+        FornecedorDataHelper.criarRequestAlteracao(
+            null, null, null, List.of(enderecoRecebido), null, null, null);
+
+    when(fornecedorRepository.buscaFornecedorPorId(idFornecedor)).thenReturn(fornecedorExistente);
+    when(fornecedorRepository.atualiza(any(Fornecedor.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    FornecedorAlteracaoResponse response =
+        fornecedorApplicationService.alterarDadosFornecedor(idFornecedor, request);
+
+    assertFalse(response.getEnderecos().get(0).isPrincipal());
+    assertEquals("Rua Antiga", response.getEnderecos().get(0).getLogradouro());
+    assertEquals("10", response.getEnderecos().get(0).getNumero());
   }
 }
