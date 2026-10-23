@@ -11,6 +11,7 @@ import java.util.List;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class ProdutoUpdateRequest {
     @Size(max = 150)
     private String descricao;

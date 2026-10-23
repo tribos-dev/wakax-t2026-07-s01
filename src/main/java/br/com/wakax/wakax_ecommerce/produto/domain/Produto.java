@@ -75,8 +75,11 @@ public class Produto {
 
   @PrePersist
   protected void onCreate() {
-
     dataCriacao = LocalDateTime.now();
+  }
+
+  @PreUpdate
+  protected void onUpdate(){
     dataAtualizacao = LocalDateTime.now();
   }
 
@@ -123,7 +126,16 @@ public class Produto {
     atualizaSeNaoNulo(produtoUpdateRequest.getDescricaoComplementar(), valor -> this.descricaoComplementar = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
-    this.dataAtualizacao = LocalDateTime.now();
+    if(produtoUpdateRequest.getPrecos() != null){
+      this.precos.clear();
+      produtoUpdateRequest.getPrecos().stream()
+              .map(precoRequest ->
+                      new Preco(
+                              precoRequest.getTipo(),
+                              precoRequest.getValor(),
+                              this))
+              .forEach(this.precos::add);
+    }
   }
 
   private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {
