@@ -327,4 +327,67 @@ class FornecedorApplicationServiceTest {
     verify(fornecedorRepository).buscaFornecedorPorId(idInexistente);
     verify(fornecedorRepository, never()).atualiza(any(Fornecedor.class));
   }
+
+  @Test
+  void deveIgnorarCamposNulosOuEmBrancoNaAlteracao() {
+    Fornecedor fornecedorExistente = FornecedorDataHelper.criarFornecedorAtivo();
+    UUID idFornecedor = fornecedorExistente.getId();
+    UUID enderecoId = UUID.randomUUID();
+    Endereco enderecoAtual =
+        Endereco.builder()
+            .id(enderecoId)
+            .logradouro("Rua Antiga")
+            .numero("10")
+            .complemento("Sala 1")
+            .bairro("Centro")
+            .cidade("São Paulo")
+            .estado("SP")
+            .cep("01000-000")
+            .principal(true)
+            .build();
+    fornecedorExistente.getPessoa().getEnderecos().add(enderecoAtual);
+
+    Endereco enderecoRecebido =
+        Endereco.builder()
+            .id(enderecoId)
+            .logradouro("   ")
+            .numero("20")
+            .complemento("")
+            .bairro(null)
+            .cidade("  ")
+            .estado(null)
+            .cep("")
+            .principal(true)
+            .build();
+    FornecedorAlteracaoRequest request =
+        FornecedorDataHelper.criarRequestAlteracao(
+            "   ",
+            List.of("", " "),
+            List.of(" "),
+            List.of(enderecoRecebido),
+            "",
+            "Nova Razao Social",
+            null);
+
+    when(fornecedorRepository.buscaFornecedorPorId(idFornecedor)).thenReturn(fornecedorExistente);
+    when(fornecedorRepository.atualiza(any(Fornecedor.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+
+    FornecedorAlteracaoResponse response =
+        fornecedorApplicationService.alterarDadosFornecedor(idFornecedor, request);
+
+    assertEquals("Nova Razao Social", response.getRazaoSocial());
+    assertEquals("Fantasia Empresa Ativa LTDA", response.getNomeFantasia());
+    assertEquals("123.456.789", response.getInscricaoEstadual());
+    assertEquals("Nome Empresa Ativa LTDA", response.getNome());
+    assertEquals(List.of("contato@empresa.com"), response.getEmails());
+    assertEquals(List.of("(11) 99999-9999"), response.getTelefones());
+    assertEquals("Rua Antiga", response.getEnderecos().get(0).getLogradouro());
+    assertEquals("20", response.getEnderecos().get(0).getNumero());
+    assertEquals("Sala 1", response.getEnderecos().get(0).getComplemento());
+    assertEquals("Centro", response.getEnderecos().get(0).getBairro());
+    assertEquals("São Paulo", response.getEnderecos().get(0).getCidade());
+    assertEquals("SP", response.getEnderecos().get(0).getEstado());
+    assertEquals("01000-000", response.getEnderecos().get(0).getCep());
+  }
 }
