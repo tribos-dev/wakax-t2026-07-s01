@@ -29,7 +29,7 @@ public interface PedidoJPARepository extends JpaRepository<Pedido, UUID> {
       """
         SELECT p from Pedido p
         WHERE p.cliente.id = :idCliente
-                AND (:#{#status.toString()} IS NULL OR p.status = :#{#status.toString()})
+                AND (:#{#status} IS NULL OR p.status = :#{#status})
         """)
   Page<Pedido> findAllByClienteIdWithFilters(
       @Param("status") StatusPedido status, Pageable pageable, @Param("idCliente") UUID idCliente);
