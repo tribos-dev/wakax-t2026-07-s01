@@ -18,5 +18,6 @@ public interface ProdutoService {
 
   PrecoResponse atualizaPreco(UUID idProduto, PrecoUpdateRequest precoUpdateRequest);
 
-  ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest);
+  ProdutoAtualizaResponse atualizarProduto(
+      UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest);
 }

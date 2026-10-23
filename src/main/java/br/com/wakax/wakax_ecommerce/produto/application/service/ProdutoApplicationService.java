@@ -4,12 +4,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.auth.usuario.api.repository.UsuarioRepository;
-import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
-import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.*;
-import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
-import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,11 +14,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.auth.credencial.domain.Credencial;
+import br.com.wakax.wakax_ecommerce.auth.usuario.api.repository.UsuarioRepository;
+import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -34,7 +34,8 @@ import lombok.extern.log4j.Log4j2;
 public class ProdutoApplicationService implements ProdutoService {
   private final ProdutoRepository produtoRepository;
   private final HistoricoProdutoRepository historicoProdutoRepository;
-  private  final UsuarioRepository usuarioRepository;
+  private final UsuarioRepository usuarioRepository;
+
   @Override
   public ProdutoResponse cadastraProduto(ProdutoRequest novoProduto) {
     log.debug("[start] ProdutoApplicationService - cadastraProduto");
@@ -93,19 +94,21 @@ public class ProdutoApplicationService implements ProdutoService {
 
   @Override
   @Transactional
-  public ProdutoAtualizaResponse atualizarProduto(UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest) {
+  public ProdutoAtualizaResponse atualizarProduto(
+      UUID idProduto, ProdutoUpdateRequest produtoUpdateRequest) {
     log.debug("[start] ProdutoApplicationService - atualizaProduto");
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
     produto.atualiza(produtoUpdateRequest);
     produtoRepository.salva(produto);
-      Credencial credencial = buscaUsuarioLogado();
-      Usuario usuario = credencial.getUser();
-      HistoricoProduto historico = HistoricoProduto.builder()
-              .produto(produto)
-              .dataRegistro(LocalDateTime.now())
-              .usuario(usuario)
-              .build();
-      historicoProdutoRepository.salva(historico);
+    Credencial credencial = buscaUsuarioLogado();
+    Usuario usuario = credencial.getUser();
+    HistoricoProduto historico =
+        HistoricoProduto.builder()
+            .produto(produto)
+            .dataRegistro(LocalDateTime.now())
+            .usuario(usuario)
+            .build();
+    historicoProdutoRepository.salva(historico);
     log.debug("[finish] ProdutoApplicationService - atualizaProduto");
     return new ProdutoAtualizaResponse(produto);
   }

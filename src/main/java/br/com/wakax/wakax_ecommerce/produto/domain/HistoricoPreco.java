@@ -55,5 +55,4 @@ public class HistoricoPreco {
   protected void onCreate() {
     dataEvento = LocalDateTime.now();
   }
-
 }

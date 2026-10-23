@@ -2,15 +2,12 @@ package br.com.wakax.wakax_ecommerce.produto.domain;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.persistence.*;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
@@ -79,7 +76,7 @@ public class Produto {
   }
 
   @PreUpdate
-  protected void onUpdate(){
+  protected void onUpdate() {
     dataAtualizacao = LocalDateTime.now();
   }
 
@@ -119,22 +116,20 @@ public class Produto {
 
   public void atualiza(ProdutoUpdateRequest produtoUpdateRequest) {
     atualizaSeNaoNulo(produtoUpdateRequest.getDescricao(), valor -> this.descricao = valor);
-    atualizaSeNaoNulo(produtoUpdateRequest.getGrupo(),valor -> this.grupo = valor );
+    atualizaSeNaoNulo(produtoUpdateRequest.getGrupo(), valor -> this.grupo = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getUnidade(), valor -> this.unidade = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getEstoqueMinimo(), valor -> this.estoqueMinimo = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getEstoqueMaximo(), valor -> this.estoqueMaximo = valor);
-    atualizaSeNaoNulo(produtoUpdateRequest.getDescricaoComplementar(), valor -> this.descricaoComplementar = valor);
+    atualizaSeNaoNulo(
+        produtoUpdateRequest.getDescricaoComplementar(),
+        valor -> this.descricaoComplementar = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
-    if(produtoUpdateRequest.getPrecos() != null){
+    if (produtoUpdateRequest.getPrecos() != null) {
       this.precos.clear();
       produtoUpdateRequest.getPrecos().stream()
-              .map(precoRequest ->
-                      new Preco(
-                              precoRequest.getTipo(),
-                              precoRequest.getValor(),
-                              this))
-              .forEach(this.precos::add);
+          .map(precoRequest -> new Preco(precoRequest.getTipo(), precoRequest.getValor(), this))
+          .forEach(this.precos::add);
     }
   }
 

@@ -37,19 +37,11 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
-import br.com.wakax.wakax_ecommerce.produto.domain.HistoricoPreco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
-import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
-import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoApplicationServiceTest {
@@ -57,6 +49,8 @@ class ProdutoApplicationServiceTest {
   @Mock private ProdutoRepository produtoRepository;
 
   @InjectMocks private ProdutoApplicationService produtoApplicationService;
+
+  @Mock private HistoricoProdutoRepository historicoProdutoRepository;
 
   private ProdutoRequest produtoRequest;
   private Produto produto;
@@ -474,5 +468,44 @@ class ProdutoApplicationServiceTest {
     assertEquals(0L, response.getTotal());
     assertEquals(0, response.getTotalPaginas());
     verify(produtoRepository).listaProdutosAtivosComEstoque(any(Pageable.class));
+  }
+
+  @Test
+  void deveAtualizarProdutoComSucesso() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto atualizado").grupo("Eletrônicos").build();
+    Produto produto =
+        Produto.builder().id(idProduto).descricao("Produto antigo").grupo("Geral").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+
+    ProdutoAtualizaResponse response =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertEquals("Produto atualizado", produto.getDescricao());
+    assertEquals("Eletrônicos", produto.getGrupo());
+
+    verify(produtoRepository).salva(produto);
+    verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
+  }
+
+  @Test
+  void deveAtualizarSomenteUmCampo() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Nova descrição").build();
+    Produto produto =
+        Produto.builder().id(idProduto).descricao("Descrição antiga").grupo("Eletrônicos").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    produtoId = idProduto;
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse response =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertEquals("Nova descrição", produto.getDescricao());
+    assertEquals("Eletrônicos", produto.getGrupo());
+    verify(produtoRepository).salva(produto);
+    verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
   }
 }
