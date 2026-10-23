@@ -2,7 +2,6 @@ package br.com.wakax.wakax_ecommerce.pedido.infra;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -10,9 +9,9 @@ import org.springframework.stereotype.Repository;
 
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
-import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -46,7 +45,7 @@ public class PedidoInfraRepository implements PedidoRepository {
 
   @Override
   public Page<Pedido> buscarPedidosPorClienteComFiltro(
-          StatusPedido status, Pageable pageable, UUID idCliente) {
+      StatusPedido status, Pageable pageable, UUID idCliente) {
     log.info("[start] PedidoInfraRepository - buscarPedidosComFiltro");
     Page<Pedido> pedidos =
         pedidoJPARepository.findAllByClienteIdWithFilters(status, pageable, idCliente);
