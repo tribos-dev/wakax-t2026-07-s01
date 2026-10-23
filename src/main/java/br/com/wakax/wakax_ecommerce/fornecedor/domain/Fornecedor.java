@@ -6,9 +6,11 @@ import java.util.UUID;
 import javax.persistence.*;
 import javax.validation.constraints.*;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.ValidationHelper;
 import lombok.*;
 
 @Entity
@@ -70,5 +72,16 @@ public class Fornecedor {
 
   public void inativar() {
     this.pessoa.setStatus(StatusPessoa.INATIVO);
+  }
+
+  public void alterarDadosFornecedor(FornecedorAlteracaoRequest request) {
+    ValidationHelper.validaStringEmBranco(request.getRazaoSocial())
+        .ifPresent(valor -> this.razaoSocial = valor);
+    ValidationHelper.validaStringEmBranco(request.getNomeFantasia())
+        .ifPresent(valor -> this.nomeFantasia = valor);
+    ValidationHelper.validaStringEmBranco(request.getInscricaoEstadual())
+        .ifPresent(valor -> this.inscricaoEstadual = valor);
+    this.pessoa.atualizar(request);
+    this.dataEdicao = LocalDateTime.now();
   }
 }
