@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -485,6 +486,8 @@ class ProdutoApplicationServiceTest {
         produtoApplicationService.atualizarProduto(idProduto, request);
     assertEquals("Produto atualizado", produto.getDescricao());
     assertEquals("Eletrônicos", produto.getGrupo());
+    assertEquals("Produto atualizado", response.getDescricao());
+    assertEquals("Eletrônicos", response.getGrupo());
 
     verify(produtoRepository).salva(produto);
     verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
@@ -503,9 +506,36 @@ class ProdutoApplicationServiceTest {
     autenticaComo("usuario-teste");
     ProdutoAtualizaResponse response =
         produtoApplicationService.atualizarProduto(idProduto, request);
+    assertEquals("Nova descrição", response.getDescricao());
+    assertEquals("Eletrônicos", response.getGrupo());
     assertEquals("Nova descrição", produto.getDescricao());
     assertEquals("Eletrônicos", produto.getGrupo());
     verify(produtoRepository).salva(produto);
     verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoProdutoNaoEncontradoAoAtualizar() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Nova descrição").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto))
+        .thenThrow(
+            new APIException(HttpStatus.NOT_FOUND, ErrorCode.PRODUTO_NAO_ENCONTRADO, idProduto));
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> produtoApplicationService.atualizarProduto(idProduto, request));
+
+    assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErrorCode());
+
+    assertEquals(idProduto, exception.getArgs()[0]);
+
+    verify(produtoRepository, times(1)).buscaProdutoPorId(idProduto);
+
+    verify(produtoRepository, never()).salva(any(Produto.class));
+
+    verify(historicoProdutoRepository, never()).salva(any(HistoricoProduto.class));
   }
 }
