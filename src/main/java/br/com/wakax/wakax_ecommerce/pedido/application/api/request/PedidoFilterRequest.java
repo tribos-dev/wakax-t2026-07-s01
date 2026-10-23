@@ -11,7 +11,7 @@ import lombok.Setter;
 public class PedidoFilterRequest {
   private StatusPedido status;
 
-  public PedidoFilterRequest (StatusPedido status) {
+  public PedidoFilterRequest(StatusPedido status) {
     this.status = status;
   }
 }
