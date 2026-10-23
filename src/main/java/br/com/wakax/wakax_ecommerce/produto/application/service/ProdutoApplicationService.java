@@ -3,6 +3,9 @@ package br.com.wakax.wakax_ecommerce.produto.application.service;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -17,16 +20,7 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
-import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
-import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -90,6 +84,16 @@ public class ProdutoApplicationService implements ProdutoService {
 
     log.debug("[finish] ProdutoApplicationService - atualizaPreco");
     return new PrecoResponse(preco);
+  }
+
+  @Transactional
+  @Override
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
+    log.debug("[start] ProdutoApplicationService - atualizaStatus");
+    Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
+    produto.alteraStatus(request.getStatus(), request.getMotivo());
+    produtoRepository.salva(produto);
+    log.debug("[finish] ProdutoApplicationService - atualizaStatus");
   }
 
   private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {

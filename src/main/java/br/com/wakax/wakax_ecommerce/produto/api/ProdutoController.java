@@ -2,15 +2,12 @@ package br.com.wakax.wakax_ecommerce.produto.api;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -51,6 +48,13 @@ public class ProdutoController implements ProdutoAPI {
     PrecoResponse response = produtoService.atualizaPreco(idProduto, precoUpdateRequest);
     log.debug("[finish] ProdutoController - atualizaPreco");
     return response;
+  }
+
+  @Override
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
+    log.debug("[start] ProdutoController - atualizaStatus");
+    produtoService.atualizaStatus(idProduto, request);
+    log.debug("[finish] ProdutoController - atualizaStatus");
   }
 
   @Override
