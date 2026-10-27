@@ -7,16 +7,13 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 
 import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "historico_produto")
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
 @Builder
 public class HistoricoProduto {
 
