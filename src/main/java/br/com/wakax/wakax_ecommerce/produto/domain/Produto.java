@@ -125,12 +125,6 @@ public class Produto {
         valor -> this.descricaoComplementar = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
-    if (produtoUpdateRequest.getPrecos() != null) {
-      this.precos.clear();
-      produtoUpdateRequest.getPrecos().stream()
-          .map(precoRequest -> new Preco(precoRequest.getTipo(), precoRequest.getValor(), this))
-          .forEach(this.precos::add);
-    }
   }
 
   private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {

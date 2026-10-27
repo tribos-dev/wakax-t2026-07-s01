@@ -1,9 +1,6 @@
 package br.com.wakax.wakax_ecommerce.produto.api.request;
 
 import java.math.BigDecimal;
-import java.util.List;
-
-import javax.validation.Valid;
 import javax.validation.constraints.Size;
 
 import lombok.*;
@@ -32,6 +29,4 @@ public class ProdutoUpdateRequest {
 
   private Integer estoqueMinimo;
   private Integer estoqueMaximo;
-
-  @Valid private List<PrecoRequest> precos;
 }
