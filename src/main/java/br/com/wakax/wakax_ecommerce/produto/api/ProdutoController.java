@@ -2,12 +2,12 @@ package br.com.wakax.wakax_ecommerce.produto.api;
 
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

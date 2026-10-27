@@ -3,9 +3,6 @@ package br.com.wakax.wakax_ecommerce.produto.application.service;
 import java.util.List;
 import java.util.UUID;
 
-import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.*;
-import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,7 +17,10 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 

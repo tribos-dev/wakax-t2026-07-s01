@@ -45,7 +45,8 @@ public interface EstoqueJPARepository extends JpaRepository<Estoque, UUID> {
         JOIN e.produto p
         ORDER BY p.descricao ASC, e.id ASC
         """,
-      countQuery = """
+      countQuery =
+          """
         SELECT COUNT(e.id)
         FROM Estoque e
         """)
@@ -78,7 +79,8 @@ public interface EstoqueJPARepository extends JpaRepository<Estoque, UUID> {
          """)
   List<Estoque> buscaEstoquesComProdutoEPrecos(@Param("ids") Collection<UUID> ids);
 
-  @Query("""
+  @Query(
+      """
         SELECT SUM(e.custoTotal)
         FROM Estoque e
         """)

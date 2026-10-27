@@ -4,13 +4,13 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
-import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 
 @RestController
 @RequestMapping("/produto")
@@ -36,5 +36,6 @@ public interface ProdutoAPI {
 
   @PatchMapping("/{idProduto}/status")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  void atualizaStatus(@PathVariable UUID idProduto, @Valid @RequestBody StatusProdutoRequest request);
+  void atualizaStatus(
+      @PathVariable UUID idProduto, @Valid @RequestBody StatusProdutoRequest request);
 }

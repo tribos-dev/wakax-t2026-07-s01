@@ -88,9 +88,9 @@ public class Produto {
     this.estoqueMaximo = request.getEstoqueMaximo();
     if (request.getPrecos() != null) {
       this.precos =
-              request.getPrecos().stream()
-                      .map(precoReq -> new Preco(precoReq.getTipo(), precoReq.getValor(), this))
-                      .collect(Collectors.toList());
+          request.getPrecos().stream()
+              .map(precoReq -> new Preco(precoReq.getTipo(), precoReq.getValor(), this))
+              .collect(Collectors.toList());
     }
   }
 
@@ -116,10 +116,10 @@ public class Produto {
 
   public BigDecimal getPrecoAtual() {
     return precos.stream()
-            .filter(p -> p.getTipo() == TipoPreco.PROMOCIONAL)
-            .findFirst()
-            .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
-            .map(Preco::getValor)
-            .orElse(BigDecimal.ZERO);
+        .filter(p -> p.getTipo() == TipoPreco.PROMOCIONAL)
+        .findFirst()
+        .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
+        .map(Preco::getValor)
+        .orElse(BigDecimal.ZERO);
   }
 }
