@@ -73,6 +73,7 @@ public class Produto {
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
+    dataAtualizacao = dataCriacao;
   }
 
   @PreUpdate
