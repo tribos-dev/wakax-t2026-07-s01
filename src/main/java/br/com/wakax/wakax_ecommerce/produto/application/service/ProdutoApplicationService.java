@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import br.com.wakax.wakax_ecommerce.auth.credencial.domain.Credencial;
-import br.com.wakax.wakax_ecommerce.auth.usuario.api.repository.UsuarioRepository;
 import br.com.wakax.wakax_ecommerce.auth.usuario.domain.Usuario;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;

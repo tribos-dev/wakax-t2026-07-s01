@@ -1,6 +1,7 @@
 package br.com.wakax.wakax_ecommerce.produto.api.request;
 
 import java.math.BigDecimal;
+
 import javax.validation.constraints.Size;
 
 import lombok.*;

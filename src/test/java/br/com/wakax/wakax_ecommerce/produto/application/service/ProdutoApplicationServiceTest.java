@@ -515,6 +515,31 @@ class ProdutoApplicationServiceTest {
   }
 
   @Test
+  void deveAtualizarDataAtualizacaoDoProduto() {
+    UUID idProduto = UUID.randomUUID();
+    LocalDateTime dataAntiga = LocalDateTime.of(2026, 1, 10, 10, 0);
+    Produto produto =
+        Produto.builder()
+            .id(idProduto)
+            .descricao("Produto antigo")
+            .grupo("Geral")
+            .dataCriacao(dataAntiga.minusDays(10))
+            .dataAtualizacao(dataAntiga)
+            .build();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto atualizado").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse resposta = produtoApplicationService.atualizarProduto(idProduto, request);
+    assertTrue(produto.getDataAtualizacao().isAfter(dataAntiga), "A data de atualização deve ser posterior à data antiga");
+    assertEquals(
+        produto.getDataAtualizacao(),
+        resposta.getDataDeAtualizacao(),
+        "A resposta deve retornar a data atualizada do produto");
+  }
+
+  @Test
   void deveLancarExcecaoQuandoProdutoNaoEncontradoAoAtualizar() {
     UUID idProduto = UUID.randomUUID();
     ProdutoUpdateRequest request =
