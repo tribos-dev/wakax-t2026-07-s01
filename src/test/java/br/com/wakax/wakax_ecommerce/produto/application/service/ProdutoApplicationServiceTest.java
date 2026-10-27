@@ -531,12 +531,47 @@ class ProdutoApplicationServiceTest {
     when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
     mockProdutoRepositorySalvaComId();
     autenticaComo("usuario-teste");
-    ProdutoAtualizaResponse resposta = produtoApplicationService.atualizarProduto(idProduto, request);
-    assertTrue(produto.getDataAtualizacao().isAfter(dataAntiga), "A data de atualização deve ser posterior à data antiga");
+    ProdutoAtualizaResponse resposta =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertTrue(
+        produto.getDataAtualizacao().isAfter(dataAntiga),
+        "A data de atualização deve ser posterior à data antiga");
     assertEquals(
         produto.getDataAtualizacao(),
         resposta.getDataDeAtualizacao(),
         "A resposta deve retornar a data atualizada do produto");
+  }
+
+  @Test
+  void deveAtualizarDataMesmoQuandoOsValoresSaoIguais() {
+    UUID idProduto = UUID.randomUUID();
+
+    LocalDateTime dataAntiga = LocalDateTime.of(2026, 1, 10, 10, 0);
+
+    Produto produto =
+        Produto.builder()
+            .id(idProduto)
+            .descricao("Produto")
+            .grupo("Geral")
+            .dataCriacao(dataAntiga.minusDays(10))
+            .dataAtualizacao(dataAntiga)
+            .build();
+
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto").grupo("Geral").build();
+
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse resposta =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertTrue(
+        produto.getDataAtualizacao().isAfter(dataAntiga),
+        "A data de atualização deve mudar mesmo quando os valores são iguais");
+    assertEquals(
+        produto.getDataAtualizacao(),
+        resposta.getDataDeAtualizacao(),
+        "A resposta deve conter a data atualizada");
   }
 
   @Test
