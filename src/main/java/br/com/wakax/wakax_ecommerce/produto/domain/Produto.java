@@ -76,11 +76,6 @@ public class Produto {
     dataAtualizacao = dataCriacao;
   }
 
-  @PreUpdate
-  protected void onUpdate() {
-    dataAtualizacao = LocalDateTime.now();
-  }
-
   public Produto(ProdutoRequest request) {
     this.descricao = request.getDescricao();
     this.status = StatusProduto.ATIVO;
@@ -126,6 +121,7 @@ public class Produto {
         valor -> this.descricaoComplementar = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
     atualizaSeNaoNulo(produtoUpdateRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
+    this.dataAtualizacao = LocalDateTime.now();
   }
 
   private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {

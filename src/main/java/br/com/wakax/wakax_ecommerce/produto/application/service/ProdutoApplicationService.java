@@ -34,7 +34,6 @@ import lombok.extern.log4j.Log4j2;
 public class ProdutoApplicationService implements ProdutoService {
   private final ProdutoRepository produtoRepository;
   private final HistoricoProdutoRepository historicoProdutoRepository;
-  private final UsuarioRepository usuarioRepository;
 
   @Override
   public ProdutoResponse cadastraProduto(ProdutoRequest novoProduto) {
