@@ -4,8 +4,10 @@ import java.util.UUID;
 
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorFiltroRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorRequest;
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorAlteracaoResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorListResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorPageResponse;
 import br.com.wakax.wakax_ecommerce.fornecedor.application.api.response.FornecedorResponse;
@@ -52,5 +54,15 @@ public class FornecedorController implements FornecedorAPI {
     log.debug("[start] FornecedorController - inativarFornecedor");
     fornecedorService.inativarFornecedor(idFornecedor);
     log.debug("[finish] FornecedorController - inativarFornecedor");
+  }
+
+  @Override
+  public FornecedorAlteracaoResponse alterarDadosFornecedor(
+      UUID idFornecedor, FornecedorAlteracaoRequest fornecedorAlteracao) {
+    log.debug("[start] FornecedorController - alterarDadosFornecedor");
+    FornecedorAlteracaoResponse fornecedorAlteracaoResponse =
+        fornecedorService.alterarDadosFornecedor(idFornecedor, fornecedorAlteracao);
+    log.debug("[finish] FornecedorController - alterarDadosFornecedor");
+    return fornecedorAlteracaoResponse;
   }
 }
