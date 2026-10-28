@@ -16,7 +16,7 @@ public interface FornecedorJPARepository extends JpaRepository<Fornecedor, UUID>
   boolean existsByDocumento(String documento);
 
   @Query(
-"""
+      """
     SELECT f FROM Fornecedor f
     WHERE (:status IS NULL OR f.pessoa.status = :status)
 """)

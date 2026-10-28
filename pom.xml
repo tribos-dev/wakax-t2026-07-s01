@@ -141,7 +141,7 @@
 				<configuration>
 					<java>
 						<googleJavaFormat>
-							<version>1.27.0</version>
+							<version>1.18.1</version>
 							<style>GOOGLE</style>
 						</googleJavaFormat>
 						<removeUnusedImports/>

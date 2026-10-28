@@ -10,6 +10,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.springframework.http.HttpStatus;
+
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -96,15 +100,15 @@ public class Produto {
 
   public void alteraStatus(StatusProduto novoStatus, String motivo) {
     if (this.status == novoStatus) {
-      return;
+      ErrorCode errorCode =
+          novoStatus == StatusProduto.ATIVO
+              ? ErrorCode.PRODUTO_JA_ATIVO
+              : ErrorCode.PRODUTO_JA_INATIVO;
+      throw new APIException(HttpStatus.CONFLICT, errorCode, this.id);
     }
     this.status = novoStatus;
     this.motivoAlteracaoStatus = motivo;
     this.dataAlteracaoStatus = LocalDateTime.now();
-  }
-
-  public boolean estaAtivo() {
-    return this.status == StatusProduto.ATIVO;
   }
 
   public BigDecimal getPrecoPadrao() {

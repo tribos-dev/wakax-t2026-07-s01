@@ -516,18 +516,23 @@ class ProdutoApplicationServiceTest {
   }
 
   @Test
-  void deveManterProdutoSemAlteracaoQuandoStatusInformadoForIgualAoAtual() {
+  void deveLancarConflictQuandoStatusInformadoForIgualAoAtual() {
     Produto produtoAtivo = criaProduto("Arroz", StatusProduto.ATIVO, "10.00");
     UUID idDoProduto = produtoAtivo.getId();
     StatusProdutoRequest request =
         StatusProdutoRequest.builder().status(StatusProduto.ATIVO).motivo("Sem mudanca").build();
     when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoAtivo);
 
-    produtoApplicationService.atualizaStatus(idDoProduto, request);
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> produtoApplicationService.atualizaStatus(idDoProduto, request));
 
-    assertEquals(StatusProduto.ATIVO, produtoAtivo.getStatus());
+    assertEquals(org.springframework.http.HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PRODUTO_JA_ATIVO, exception.getErrorCode());
     assertNull(produtoAtivo.getMotivoAlteracaoStatus());
     assertNull(produtoAtivo.getDataAlteracaoStatus());
+    verify(produtoRepository, never()).salva(any(Produto.class));
   }
 
   @Test
