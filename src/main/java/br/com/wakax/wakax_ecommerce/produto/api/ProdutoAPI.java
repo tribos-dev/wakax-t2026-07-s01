@@ -34,7 +34,7 @@ public interface ProdutoAPI {
   ProdutoAtivoPaginadoResponse listarProdutosAtivos(
       @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
 
-  @PutMapping("/{idProduto}")
+  @PatchMapping("/{idProduto}")
   ProdutoAtualizaResponse atualizarProduto(
       @PathVariable UUID idProduto, @Valid @RequestBody ProdutoUpdateRequest produtoUpdateRequest);
 }
