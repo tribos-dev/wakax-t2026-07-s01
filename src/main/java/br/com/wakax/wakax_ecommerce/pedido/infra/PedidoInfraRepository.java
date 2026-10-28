@@ -46,7 +46,7 @@ public class PedidoInfraRepository implements PedidoRepository {
   @Override
   public Page<Pedido> buscarPedidosPorClienteComFiltro(
       StatusPedido status, Pageable pageable, UUID idCliente) {
-    log.info("[start] PedidoInfraRepository - buscarPedidosPorClienteComFiltro");
+    log.debug("[start] PedidoInfraRepository - buscarPedidosPorClienteComFiltro");
     Page<Pedido> pedidos =
         pedidoJPARepository.findAllByClienteIdWithFilters(status, pageable, idCliente);
     log.debug("[finish] PedidoInfraRepository - buscarPedidosPorClienteComFiltro");

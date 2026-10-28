@@ -57,9 +57,9 @@ public class PedidoController implements PedidoAPI {
   @Override
   public Page<PedidoListResponse> buscaPedidoPorClienteId(
       PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente) {
-    log.info("[start] PedidoController - buscaPedidoPorClienteId");
-    log.info("[info] idCliente: {}", idCliente);
-    log.info("[info] filtro: {}", pedidoFilterRequest.getStatus());
+    log.debug("[start] PedidoController - buscaPedidoPorClienteId");
+    log.debug("[info] idCliente: {}", idCliente);
+    log.debug("[info] filtro: {}", pedidoFilterRequest.getStatus());
     Page<PedidoListResponse> pedidoListResponses =
         pedidoService.buscarTodosPedidosComFiltro(pedidoFilterRequest, pageable, idCliente);
     log.debug("[finish] PedidoController - buscaPedidoPorClienteId");

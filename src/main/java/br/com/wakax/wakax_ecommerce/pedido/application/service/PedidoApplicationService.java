@@ -103,7 +103,7 @@ public class PedidoApplicationService implements PedidoService {
   @Override
   public Page<PedidoListResponse> buscarTodosPedidosComFiltro(
       PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente) {
-    log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
+    log.debug("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
     Page<PedidoListResponse> pedidoListResponses =
         pedidoRepository
             .buscarPedidosPorClienteComFiltro(pedidoFilterRequest.getStatus(), pageable, idCliente)
