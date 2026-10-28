@@ -43,7 +43,7 @@ public interface PedidoAPI {
   @GetMapping("/cliente/{idCliente}")
   @ResponseStatus(HttpStatus.OK)
   Page<PedidoListResponse> buscaPedidoPorClienteId(
-      @ParameterObject @ModelAttribute PedidoFilterRequest loteFilterRequest,
+      @ParameterObject @ModelAttribute PedidoFilterRequest pedidoFilterRequest,
       @ParameterObject
           @PageableDefault(
               page = 0,

@@ -56,13 +56,13 @@ public class PedidoController implements PedidoAPI {
 
   @Override
   public Page<PedidoListResponse> buscaPedidoPorClienteId(
-      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
-    log.info("[start] PedidoController - buscaClientePorId");
+      PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente) {
+    log.info("[start] PedidoController - buscaPedidoPorClienteId");
     log.info("[info] idCliente: {}", idCliente);
-    log.info("[info] filtro: {}", loteFilterRequest.getStatus());
+    log.info("[info] filtro: {}", pedidoFilterRequest.getStatus());
     Page<PedidoListResponse> pedidoListResponses =
-        pedidoService.buscarTodosPedidosComFiltro(loteFilterRequest, pageable, idCliente);
-    log.debug("[finish] PedidoController - buscaClientePorId");
+        pedidoService.buscarTodosPedidosComFiltro(pedidoFilterRequest, pageable, idCliente);
+    log.debug("[finish] PedidoController - buscaPedidoPorClienteId");
     return pedidoListResponses;
   }
 }

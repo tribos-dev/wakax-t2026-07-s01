@@ -102,11 +102,11 @@ public class PedidoApplicationService implements PedidoService {
 
   @Override
   public Page<PedidoListResponse> buscarTodosPedidosComFiltro(
-      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente) {
+      PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente) {
     log.info("[start] PedidoApplicationService - buscarTodosPedidosComFiltro");
     Page<PedidoListResponse> pedidoListResponses =
         pedidoRepository
-            .buscarPedidosPorClienteComFiltro(loteFilterRequest.getStatus(), pageable, idCliente)
+            .buscarPedidosPorClienteComFiltro(pedidoFilterRequest.getStatus(), pageable, idCliente)
             .map(PedidoListResponse::new);
     log.debug("[finish] PedidoApplicationService - buscarTodosPedidosComFiltro");
     return pedidoListResponses;

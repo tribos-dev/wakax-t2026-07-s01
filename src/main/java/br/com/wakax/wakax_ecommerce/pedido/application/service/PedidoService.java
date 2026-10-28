@@ -23,5 +23,5 @@ public interface PedidoService {
   void alteraEnderecoEntrega(UUID idPedido, EnderecoUpdateRequest enderecoUpdateRequest);
 
   Page<PedidoListResponse> buscarTodosPedidosComFiltro(
-      PedidoFilterRequest loteFilterRequest, Pageable pageable, UUID idCliente);
+      PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente);
 }
