@@ -9,11 +9,8 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
-import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
-import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 
 @RestController
 @RequestMapping("/produto")
@@ -36,4 +33,8 @@ public interface ProdutoAPI {
   @GetMapping("/ativos")
   ProdutoAtivoPaginadoResponse listarProdutosAtivos(
       @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
+
+  @PatchMapping("/{idProduto}")
+  ProdutoAtualizaResponse atualizarProduto(
+      @PathVariable UUID idProduto, @Valid @RequestBody ProdutoUpdateRequest produtoUpdateRequest);
 }
