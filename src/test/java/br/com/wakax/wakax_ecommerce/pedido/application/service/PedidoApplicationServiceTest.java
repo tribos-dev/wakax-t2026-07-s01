@@ -694,7 +694,7 @@ class PedidoApplicationServiceTest {
   }
 
   @Test
-  @DisplayName("WX-16 Cenário 1: Cliente sem pedidos")
+  @DisplayName("WX-16 Cenário 1: Listar pedidos do cliente com sucesso")
   void buscaPedidoPorCliente() {
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataPedido"));
 
@@ -741,7 +741,7 @@ class PedidoApplicationServiceTest {
   }
 
   @Test
-  @DisplayName("WX-16 Cenário 3: Visualizar diferentes status de pedidos")
+  @DisplayName("WX-16 Cenário 3: Visualizar diferentes status de pedidos - testa filtro por status")
   void buscaPedidoPorClienteComFiltroDeStatus() {
     Pageable pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dataPedido"));
 
