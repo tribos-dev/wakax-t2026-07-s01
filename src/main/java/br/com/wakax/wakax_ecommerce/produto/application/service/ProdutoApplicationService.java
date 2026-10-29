@@ -20,6 +20,7 @@ import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
@@ -109,6 +110,16 @@ public class ProdutoApplicationService implements ProdutoService {
     historicoProdutoRepository.salva(historico);
     log.debug("[finish] ProdutoApplicationService - atualizaProduto");
     return new ProdutoAtualizaResponse(produto);
+  }
+
+  @Transactional
+  @Override
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
+    log.debug("[start] ProdutoApplicationService - atualizaStatus");
+    Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
+    produto.alteraStatus(request.getStatus(), request.getMotivo());
+    produtoRepository.salva(produto);
+    log.debug("[finish] ProdutoApplicationService - atualizaStatus");
   }
 
   private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {
