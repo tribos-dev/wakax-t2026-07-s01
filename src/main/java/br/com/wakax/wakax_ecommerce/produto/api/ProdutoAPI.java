@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 
@@ -33,6 +34,10 @@ public interface ProdutoAPI {
   @GetMapping("/ativos")
   ProdutoAtivoPaginadoResponse listarProdutosAtivos(
       @RequestParam(defaultValue = "0") int pagina, @RequestParam(defaultValue = "10") int tamanho);
+
+  @PatchMapping("/{idProduto}")
+  ProdutoAtualizaResponse atualizarProduto(
+      @PathVariable UUID idProduto, @Valid @RequestBody ProdutoUpdateRequest produtoUpdateRequest);
 
   @PatchMapping("/{idProduto}/status")
   @ResponseStatus(HttpStatus.NO_CONTENT)

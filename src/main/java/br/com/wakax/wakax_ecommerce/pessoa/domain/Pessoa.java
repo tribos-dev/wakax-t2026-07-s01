@@ -2,11 +2,8 @@ package br.com.wakax.wakax_ecommerce.pessoa.domain;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -83,28 +80,37 @@ public class Pessoa {
   }
 
   public void atualizar(DadosAtualizacaoPessoa dadosAtualizacao) {
-    this.nome = dadosAtualizacao.getNome();
-    if (dadosAtualizacao.getEmails() != null) {
-      this.emails = dadosAtualizacao.getEmails();
-    }
-    if (dadosAtualizacao.getTelefones() != null) {
-      this.telefones = dadosAtualizacao.getTelefones();
-    }
+    ValidationHelper.validaStringEmBranco(dadosAtualizacao.getNome())
+        .ifPresent(valor -> this.nome = valor);
+    ValidationHelper.validaListaStrings(dadosAtualizacao.getEmails())
+        .ifPresent(valores -> this.emails = valores);
+    ValidationHelper.validaListaStrings(dadosAtualizacao.getTelefones())
+        .ifPresent(valores -> this.telefones = valores);
     if (this.enderecos == null) {
       this.enderecos = new ArrayList<>();
     }
-    Set<UUID> idsExistentes =
-        this.enderecos.stream()
-            .map(Endereco::getId)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toSet());
-    Optional.ofNullable(dadosAtualizacao.getEnderecos())
-        .ifPresent(
-            novosEnderecos ->
-                novosEnderecos.stream()
-                    .filter(endereco -> !idsExistentes.contains(endereco.getId()))
-                    .forEach(this.enderecos::add));
+    Optional.ofNullable(dadosAtualizacao.getEnderecos()).ifPresent(this::atualizarEnderecos);
     vincularEnderecos();
+  }
+
+  public void atualizarEnderecos(List<Endereco> enderecos) {
+    for (Endereco enderecoRecebido : enderecos) {
+      if (enderecoRecebido.getId() == null) {
+        enderecoRecebido.setPessoa(this);
+        this.enderecos.add(enderecoRecebido);
+      } else {
+        buscaEnderecoPorId(enderecoRecebido.getId()).atualizar(enderecoRecebido);
+      }
+    }
+  }
+
+  private Endereco buscaEnderecoPorId(UUID idEndereco) {
+    return this.enderecos.stream()
+        .filter(endereco -> idEndereco.equals(endereco.getId()))
+        .findFirst()
+        .orElseThrow(
+            () ->
+                APIException.build(HttpStatus.NOT_FOUND, "Endereço não encontrado!" + idEndereco));
   }
 
   private void vincularEnderecos() {

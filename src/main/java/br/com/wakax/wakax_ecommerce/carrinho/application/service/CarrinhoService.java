@@ -14,4 +14,6 @@ public interface CarrinhoService {
 
   CarrinhoListPageResponse listaCarrinhosDoCliente(
       UUID idCliente, CarrinhoPaginacaoRequest carrinhoPaginacaoRequest);
+
+  void removeItemDoCarrinho(UUID idCliente, UUID idCarrinho, UUID idItem);
 }

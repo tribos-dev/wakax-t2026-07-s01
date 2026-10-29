@@ -29,6 +29,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 
@@ -37,20 +38,18 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
 import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
+import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
-import br.com.wakax.wakax_ecommerce.produto.domain.HistoricoPreco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Preco;
-import br.com.wakax.wakax_ecommerce.produto.domain.Produto;
-import br.com.wakax.wakax_ecommerce.produto.domain.ProdutoDisponivel;
-import br.com.wakax.wakax_ecommerce.produto.domain.StatusProduto;
-import br.com.wakax.wakax_ecommerce.produto.domain.TipoPreco;
+import br.com.wakax.wakax_ecommerce.produto.domain.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProdutoApplicationServiceTest {
@@ -58,6 +57,8 @@ class ProdutoApplicationServiceTest {
   @Mock private ProdutoRepository produtoRepository;
 
   @InjectMocks private ProdutoApplicationService produtoApplicationService;
+
+  @Mock private HistoricoProdutoRepository historicoProdutoRepository;
 
   private ProdutoRequest produtoRequest;
   private Produto produto;
@@ -475,6 +476,134 @@ class ProdutoApplicationServiceTest {
     assertEquals(0L, response.getTotal());
     assertEquals(0, response.getTotalPaginas());
     verify(produtoRepository).listaProdutosAtivosComEstoque(any(Pageable.class));
+  }
+
+  @Test
+  void deveAtualizarProdutoComSucesso() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto atualizado").grupo("Eletrônicos").build();
+    Produto produto =
+        Produto.builder().id(idProduto).descricao("Produto antigo").grupo("Geral").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+
+    ProdutoAtualizaResponse response =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertEquals("Produto atualizado", produto.getDescricao());
+    assertEquals("Eletrônicos", produto.getGrupo());
+    assertEquals("Produto atualizado", response.getDescricao());
+    assertEquals("Eletrônicos", response.getGrupo());
+
+    verify(produtoRepository).salva(produto);
+    verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
+  }
+
+  @Test
+  void deveAtualizarSomenteUmCampo() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Nova descrição").build();
+    Produto produto =
+        Produto.builder().id(idProduto).descricao("Descrição antiga").grupo("Eletrônicos").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    produtoId = idProduto;
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse response =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertEquals("Nova descrição", response.getDescricao());
+    assertEquals("Eletrônicos", response.getGrupo());
+    assertEquals("Nova descrição", produto.getDescricao());
+    assertEquals("Eletrônicos", produto.getGrupo());
+    verify(produtoRepository).salva(produto);
+    verify(historicoProdutoRepository).salva(any(HistoricoProduto.class));
+  }
+
+  @Test
+  void deveAtualizarDataAtualizacaoDoProduto() {
+    UUID idProduto = UUID.randomUUID();
+    LocalDateTime dataAntiga = LocalDateTime.of(2026, 1, 10, 10, 0);
+    Produto produto =
+        Produto.builder()
+            .id(idProduto)
+            .descricao("Produto antigo")
+            .grupo("Geral")
+            .dataCriacao(dataAntiga.minusDays(10))
+            .dataAtualizacao(dataAntiga)
+            .build();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto atualizado").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse resposta =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertTrue(
+        produto.getDataAtualizacao().isAfter(dataAntiga),
+        "A data de atualização deve ser posterior à data antiga");
+    assertEquals(
+        produto.getDataAtualizacao(),
+        resposta.getDataDeAtualizacao(),
+        "A resposta deve retornar a data atualizada do produto");
+  }
+
+  @Test
+  void deveAtualizarDataMesmoQuandoOsValoresSaoIguais() {
+    UUID idProduto = UUID.randomUUID();
+
+    LocalDateTime dataAntiga = LocalDateTime.of(2026, 1, 10, 10, 0);
+
+    Produto produto =
+        Produto.builder()
+            .id(idProduto)
+            .descricao("Produto")
+            .grupo("Geral")
+            .dataCriacao(dataAntiga.minusDays(10))
+            .dataAtualizacao(dataAntiga)
+            .build();
+
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Produto").grupo("Geral").build();
+
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    mockProdutoRepositorySalvaComId();
+    autenticaComo("usuario-teste");
+    ProdutoAtualizaResponse resposta =
+        produtoApplicationService.atualizarProduto(idProduto, request);
+    assertTrue(
+        produto.getDataAtualizacao().isAfter(dataAntiga),
+        "A data de atualização deve mudar mesmo quando os valores são iguais");
+    assertEquals(
+        produto.getDataAtualizacao(),
+        resposta.getDataDeAtualizacao(),
+        "A resposta deve conter a data atualizada");
+  }
+
+  @Test
+  void deveLancarExcecaoQuandoProdutoNaoEncontradoAoAtualizar() {
+    UUID idProduto = UUID.randomUUID();
+    ProdutoUpdateRequest request =
+        ProdutoUpdateRequest.builder().descricao("Nova descrição").build();
+    when(produtoRepository.buscaProdutoPorId(idProduto))
+        .thenThrow(
+            new APIException(HttpStatus.NOT_FOUND, ErrorCode.PRODUTO_NAO_ENCONTRADO, idProduto));
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> produtoApplicationService.atualizarProduto(idProduto, request));
+
+    assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErrorCode());
+
+    assertEquals(idProduto, exception.getArgs()[0]);
+
+    verify(produtoRepository, times(1)).buscaProdutoPorId(idProduto);
+
+    verify(produtoRepository, never()).salva(any(Produto.class));
+
+    verify(historicoProdutoRepository, never()).salva(any(HistoricoProduto.class));
   }
 
   @Test

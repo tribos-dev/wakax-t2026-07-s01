@@ -30,4 +30,11 @@ public interface CarrinhoAPI {
   CarrinhoListPageResponse listaCarrinhosDoCliente(
       @PathVariable("idCliente") UUID idCliente,
       @ModelAttribute CarrinhoPaginacaoRequest carrinhoPaginacaoRequest);
+
+  @DeleteMapping("/{idCliente}/{idCarrinho}/itens/{idItem}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void removeItemDoCarrinho(
+      @PathVariable("idCliente") UUID idCliente,
+      @PathVariable("idCarrinho") UUID idCarrinho,
+      @PathVariable("idItem") UUID idItem);
 }

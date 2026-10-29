@@ -44,4 +44,11 @@ public class CarrinhoController implements CarrinhoAPI {
     log.debug("[finish] CarrinhoController - listaCarrinhosDoCliente");
     return carrinhos;
   }
+
+  @Override
+  public void removeItemDoCarrinho(UUID idCliente, UUID idCarrinho, UUID idItem) {
+    log.info("[start] CarrinhoController - removeItemDoCarrinho");
+    carrinhoService.removeItemDoCarrinho(idCliente, idCarrinho, idItem);
+    log.debug("[finish] CarrinhoController - removeItemDoCarrinho");
+  }
 }

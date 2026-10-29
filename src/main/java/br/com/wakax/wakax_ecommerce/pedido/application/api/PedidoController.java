@@ -4,11 +4,15 @@ import java.util.UUID;
 
 import javax.validation.Valid;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest;
+import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import lombok.RequiredArgsConstructor;
@@ -48,5 +52,17 @@ public class PedidoController implements PedidoAPI {
     log.debug("[start] PedidoController - alteraEnderecoPedido");
     pedidoService.alteraEnderecoEntrega(idPedido, enderecoUpdateRequest);
     log.debug("[finish] PedidoController - alteraEnderecoPedido");
+  }
+
+  @Override
+  public Page<PedidoListResponse> buscaPedidoPorClienteId(
+      PedidoFilterRequest pedidoFilterRequest, Pageable pageable, UUID idCliente) {
+    log.debug("[start] PedidoController - buscaPedidoPorClienteId");
+    log.debug("[info] idCliente: {}", idCliente);
+    log.debug("[info] filtro: {}", pedidoFilterRequest.getStatus());
+    Page<PedidoListResponse> pedidoListResponses =
+        pedidoService.buscarTodosPedidosComFiltro(pedidoFilterRequest, pageable, idCliente);
+    log.debug("[finish] PedidoController - buscaPedidoPorClienteId");
+    return pedidoListResponses;
   }
 }

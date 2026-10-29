@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.fornecedor.application.api.request.FornecedorAlteracaoRequest;
 import br.com.wakax.wakax_ecommerce.fornecedor.domain.Fornecedor;
+import br.com.wakax.wakax_ecommerce.pessoa.domain.Endereco;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.Pessoa;
 import br.com.wakax.wakax_ecommerce.pessoa.domain.StatusPessoa;
 
@@ -36,5 +38,28 @@ public class FornecedorDataHelper {
 
   public static Fornecedor criarFornecedorInativo() {
     return criarFornecedor("Empresa Inativa LTDA", "22.222.222/0001-22", StatusPessoa.INATIVO);
+  }
+
+  public static FornecedorAlteracaoRequest criarRequestAlteracao(
+      String nome,
+      List<String> emails,
+      List<String> telefones,
+      List<Endereco> enderecos,
+      String inscricaoEstadual,
+      String razaoSocial,
+      String nomeFantasia) {
+    return new FornecedorAlteracaoRequest(
+        nome, emails, telefones, enderecos, inscricaoEstadual, razaoSocial, nomeFantasia);
+  }
+
+  public static FornecedorAlteracaoRequest criarRequestAlteracaoRazaoSocialENomeFantasia() {
+    return criarRequestAlteracao(
+        null, null, null, null, null, "Nova Razao Social", "Nova Fantasia");
+  }
+
+  public static FornecedorAlteracaoRequest criarRequestAlteracaoEmailsETelefones(
+      List<String> emails, List<String> telefones) {
+
+    return criarRequestAlteracao(null, emails, telefones, null, null, null, null);
   }
 }

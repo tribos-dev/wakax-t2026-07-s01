@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import javax.persistence.*;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -68,6 +70,10 @@ public class Produto {
   @NotNull
   private LocalDateTime dataCriacao;
 
+  @Column(nullable = false, name = "data_atualizacao")
+  @NotNull
+  private LocalDateTime dataAtualizacao;
+
   @Column(name = "data_alteracao_status")
   private LocalDateTime dataAlteracaoStatus;
 
@@ -78,6 +84,7 @@ public class Produto {
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
+    dataAtualizacao = dataCriacao;
   }
 
   public Produto(ProdutoRequest request) {
@@ -125,5 +132,25 @@ public class Produto {
         .or(() -> precos.stream().filter(p -> p.getTipo() == TipoPreco.PADRAO).findFirst())
         .map(Preco::getValor)
         .orElse(BigDecimal.ZERO);
+  }
+
+  public void atualiza(ProdutoUpdateRequest produtoUpdateRequest) {
+    atualizaSeNaoNulo(produtoUpdateRequest.getDescricao(), valor -> this.descricao = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getGrupo(), valor -> this.grupo = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getUnidade(), valor -> this.unidade = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getEstoqueMinimo(), valor -> this.estoqueMinimo = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getEstoqueMaximo(), valor -> this.estoqueMaximo = valor);
+    atualizaSeNaoNulo(
+        produtoUpdateRequest.getDescricaoComplementar(),
+        valor -> this.descricaoComplementar = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getPesoBruto(), valor -> this.pesoBruto = valor);
+    atualizaSeNaoNulo(produtoUpdateRequest.getPesoLiquido(), valor -> this.pesoLiquido = valor);
+    this.dataAtualizacao = LocalDateTime.now();
+  }
+
+  private <T> void atualizaSeNaoNulo(T valor, Consumer<T> setter) {
+    if (valor != null) {
+      setter.accept(valor);
+    }
   }
 }

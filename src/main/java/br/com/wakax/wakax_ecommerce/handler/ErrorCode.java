@@ -36,7 +36,14 @@ public enum ErrorCode {
   PAGAMENTO_JA_PROCESSADO_COM_SUCESSO("pagamento.ja.processado.com.sucesso"),
   PAGAMENTO_NAO_PODE_SER_REPROCESSADO("pagamento.nao.pode.ser.reprocessado"),
   LIMITE_TENTATIVAS_PAGAMENTO_EXCEDIDO("pagamento.limite.tentativas.excedido"),
-  PAGAMENTO_JA_PROCESSADO("pagamento.ja.processado");
+  PAGAMENTO_JA_PROCESSADO("pagamento.ja.processado"),
+  VALIDACAO_INSCRICAO_ESTADUAL_TAMANHO("validacao.inscricaoestadual.tamanho"),
+  VALIDACAO_RAZAO_SOCIAL_TAMANHO("validacao.razaosocial.tamanho"),
+  VALIDACAO_NOME_FANTASIA_TAMANHO("validacao.nomefantasia.tamanho"),
+  VALIDACAO_NOME_TAMANHO("validacao.fornecedor.nome.tamanho"),
+  VALIDACAO_FORNECEDOR_EMAIL_TAMANHO("validacao.fornecedor.email.tamanho"),
+  VALIDACAO_FORNECEDOR_EMAIL_INVALIDO("validacao.fornecedor.email.invalido"),
+  VALIDACAO_FORNECEDOR_TELEFONE_TAMANHO("validacao.fornecedor.telefone.tamanho");
 
   private final String code;
 
