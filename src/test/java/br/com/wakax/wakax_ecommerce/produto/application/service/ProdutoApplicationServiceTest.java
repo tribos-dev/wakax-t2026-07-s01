@@ -39,7 +39,14 @@ import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
+import br.com.wakax.wakax_ecommerce.produto.api.response.PrecoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoAtivoPaginadoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoListResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoPaginadoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResponse;
+import br.com.wakax.wakax_ecommerce.produto.api.response.ProdutoResumoResponse;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.HistoricoProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.application.repository.ProdutoRepository;
 import br.com.wakax.wakax_ecommerce.produto.domain.*;
@@ -597,5 +604,120 @@ class ProdutoApplicationServiceTest {
     verify(produtoRepository, never()).salva(any(Produto.class));
 
     verify(historicoProdutoRepository, never()).salva(any(HistoricoProduto.class));
+  }
+
+  @Test
+  void deveInativarProdutoAtivoComSucesso() {
+    Produto produtoAtivo = criaProduto("Arroz", StatusProduto.ATIVO, "10.00");
+    UUID idDoProduto = produtoAtivo.getId();
+    StatusProdutoRequest request =
+        StatusProdutoRequest.builder()
+            .status(StatusProduto.INATIVO)
+            .motivo("Produto descontinuado")
+            .build();
+    when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoAtivo);
+
+    produtoApplicationService.atualizaStatus(idDoProduto, request);
+
+    assertEquals(StatusProduto.INATIVO, produtoAtivo.getStatus());
+    assertEquals("Produto descontinuado", produtoAtivo.getMotivoAlteracaoStatus());
+    assertNotNull(produtoAtivo.getDataAlteracaoStatus());
+    verify(produtoRepository, times(1)).salva(produtoAtivo);
+  }
+
+  @Test
+  void deveReativarProdutoInativoComSucesso() {
+    Produto produtoInativo = criaProduto("Feijao", StatusProduto.INATIVO, "20.00");
+    UUID idDoProduto = produtoInativo.getId();
+    StatusProdutoRequest request =
+        StatusProdutoRequest.builder()
+            .status(StatusProduto.ATIVO)
+            .motivo("Produto voltou ao catalogo")
+            .build();
+    when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoInativo);
+
+    produtoApplicationService.atualizaStatus(idDoProduto, request);
+
+    assertEquals(StatusProduto.ATIVO, produtoInativo.getStatus());
+    assertEquals("Produto voltou ao catalogo", produtoInativo.getMotivoAlteracaoStatus());
+    assertNotNull(produtoInativo.getDataAlteracaoStatus());
+    verify(produtoRepository, times(1)).salva(produtoInativo);
+  }
+
+  @Test
+  void deveLancarConflictQuandoStatusInformadoForIgualAoAtual() {
+    Produto produtoAtivo = criaProduto("Arroz", StatusProduto.ATIVO, "10.00");
+    UUID idDoProduto = produtoAtivo.getId();
+    StatusProdutoRequest request =
+        StatusProdutoRequest.builder().status(StatusProduto.ATIVO).motivo("Sem mudanca").build();
+    when(produtoRepository.buscaProdutoPorId(idDoProduto)).thenReturn(produtoAtivo);
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> produtoApplicationService.atualizaStatus(idDoProduto, request));
+
+    assertEquals(org.springframework.http.HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PRODUTO_JA_ATIVO, exception.getErrorCode());
+    assertNull(produtoAtivo.getMotivoAlteracaoStatus());
+    assertNull(produtoAtivo.getDataAlteracaoStatus());
+    verify(produtoRepository, never()).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveLancarExcecaoAoAlterarStatusDeProdutoNaoEncontrado() {
+    StatusProdutoRequest request =
+        StatusProdutoRequest.builder()
+            .status(StatusProduto.INATIVO)
+            .motivo("Descontinuado")
+            .build();
+    when(produtoRepository.buscaProdutoPorId(produtoId))
+        .thenThrow(
+            new APIException(
+                org.springframework.http.HttpStatus.NOT_FOUND,
+                ErrorCode.PRODUTO_NAO_ENCONTRADO,
+                produtoId));
+
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> produtoApplicationService.atualizaStatus(produtoId, request));
+
+    assertEquals(ErrorCode.PRODUTO_NAO_ENCONTRADO, exception.getErrorCode());
+    assertEquals(produtoId, exception.getArgs()[0]);
+    verify(produtoRepository, never()).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveFalharValidacaoQuandoRequestDeStatusForInvalido() {
+    Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
+
+    StatusProdutoRequest semStatus =
+        StatusProdutoRequest.builder().status(null).motivo("Descontinuado").build();
+    StatusProdutoRequest semMotivo =
+        StatusProdutoRequest.builder().status(StatusProduto.INATIVO).motivo(null).build();
+    StatusProdutoRequest motivoEmBranco =
+        StatusProdutoRequest.builder().status(StatusProduto.INATIVO).motivo("   ").build();
+    StatusProdutoRequest motivoMuitoLongo =
+        StatusProdutoRequest.builder()
+            .status(StatusProduto.INATIVO)
+            .motivo("a".repeat(256))
+            .build();
+    StatusProdutoRequest valido =
+        StatusProdutoRequest.builder()
+            .status(StatusProduto.INATIVO)
+            .motivo("a".repeat(255))
+            .build();
+
+    assertTrue(
+        validator.validate(semStatus).stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("status")));
+    assertTrue(
+        validator.validate(semMotivo).stream()
+            .anyMatch(violacao -> violacao.getPropertyPath().toString().equals("motivo")));
+    assertFalse(validator.validate(motivoEmBranco).isEmpty());
+    assertFalse(validator.validate(motivoMuitoLongo).isEmpty());
+    assertTrue(validator.validate(valido).isEmpty());
+
+    verifyNoInteractions(produtoRepository);
   }
 }

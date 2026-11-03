@@ -9,6 +9,8 @@ public enum ErrorCode {
   ACESSO_NEGADO("acesso.negado"),
   PRODUTO_NAO_ENCONTRADO("produto.nao.encontrado"),
   PRODUTO_DUPLICADO("produto.duplicado"),
+  PRODUTO_JA_ATIVO("produto.ja.ativo"),
+  PRODUTO_JA_INATIVO("produto.ja.inativo"),
   FORNECEDOR_NAO_ENCONTRADO("fornecedor.nao.encontrado"),
   FORNECEDOR_DUPLICADO("fornecedor.duplicado"),
   FORNECEDOR_COM_RESTRICAO("fornecedor.com.restricao"),

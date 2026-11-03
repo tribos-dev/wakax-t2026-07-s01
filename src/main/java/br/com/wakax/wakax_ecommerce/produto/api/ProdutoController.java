@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 import br.com.wakax.wakax_ecommerce.produto.api.request.PrecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
+import br.com.wakax.wakax_ecommerce.produto.api.request.StatusProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.response.*;
 import br.com.wakax.wakax_ecommerce.produto.application.service.ProdutoService;
 import lombok.RequiredArgsConstructor;
@@ -48,6 +49,13 @@ public class ProdutoController implements ProdutoAPI {
     PrecoResponse response = produtoService.atualizaPreco(idProduto, precoUpdateRequest);
     log.debug("[finish] ProdutoController - atualizaPreco");
     return response;
+  }
+
+  @Override
+  public void atualizaStatus(UUID idProduto, StatusProdutoRequest request) {
+    log.debug("[start] ProdutoController - atualizaStatus");
+    produtoService.atualizaStatus(idProduto, request);
+    log.debug("[finish] ProdutoController - atualizaStatus");
   }
 
   @Override

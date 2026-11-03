@@ -11,6 +11,10 @@ import javax.persistence.*;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 
+import org.springframework.http.HttpStatus;
+
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoRequest;
 import br.com.wakax.wakax_ecommerce.produto.api.request.ProdutoUpdateRequest;
 import lombok.AllArgsConstructor;
@@ -70,6 +74,13 @@ public class Produto {
   @NotNull
   private LocalDateTime dataAtualizacao;
 
+  @Column(name = "data_alteracao_status")
+  private LocalDateTime dataAlteracaoStatus;
+
+  @Column(name = "motivo_alteracao_status", length = 255)
+  @Size(max = 255)
+  private String motivoAlteracaoStatus;
+
   @PrePersist
   protected void onCreate() {
     dataCriacao = LocalDateTime.now();
@@ -92,6 +103,19 @@ public class Produto {
               .map(precoReq -> new Preco(precoReq.getTipo(), precoReq.getValor(), this))
               .collect(Collectors.toList());
     }
+  }
+
+  public void alteraStatus(StatusProduto novoStatus, String motivo) {
+    if (this.status == novoStatus) {
+      ErrorCode errorCode =
+          novoStatus == StatusProduto.ATIVO
+              ? ErrorCode.PRODUTO_JA_ATIVO
+              : ErrorCode.PRODUTO_JA_INATIVO;
+      throw new APIException(HttpStatus.CONFLICT, errorCode, this.id);
+    }
+    this.status = novoStatus;
+    this.motivoAlteracaoStatus = motivo;
+    this.dataAlteracaoStatus = LocalDateTime.now();
   }
 
   public BigDecimal getPrecoPadrao() {
