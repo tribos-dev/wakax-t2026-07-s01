@@ -22,7 +22,9 @@ public interface ProdutoJPARepository extends JpaRepository<Produto, UUID> {
   // Fase 1: pagina SÓ os ids. Como não há join, 1 linha = 1 produto, então o
   // "limit ? offset ?" é aplicado de verdade no banco (sem HHH000104).
   // countQuery é obrigatório porque o SELECT usa um @Query customizado.
-  @Query(value = "SELECT p.id FROM Produto p", countQuery = "SELECT COUNT(p) FROM Produto p")
+  @Query(
+      value = "SELECT p.id FROM Produto p WHERE p.status = 'ATIVO'",
+      countQuery = "SELECT COUNT(p) FROM Produto p WHERE p.status = 'ATIVO'")
   Page<UUID> paginaIds(Pageable pageable);
 
   // Fase 2: busca os produtos desses ids JÁ com os preços (LEFT JOIN FETCH),
