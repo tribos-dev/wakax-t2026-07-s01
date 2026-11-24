@@ -122,6 +122,15 @@ public class ProdutoApplicationService implements ProdutoService {
     log.debug("[finish] ProdutoApplicationService - atualizaStatus");
   }
 
+  @Override
+  public void removerProduto(UUID idProduto) {
+    log.debug("[start] ProdutoApplicationService - removerProduto");
+    Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
+    produto.inativaProduto();
+    produtoRepository.salva(produto);
+    log.debug("[finish] ProdutoApplicationService - removerProduto");
+  }
+
   private Preco buscaPrecoPorTipo(List<Preco> precos, TipoPreco tipo, UUID idProduto) {
     return precos.stream()
         .filter(preco -> preco.getTipo() == tipo)
