@@ -2,12 +2,15 @@ package br.com.wakax.wakax_ecommerce.estoque.application.service;
 
 import java.util.UUID;
 
+import br.com.wakax.wakax_ecommerce.estoque.api.request.AdicionaEstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.request.EstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueListagemResponse;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueResponse;
 
 public interface EstoqueService {
   EstoqueResponse criaEstoque(UUID idProduto, EstoqueRequest request);
+
+  EstoqueResponse adicionaQuantidade(UUID idProduto, AdicionaEstoqueRequest request);
 
   EstoqueResponse buscaEstoquePorIdProduto(UUID idProduto);
 
