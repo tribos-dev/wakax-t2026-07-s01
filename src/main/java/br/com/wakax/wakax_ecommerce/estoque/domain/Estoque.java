@@ -107,7 +107,7 @@ public class Estoque {
   }
 
   private void validaQuantidade(Integer quantidade) {
-    if (quantidade == null || quantidade == 0) {
+    if (quantidade == null || quantidade <= 0) {
       throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.QUANTIDADE_INVALIDA);
     }
   }

@@ -6,6 +6,7 @@ import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.wakax.wakax_ecommerce.estoque.api.request.AdicionaEstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.request.EstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueListagemResponse;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueResponse;
@@ -26,6 +28,10 @@ public interface EstoqueAPI {
   @ResponseStatus(HttpStatus.CREATED)
   EstoqueResponse criaEstoque(
       @PathVariable UUID idProduto, @Valid @RequestBody EstoqueRequest request);
+
+  @PatchMapping("/produto/{idProduto}/entrada")
+  EstoqueResponse adicionaQuantidade(
+      @PathVariable UUID idProduto, @Valid @RequestBody AdicionaEstoqueRequest request);
 
   @GetMapping("/produto/{idProduto}")
   EstoqueResponse buscaEstoquePorIdProduto(@PathVariable UUID idProduto);

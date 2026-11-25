@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.wakax.wakax_ecommerce.estoque.api.request.AdicionaEstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.request.EstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueListagemResponse;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueResponse;
@@ -41,6 +42,17 @@ public class EstoqueApplicationService implements EstoqueService {
     Estoque estoque = new Estoque(request, produto);
     estoqueRepository.salva(estoque);
     log.info("[finish] EstoqueApplicationService - criaEstoque");
+    return new EstoqueResponse(estoque);
+  }
+
+  @Override
+  @Transactional
+  public EstoqueResponse adicionaQuantidade(UUID idProduto, AdicionaEstoqueRequest request) {
+    log.info("[start] EstoqueApplicationService - adicionaQuantidade");
+    Estoque estoque = buscaEstoqueExistente(idProduto);
+    estoque.adicionaQuantidade(request.getQuantidade(), request.getCustoUnitario());
+    estoqueRepository.salva(estoque);
+    log.info("[finish] EstoqueApplicationService - adicionaQuantidade");
     return new EstoqueResponse(estoque);
   }
 
