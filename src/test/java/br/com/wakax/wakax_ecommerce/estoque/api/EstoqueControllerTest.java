@@ -1,8 +1,10 @@
 package br.com.wakax.wakax_ecommerce.estoque.api;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,11 +19,13 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.wakax.wakax_ecommerce.auth.credencial.application.service.CredencialService;
 import br.com.wakax.wakax_ecommerce.auth.security.service.AutenticacaoSecurityService;
 import br.com.wakax.wakax_ecommerce.auth.security.service.TokenService;
+import br.com.wakax.wakax_ecommerce.estoque.api.request.AdicionaEstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueListagemResponse;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueResponse;
 import br.com.wakax.wakax_ecommerce.estoque.application.service.EstoqueService;
@@ -200,5 +204,38 @@ class EstoqueControllerTest {
         .andExpect(jsonPath("$.totalItens").value(11));
 
     verify(estoqueService).buscaTodosEstoques(false, false, 1, 10);
+  }
+
+  @Test
+  void deveAdicionarQuantidadeERetornarOk() throws Exception {
+    UUID idProduto = UUID.randomUUID();
+    EstoqueResponse response = EstoqueResponse.builder().quantidadeDisponivel(20).build();
+
+    when(estoqueService.adicionaQuantidade(eq(idProduto), any(AdicionaEstoqueRequest.class)))
+        .thenReturn(response);
+
+    mockMvc
+        .perform(
+            patch("/estoque/produto/{idProduto}/entrada", idProduto)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"quantidade\":10,\"custoUnitario\":7}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.quantidadeDisponivel").value(20));
+
+    verify(estoqueService).adicionaQuantidade(eq(idProduto), any(AdicionaEstoqueRequest.class));
+  }
+
+  @Test
+  void deveRetornarBadRequestQuandoDadosDaEntradaForemInvalidos() throws Exception {
+    mockMvc
+        .perform(
+            patch("/estoque/produto/{idProduto}/entrada", UUID.randomUUID())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"quantidade\":0,\"custoUnitario\":-1}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.quantidade").exists())
+        .andExpect(jsonPath("$.custoUnitario").exists());
+
+    verifyNoInteractions(estoqueService);
   }
 }
