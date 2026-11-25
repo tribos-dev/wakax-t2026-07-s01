@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
@@ -11,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -24,7 +27,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 
+import br.com.wakax.wakax_ecommerce.estoque.api.request.AdicionaEstoqueRequest;
 import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueListagemResponse;
+import br.com.wakax.wakax_ecommerce.estoque.api.response.EstoqueResponse;
 import br.com.wakax.wakax_ecommerce.estoque.application.repository.EstoqueRepository;
 import br.com.wakax.wakax_ecommerce.estoque.domain.Estoque;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
@@ -191,6 +196,47 @@ class EstoqueApplicationServiceTest {
     assertEquals(new BigDecimal("300.00"), response.getValorTotalInventario());
     verify(estoqueRepository).buscaTodosEstoques(false, false, pageable);
     verify(estoqueRepository).calculaValorTotalInventario(false, false);
+  }
+
+  @Test
+  void deveAdicionarQuantidadeESalvarEstoque() {
+    Estoque estoque = criaEstoque("Produto A", 10, "5.00", "50.00", "10.00");
+    UUID idProduto = estoque.getProduto().getId();
+    AdicionaEstoqueRequest request =
+        AdicionaEstoqueRequest.builder()
+            .quantidade(10)
+            .custoUnitario(new BigDecimal("7.00"))
+            .build();
+
+    when(estoqueRepository.buscaEstoquePorIdProduto(idProduto)).thenReturn(Optional.of(estoque));
+
+    EstoqueResponse response = estoqueApplicationService.adicionaQuantidade(idProduto, request);
+
+    assertEquals(20, response.getQuantidadeDisponivel());
+    assertEquals(new BigDecimal("6.00"), response.getCustoMedio());
+    assertEquals(new BigDecimal("120.00"), response.getCustoTotal());
+    verify(estoqueRepository).salva(estoque);
+  }
+
+  @Test
+  void deveLancarNotFoundAoAdicionarQuantidadeSemEstoque() {
+    UUID idProduto = UUID.randomUUID();
+    AdicionaEstoqueRequest request =
+        AdicionaEstoqueRequest.builder()
+            .quantidade(10)
+            .custoUnitario(new BigDecimal("7.00"))
+            .build();
+
+    when(estoqueRepository.buscaEstoquePorIdProduto(idProduto)).thenReturn(Optional.empty());
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> estoqueApplicationService.adicionaQuantidade(idProduto, request));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.ESTOQUE_NAO_ENCONTRADO, exception.getErrorCode());
+    verify(estoqueRepository, never()).salva(any());
   }
 
   private Estoque criaEstoque(
