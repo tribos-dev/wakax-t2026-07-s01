@@ -45,6 +45,9 @@ public class Pagamento {
   @PositiveOrZero
   private BigDecimal valor;
 
+  @Column private String motivoEstorno;
+  @Column private LocalDateTime dataEstorno;
+
   public Pagamento(Pedido pedido) {
     this.pedido = pedido;
     this.statusPagamento = StatusPagamento.AGUARDANDO;
@@ -69,5 +72,16 @@ public class Pagamento {
 
     this.statusPagamento = StatusPagamento.FALHOU;
     this.motivoCancelamento = motivo;
+  }
+
+  public void estornoPagamento(String motivo) {
+
+    if (this.statusPagamento != StatusPagamento.PAGO) {
+      throw new APIException(
+          HttpStatus.CONFLICT, ErrorCode.PAGAMENTO_NAO_ELEGIVEL_ESTORNO, this.statusPagamento);
+    }
+    this.statusPagamento = StatusPagamento.ESTORNO;
+    this.motivoEstorno = motivo;
+    this.dataEstorno = LocalDateTime.now();
   }
 }
