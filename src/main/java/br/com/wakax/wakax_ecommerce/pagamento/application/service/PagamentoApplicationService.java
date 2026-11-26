@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
@@ -196,6 +197,20 @@ public class PagamentoApplicationService implements PagamentoService {
     pagamentoRepository.salva(pagamento);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - cancelaPagamento");
+    return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional
+  public PagamentoResponse estornoPagamento(UUID idPagamento, EstornoPagamentoRequest request) {
+    log.debug("[start] PagamentoApplicationService - estornoPagamento");
+    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
+    pagamento.estornoPagamento(request.getMotivo());
+    Pedido pedido = pagamento.getPedido();
+    pedido.estornar();
+    pagamentoRepository.salva(pagamento);
+    pedidoRepository.salva(pedido);
+    log.debug("[finish] PagamentoApplicationService - estornoPagamento");
     return new PagamentoResponse(pagamento);
   }
 }
