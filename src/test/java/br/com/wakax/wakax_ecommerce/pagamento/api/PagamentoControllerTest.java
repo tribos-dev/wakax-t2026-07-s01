@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.PagamentoController;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
@@ -108,5 +109,16 @@ class PagamentoControllerTest {
 
     assertEquals(reprocessarResponse, response);
     verify(pagamentoService).reprocessaPagamento(pagamentoId);
+  }
+
+  @Test
+  void deveEstornarPagamentoComSucesso() {
+    EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
+    when(pagamentoService.estornoPagamento(pagamentoId, request)).thenReturn(pagamentoResponse);
+
+    PagamentoResponse response = pagamentoController.estornoPagamento(pagamentoId, request);
+
+    assertEquals(pagamentoResponse, response);
+    verify(pagamentoService).estornoPagamento(pagamentoId, request);
   }
 }
