@@ -6,7 +6,8 @@ public enum StatusPedido {
   ENVIADO,
   ENTREGUE,
   CANCELADO,
-  AGUARDANDO_PAGAMENTO;
+  AGUARDANDO_PAGAMENTO,
+  ESTORNADO;
 
   public boolean podeTransicionarPara(StatusPedido novoStatus) {
     if (novoStatus == null) {
@@ -19,7 +20,7 @@ public enum StatusPedido {
       case AGUARDANDO_PAGAMENTO:
         return novoStatus == PAGO || novoStatus == CANCELADO;
       case PAGO:
-        return novoStatus == ENVIADO || novoStatus == CANCELADO;
+        return novoStatus == ENVIADO || novoStatus == CANCELADO || novoStatus == ESTORNADO;
       case ENVIADO:
         return novoStatus == ENTREGUE;
       case ENTREGUE:

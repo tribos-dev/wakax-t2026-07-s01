@@ -148,4 +148,8 @@ public class Pedido {
             .cep(enderecoNovo.getCep())
             .build();
   }
+
+  public void estornar() {
+    atualizarStatus(StatusPedido.ESTORNADO);
+  }
 }
