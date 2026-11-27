@@ -153,4 +153,16 @@ public class Produto {
       setter.accept(valor);
     }
   }
+
+  public void inativaProduto() {
+    validaAtivo();
+    this.status = StatusProduto.INATIVO;
+    this.dataAlteracaoStatus = LocalDateTime.now();
+  }
+
+  public void validaAtivo() {
+    if (this.status == StatusProduto.INATIVO) {
+      throw new APIException(HttpStatus.NOT_FOUND, ErrorCode.PRODUTO_INATIVO);
+    }
+  }
 }

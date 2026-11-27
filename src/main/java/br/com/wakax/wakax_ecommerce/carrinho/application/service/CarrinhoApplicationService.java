@@ -43,7 +43,7 @@ public class CarrinhoApplicationService implements CarrinhoService {
     Cliente cliente = clienteRepository.buscaClientePorId(idCliente);
     Carrinho carrinho = buscaCarrinhoAtivoDoClienteOuCria(cliente);
     Produto produto = produtoRepository.buscaProdutoPorId(itemCarrinhoRequest.getIdProduto());
-
+    produto.validaAtivo();
     ProcessadorEstoque processadorEstoque = processadorEstoqueFactory.obterProcessador();
     processadorEstoque.aoAdicionarItem(produto, itemCarrinhoRequest.getQuantidade());
 

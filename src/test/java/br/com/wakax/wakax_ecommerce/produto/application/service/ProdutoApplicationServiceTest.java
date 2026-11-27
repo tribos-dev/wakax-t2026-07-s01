@@ -720,4 +720,37 @@ class ProdutoApplicationServiceTest {
 
     verifyNoInteractions(produtoRepository);
   }
+
+  @Test
+  void deveInativarProdutoComSucesso() {
+    UUID idProduto = UUID.randomUUID();
+    Produto produto = Produto.builder().id(idProduto).status(StatusProduto.ATIVO).build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    produtoApplicationService.removerProduto(idProduto);
+    assertEquals(StatusProduto.INATIVO, produto.getStatus());
+    verify(produtoRepository).salva(produto);
+  }
+
+  @Test
+  void deveLancarExcecaoAoTentarRemoverProdutoInativo() {
+    UUID idProduto = UUID.randomUUID();
+    Produto produto = Produto.builder().id(idProduto).status(StatusProduto.INATIVO).build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    APIException exception =
+        assertThrows(APIException.class, () -> produtoApplicationService.removerProduto(idProduto));
+    assertEquals(ErrorCode.PRODUTO_INATIVO, exception.getErrorCode());
+    verify(produtoRepository, never()).salva(any(Produto.class));
+  }
+
+  @Test
+  void deveLancarExecaoAoLancarProdutoInativoPorId() {
+    UUID idProduto = UUID.randomUUID();
+    Produto produto = Produto.builder().id(idProduto).status(StatusProduto.INATIVO).build();
+    when(produtoRepository.buscaProdutoPorId(idProduto)).thenReturn(produto);
+    APIException exception =
+        assertThrows(
+            APIException.class, () -> produtoApplicationService.buscaProdutoPorId(idProduto));
+    assertEquals(ErrorCode.PRODUTO_INATIVO, exception.getErrorCode());
+    verify(produtoRepository, times(1)).buscaProdutoPorId(idProduto);
+  }
 }

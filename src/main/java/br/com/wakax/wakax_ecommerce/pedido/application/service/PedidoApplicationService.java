@@ -45,6 +45,8 @@ public class PedidoApplicationService implements PedidoService {
       throw APIException.build(HttpStatus.CONFLICT, "Cliente inativo não pode realizar pedidos.");
     }
 
+    carrinho.validaItemsProdutosAtivos();
+
     Pedido pedido = new Pedido(request, carrinho);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PedidoApplicationService - cadastraPedido");

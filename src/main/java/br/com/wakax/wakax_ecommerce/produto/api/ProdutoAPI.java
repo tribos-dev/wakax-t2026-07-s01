@@ -43,4 +43,8 @@ public interface ProdutoAPI {
   @ResponseStatus(HttpStatus.NO_CONTENT)
   void atualizaStatus(
       @PathVariable UUID idProduto, @Valid @RequestBody StatusProdutoRequest request);
+
+  @DeleteMapping("/{idProduto}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  void removeProduto(@PathVariable UUID idProduto);
 }

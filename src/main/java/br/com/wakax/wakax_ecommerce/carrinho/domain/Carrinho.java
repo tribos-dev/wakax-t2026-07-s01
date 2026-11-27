@@ -85,4 +85,8 @@ public class Carrinho {
         .map(ItemCarrinho::getValorTotalDoItem)
         .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
+
+  public void validaItemsProdutosAtivos() {
+    this.itensCarrinho.forEach(item -> item.getProduto().validaAtivo());
+  }
 }
