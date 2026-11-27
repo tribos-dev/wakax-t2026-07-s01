@@ -40,6 +40,7 @@ import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
@@ -54,6 +55,7 @@ class PagamentoApplicationServiceTest {
   @Mock private ProcessadorPagamento processadorPagamento;
   @Mock private PagamentoImediatoStrategy pagamentoImediatoStrategy;
   @Mock private PagamentoAguardandoStrategy pagamentoAguardandoStrategy;
+  @Mock private PedidoService pedidoService;
 
   @InjectMocks private PagamentoApplicationService pagamentoApplicationService;
   @InjectMocks private ProcessadorPagamentoFactory realProcessadorFactory;
@@ -596,15 +598,17 @@ class PagamentoApplicationServiceTest {
 
     // Assert
     assertNotNull(response);
-    assertEquals(StatusPagamento.ESTORNO, response.getStatusPagamento());
-    assertEquals(StatusPedido.ESTORNADO, pedido.getStatus());
+    assertEquals(StatusPagamento.ESTORNADO, response.getStatusPagamento());
+    assertEquals("Cliente desistiu da compra", response.getMotivoEstorno());
+    assertNotNull(response.getDataEstorno());
     assertEquals("Cliente desistiu da compra", pagamento.getMotivoEstorno());
     assertNotNull(pagamento.getDataEstorno());
 
     // Verify
     verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
     verify(pagamentoRepository).salva(pagamento);
-    verify(pedidoRepository).salva(pedido);
+    verify(pedidoService).atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
   }
 
   @ParameterizedTest
@@ -628,7 +632,7 @@ class PagamentoApplicationServiceTest {
     assertNull(pagamento.getDataEstorno());
     assertEquals(StatusPedido.CRIADO, pedido.getStatus());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
-    verify(pedidoRepository, never()).salva(any(Pedido.class));
+    verify(pedidoService, never()).atualizarStatus(any(), any());
   }
 
   @Test
@@ -647,7 +651,7 @@ class PagamentoApplicationServiceTest {
     assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
     assertEquals(ErrorCode.PAGAMENTO_NAO_ENCONTRADO, exception.getErrorCode());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
-    verify(pedidoRepository, never()).salva(any(Pedido.class));
+    verify(pedidoService, never()).atualizarStatus(any(), any());
   }
 
   @Test
@@ -655,6 +659,14 @@ class PagamentoApplicationServiceTest {
     pagamento.confirmarPagamento();
     pedido.setStatus(StatusPedido.ENVIADO);
     when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    doThrow(
+            new APIException(
+                HttpStatus.CONFLICT,
+                ErrorCode.PEDIDO_TRANSICAO_INVALIDA,
+                StatusPedido.ENVIADO,
+                StatusPedido.ESTORNADO))
+        .when(pedidoService)
+        .atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
     EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
 
     APIException exception =
@@ -664,7 +676,7 @@ class PagamentoApplicationServiceTest {
 
     assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
     assertEquals(ErrorCode.PEDIDO_TRANSICAO_INVALIDA, exception.getErrorCode());
+    verify(pedidoService).atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
-    verify(pedidoRepository, never()).salva(any(Pedido.class));
   }
 }

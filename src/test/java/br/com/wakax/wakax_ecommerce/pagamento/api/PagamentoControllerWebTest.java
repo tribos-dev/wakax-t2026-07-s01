@@ -175,7 +175,8 @@ class PagamentoControllerWebTest {
   void deveEstornarPagamentoViaPost() throws Exception {
     Pagamento estornado =
         PagamentoDataHelper.criaPagamentoValido(PagamentoDataHelper.criaPedidoValido());
-    estornado.setStatusPagamento(StatusPagamento.ESTORNO);
+    estornado.confirmarPagamento();
+    estornado.estornoPagamento("Cliente desistiu da compra");
     when(pagamentoService.estornoPagamento(eq(idPagamento), any(EstornoPagamentoRequest.class)))
         .thenReturn(new PagamentoResponse(estornado));
 
@@ -186,6 +187,8 @@ class PagamentoControllerWebTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"motivo\": \"Cliente desistiu da compra\"}"))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.statusPagamento").value("ESTORNO"));
+        .andExpect(jsonPath("$.statusPagamento").value("ESTORNADO"))
+        .andExpect(jsonPath("$.motivoEstorno").value("Cliente desistiu da compra"))
+        .andExpect(jsonPath("$.dataEstorno").exists());
   }
 }
