@@ -80,7 +80,7 @@ public class Pagamento {
       throw new APIException(
           HttpStatus.CONFLICT, ErrorCode.PAGAMENTO_NAO_ELEGIVEL_ESTORNO, this.statusPagamento);
     }
-    this.statusPagamento = StatusPagamento.ESTORNO;
+    this.statusPagamento = StatusPagamento.ESTORNADO;
     this.motivoEstorno = motivo;
     this.dataEstorno = LocalDateTime.now();
   }

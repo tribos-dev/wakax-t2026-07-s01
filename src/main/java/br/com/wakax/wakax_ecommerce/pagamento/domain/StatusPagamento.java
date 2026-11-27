@@ -4,5 +4,5 @@ public enum StatusPagamento {
   AGUARDANDO,
   PAGO,
   FALHOU,
-  ESTORNO
+  ESTORNADO
 }
