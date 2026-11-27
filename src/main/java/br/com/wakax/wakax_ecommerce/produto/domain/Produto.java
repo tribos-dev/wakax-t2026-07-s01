@@ -162,7 +162,7 @@ public class Produto {
 
   public void validaAtivo() {
     if (this.status == StatusProduto.INATIVO) {
-      throw new APIException(HttpStatus.BAD_REQUEST, ErrorCode.PRODUTO_INATIVO);
+      throw new APIException(HttpStatus.NOT_FOUND, ErrorCode.PRODUTO_INATIVO);
     }
   }
 }
