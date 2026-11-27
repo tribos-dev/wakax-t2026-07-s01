@@ -48,6 +48,7 @@ public class ProdutoApplicationService implements ProdutoService {
   public ProdutoListResponse buscaProdutoPorId(UUID idProduto) {
     log.debug("[start] ProdutoApplicationService - buscaProdutoPorId");
     Produto produto = produtoRepository.buscaProdutoPorId(idProduto);
+    produto.validaAtivo();
     log.debug("[finish] ProdutoApplicationService - buscaProdutoPorId");
     return new ProdutoListResponse(produto);
   }
