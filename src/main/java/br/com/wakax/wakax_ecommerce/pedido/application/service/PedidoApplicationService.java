@@ -66,7 +66,7 @@ public class PedidoApplicationService implements PedidoService {
     Pedido pedido = pedidoRepository.buscaPedidoPorId(idPedido);
     pedido.atualizarStatus(novoStatus);
 
-    if (novoStatus == StatusPedido.CANCELADO) {
+    if (novoStatus == StatusPedido.CANCELADO || novoStatus == StatusPedido.ESTORNADO) {
       liberarEstoqueReservado(pedido);
     }
 

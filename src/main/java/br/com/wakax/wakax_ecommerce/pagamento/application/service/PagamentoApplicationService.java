@@ -24,7 +24,9 @@ import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -37,6 +39,7 @@ public class PagamentoApplicationService implements PagamentoService {
   private final PedidoRepository pedidoRepository;
   private final TentativaPagamentoRepository tentativaPagamentoRepository;
   private final ProcessadorPagamentoFactory processadorFactory;
+  private final PedidoService pedidoService;
 
   @Override
   @Transactional
@@ -206,10 +209,8 @@ public class PagamentoApplicationService implements PagamentoService {
     log.debug("[start] PagamentoApplicationService - estornoPagamento");
     Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
     pagamento.estornoPagamento(request.getMotivo());
-    Pedido pedido = pagamento.getPedido();
-    pedido.estornar();
+    pedidoService.atualizarStatus(pagamento.getPedido().getId(), StatusPedido.ESTORNADO);
     pagamentoRepository.salva(pagamento);
-    pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - estornoPagamento");
     return new PagamentoResponse(pagamento);
   }
