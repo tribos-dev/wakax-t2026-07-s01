@@ -3,9 +3,12 @@ package br.com.wakax.wakax_ecommerce.pedido.application.api;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.UUID;
@@ -19,6 +22,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.*;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.wakax.wakax_ecommerce.auth.credencial.application.service.CredencialService;
@@ -73,5 +77,39 @@ class PedidoControllerTest {
 
     assertEquals(StatusPedido.PAGO, filterCaptor.getValue().getStatus());
     assertEquals(pageableCaptor.getValue(), pageable);
+  }
+
+  @Test
+  @DisplayName("Não permite definir o status ESTORNADO pela rota de atualização de status")
+  void deveRetornarBadRequestAoTentarEstornarPedidoManualmente() throws Exception {
+    UUID idPedido = UUID.randomUUID();
+
+    mockMvc
+        .perform(
+            patch("/pedido/{idPedido}/status", idPedido)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\": \"ESTORNADO\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(
+            jsonPath("$.message")
+                .value(
+                    "O status ESTORNADO não pode ser definido manualmente. Utilize o endpoint de estorno de pagamento."));
+
+    verify(pedidoService, never()).atualizarStatus(any(), any());
+  }
+
+  @Test
+  @DisplayName("Repassa ao service os status permitidos na rota de atualização de status")
+  void deveAtualizarStatusQuandoStatusPermitido() throws Exception {
+    UUID idPedido = UUID.randomUUID();
+
+    mockMvc
+        .perform(
+            patch("/pedido/{idPedido}/status", idPedido)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\": \"CANCELADO\"}"))
+        .andExpect(status().isNoContent());
+
+    verify(pedidoService).atualizarStatus(idPedido, StatusPedido.CANCELADO);
   }
 }

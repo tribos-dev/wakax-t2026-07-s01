@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
@@ -23,7 +24,9 @@ import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -36,6 +39,7 @@ public class PagamentoApplicationService implements PagamentoService {
   private final PedidoRepository pedidoRepository;
   private final TentativaPagamentoRepository tentativaPagamentoRepository;
   private final ProcessadorPagamentoFactory processadorFactory;
+  private final PedidoService pedidoService;
 
   @Override
   @Transactional
@@ -196,6 +200,18 @@ public class PagamentoApplicationService implements PagamentoService {
     pagamentoRepository.salva(pagamento);
     pedidoRepository.salva(pedido);
     log.debug("[finish] PagamentoApplicationService - cancelaPagamento");
+    return new PagamentoResponse(pagamento);
+  }
+
+  @Override
+  @Transactional
+  public PagamentoResponse estornoPagamento(UUID idPagamento, EstornoPagamentoRequest request) {
+    log.debug("[start] PagamentoApplicationService - estornoPagamento");
+    Pagamento pagamento = pagamentoRepository.buscaPagamentoPorId(idPagamento);
+    pagamento.estornoPagamento(request.getMotivo());
+    pedidoService.atualizarStatus(pagamento.getPedido().getId(), StatusPedido.ESTORNADO);
+    pagamentoRepository.salva(pagamento);
+    log.debug("[finish] PagamentoApplicationService - estornoPagamento");
     return new PagamentoResponse(pagamento);
   }
 }

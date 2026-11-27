@@ -2,10 +2,13 @@ package br.com.wakax.wakax_ecommerce.pagamento.api;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +26,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 import br.com.wakax.wakax_ecommerce.auth.credencial.application.service.CredencialService;
@@ -33,6 +37,8 @@ import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.handler.MessageUtil;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.PagamentoController;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.ReprocessarPagamentoResponse;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoDataHelper;
 import br.com.wakax.wakax_ecommerce.pagamento.application.service.PagamentoService;
@@ -127,5 +133,62 @@ class PagamentoControllerWebTest {
 
     assertEquals(HttpStatus.FORBIDDEN, exception.getStatusException());
     verify(pagamentoService, never()).reprocessaPagamento(idPagamento);
+  }
+
+  @Test
+  void deveRetornarBadRequestQuandoMotivoDoEstornoEstaEmBranco() throws Exception {
+    mockMvc
+        .perform(
+            post("/pagamento/{idPagamento}/estorno", idPagamento)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"motivo\": \"\"}"))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.motivo").value("Informe o motivo do estorno."));
+
+    verify(pagamentoService, never()).estornoPagamento(any(), any());
+  }
+
+  @Test
+  void deveRetornarConflictQuandoPagamentoNaoEstaPagoParaEstornar() throws Exception {
+    when(pagamentoService.estornoPagamento(eq(idPagamento), any(EstornoPagamentoRequest.class)))
+        .thenThrow(
+            new APIException(
+                HttpStatus.CONFLICT,
+                ErrorCode.PAGAMENTO_NAO_ELEGIVEL_ESTORNO,
+                StatusPagamento.AGUARDANDO));
+
+    mockMvc
+        .perform(
+            post("/pagamento/{idPagamento}/estorno", idPagamento)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"motivo\": \"Cliente desistiu da compra\"}"))
+        .andExpect(status().isConflict())
+        .andExpect(
+            jsonPath("$.message")
+                .value(
+                    "Estorno disponível apenas para pagamentos com status PAGO. Status atual: AGUARDANDO"));
+  }
+
+  @Test
+  void deveEstornarPagamentoViaPost() throws Exception {
+    Pagamento estornado =
+        PagamentoDataHelper.criaPagamentoValido(PagamentoDataHelper.criaPedidoValido());
+    estornado.confirmarPagamento();
+    estornado.estornoPagamento("Cliente desistiu da compra");
+    when(pagamentoService.estornoPagamento(eq(idPagamento), any(EstornoPagamentoRequest.class)))
+        .thenReturn(new PagamentoResponse(estornado));
+
+    mockMvc
+        .perform(
+            post("/pagamento/{idPagamento}/estorno", idPagamento)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + TOKEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"motivo\": \"Cliente desistiu da compra\"}"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.statusPagamento").value("ESTORNADO"))
+        .andExpect(jsonPath("$.motivoEstorno").value("Cliente desistiu da compra"))
+        .andExpect(jsonPath("$.dataEstorno").exists());
   }
 }

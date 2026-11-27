@@ -43,7 +43,9 @@ public enum ErrorCode {
   VALIDACAO_NOME_TAMANHO("validacao.fornecedor.nome.tamanho"),
   VALIDACAO_FORNECEDOR_EMAIL_TAMANHO("validacao.fornecedor.email.tamanho"),
   VALIDACAO_FORNECEDOR_EMAIL_INVALIDO("validacao.fornecedor.email.invalido"),
-  VALIDACAO_FORNECEDOR_TELEFONE_TAMANHO("validacao.fornecedor.telefone.tamanho");
+  VALIDACAO_FORNECEDOR_TELEFONE_TAMANHO("validacao.fornecedor.telefone.tamanho"),
+  PEDIDO_STATUS_NAO_PERMITIDO_MANUALMENTE("pedido.status.nao.permitido.manualmente"),
+  PAGAMENTO_NAO_ELEGIVEL_ESTORNO("pagamento.nao.elegivel.estorno");
 
   private final String code;
 

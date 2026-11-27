@@ -12,6 +12,8 @@ import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -25,6 +27,7 @@ import org.springframework.http.HttpStatus;
 import br.com.wakax.wakax_ecommerce.handler.APIException;
 import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.*;
 import br.com.wakax.wakax_ecommerce.pagamento.application.factory.ProcessadorPagamentoFactory;
@@ -37,6 +40,7 @@ import br.com.wakax.wakax_ecommerce.pagamento.domain.Pagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.StatusPagamento;
 import br.com.wakax.wakax_ecommerce.pagamento.domain.TentativaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.application.repository.PedidoRepository;
+import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
 import br.com.wakax.wakax_ecommerce.pedido.domain.FormaPagamento;
 import br.com.wakax.wakax_ecommerce.pedido.domain.Pedido;
 import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
@@ -51,6 +55,7 @@ class PagamentoApplicationServiceTest {
   @Mock private ProcessadorPagamento processadorPagamento;
   @Mock private PagamentoImediatoStrategy pagamentoImediatoStrategy;
   @Mock private PagamentoAguardandoStrategy pagamentoAguardandoStrategy;
+  @Mock private PedidoService pedidoService;
 
   @InjectMocks private PagamentoApplicationService pagamentoApplicationService;
   @InjectMocks private ProcessadorPagamentoFactory realProcessadorFactory;
@@ -578,5 +583,100 @@ class PagamentoApplicationServiceTest {
     assertEquals(ErrorCode.PAGAMENTO_JA_PROCESSADO, exception.getErrorCode());
     verify(pagamentoRepository, never()).salva(any(Pagamento.class));
     verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
+
+  @Test
+  void deveEstornarPagamentoComSucesso() {
+    // Arrange
+    pagamento.confirmarPagamento();
+    pedido.marcarComoPago();
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
+
+    // Act
+    PagamentoResponse response = pagamentoApplicationService.estornoPagamento(pagamentoId, request);
+
+    // Assert
+    assertNotNull(response);
+    assertEquals(StatusPagamento.ESTORNADO, response.getStatusPagamento());
+    assertEquals("Cliente desistiu da compra", response.getMotivoEstorno());
+    assertNotNull(response.getDataEstorno());
+    assertEquals("Cliente desistiu da compra", pagamento.getMotivoEstorno());
+    assertNotNull(pagamento.getDataEstorno());
+
+    // Verify
+    verify(pagamentoRepository).buscaPagamentoPorId(pagamentoId);
+    verify(pagamentoRepository).salva(pagamento);
+    verify(pedidoService).atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
+    verify(pedidoRepository, never()).salva(any(Pedido.class));
+  }
+
+  @ParameterizedTest
+  @EnumSource(value = StatusPagamento.class, names = "PAGO", mode = EnumSource.Mode.EXCLUDE)
+  void deveLancarExcecaoQuandoPagamentoNaoEstaPagoParaEstornar(StatusPagamento status) {
+    // Arrange
+    pagamento.setStatusPagamento(status);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
+
+    // Act & Assert
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.estornoPagamento(pagamentoId, request));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_NAO_ELEGIVEL_ESTORNO, exception.getErrorCode());
+    assertEquals(status, pagamento.getStatusPagamento());
+    assertNull(pagamento.getMotivoEstorno());
+    assertNull(pagamento.getDataEstorno());
+    assertEquals(StatusPedido.CRIADO, pedido.getStatus());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+    verify(pedidoService, never()).atualizarStatus(any(), any());
+  }
+
+  @Test
+  void devePropagarErroQuandoPagamentoNaoExisteAoEstornar() {
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId))
+        .thenThrow(
+            new APIException(
+                HttpStatus.NOT_FOUND, ErrorCode.PAGAMENTO_NAO_ENCONTRADO, pagamentoId));
+    EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.estornoPagamento(pagamentoId, request));
+
+    assertEquals(HttpStatus.NOT_FOUND, exception.getStatusException());
+    assertEquals(ErrorCode.PAGAMENTO_NAO_ENCONTRADO, exception.getErrorCode());
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
+    verify(pedidoService, never()).atualizarStatus(any(), any());
+  }
+
+  @Test
+  void deveRejeitarEstornoQuandoPedidoJaFoiEnviado() {
+    pagamento.confirmarPagamento();
+    pedido.setStatus(StatusPedido.ENVIADO);
+    when(pagamentoRepository.buscaPagamentoPorId(pagamentoId)).thenReturn(pagamento);
+    doThrow(
+            new APIException(
+                HttpStatus.CONFLICT,
+                ErrorCode.PEDIDO_TRANSICAO_INVALIDA,
+                StatusPedido.ENVIADO,
+                StatusPedido.ESTORNADO))
+        .when(pedidoService)
+        .atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
+    EstornoPagamentoRequest request = PagamentoDataHelper.criaEstornoPagamentoRequestValido();
+
+    APIException exception =
+        assertThrows(
+            APIException.class,
+            () -> pagamentoApplicationService.estornoPagamento(pagamentoId, request));
+
+    assertEquals(HttpStatus.CONFLICT, exception.getStatusException());
+    assertEquals(ErrorCode.PEDIDO_TRANSICAO_INVALIDA, exception.getErrorCode());
+    verify(pedidoService).atualizarStatus(pedido.getId(), StatusPedido.ESTORNADO);
+    verify(pagamentoRepository, never()).salva(any(Pagamento.class));
   }
 }

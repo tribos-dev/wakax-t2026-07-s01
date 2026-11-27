@@ -10,6 +10,7 @@ import java.util.UUID;
 
 import br.com.wakax.wakax_ecommerce.cliente.domain.Cliente;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.CancelaPagamentoRequest;
+import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.EstornoPagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.request.PagamentoRequest;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoProjection;
 import br.com.wakax.wakax_ecommerce.pagamento.application.api.response.PagamentoResumoResponse;
@@ -106,5 +107,9 @@ public final class PagamentoDataHelper {
 
   public static CancelaPagamentoRequest criaCancelaPagamentoRequestValido() {
     return CancelaPagamentoRequest.builder().motivo("Cliente desistiu da compra").build();
+  }
+
+  public static EstornoPagamentoRequest criaEstornoPagamentoRequestValido() {
+    return EstornoPagamentoRequest.builder().motivo("Cliente desistiu da compra").build();
   }
 }

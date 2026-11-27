@@ -20,8 +20,13 @@ public class PagamentoResponse {
   @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private final String motivoCancelamento;
 
-  private final LocalDateTime dataPagamento;
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
+  private final String motivoEstorno;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
+  private final LocalDateTime dataEstorno;
+
+  private final LocalDateTime dataPagamento;
   private final BigDecimal valor;
   private final FormaPagamento formaPagamento;
 
@@ -30,6 +35,8 @@ public class PagamentoResponse {
     this.pedidoId = pagamento.getPedido().getId();
     this.statusPagamento = pagamento.getStatusPagamento();
     this.motivoCancelamento = pagamento.getMotivoCancelamento();
+    this.motivoEstorno = pagamento.getMotivoEstorno();
+    this.dataEstorno = pagamento.getDataEstorno();
     this.dataPagamento = pagamento.getDataPagamento();
     this.valor = pagamento.getValor();
     this.formaPagamento = pagamento.getPedido().getFormaPagamento();

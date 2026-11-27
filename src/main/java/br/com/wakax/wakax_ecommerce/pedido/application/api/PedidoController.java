@@ -6,8 +6,11 @@ import javax.validation.Valid;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.wakax.wakax_ecommerce.handler.APIException;
+import br.com.wakax.wakax_ecommerce.handler.ErrorCode;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.AtualizarStatusPedidoRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.EnderecoUpdateRequest;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoFilterRequest;
@@ -15,6 +18,7 @@ import br.com.wakax.wakax_ecommerce.pedido.application.api.request.PedidoRequest
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoListResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.api.response.PedidoResponse;
 import br.com.wakax.wakax_ecommerce.pedido.application.service.PedidoService;
+import br.com.wakax.wakax_ecommerce.pedido.domain.StatusPedido;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
@@ -43,6 +47,12 @@ public class PedidoController implements PedidoAPI {
   @Override
   public void atualizarStatus(UUID idPedido, AtualizarStatusPedidoRequest request) {
     log.debug("[start] PedidoController - atualizarStatus");
+    if (request.getStatus() == StatusPedido.ESTORNADO) {
+      throw new APIException(
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.PEDIDO_STATUS_NAO_PERMITIDO_MANUALMENTE,
+          request.getStatus());
+    }
     pedidoService.atualizarStatus(idPedido, request.getStatus());
     log.debug("[finish] PedidoController - atualizarStatus");
   }
